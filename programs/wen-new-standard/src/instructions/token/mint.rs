@@ -19,7 +19,6 @@ pub struct MintArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
-    pub nonce: Pubkey,
 }
 
 pub const MINT_EXTENSIONS: [ExtensionType; 1] =
@@ -37,8 +36,6 @@ pub struct MintNft<'info> {
     pub receiver: UncheckedAccount<'info>,
     #[account(
         init,
-        seeds = [args.nonce.as_ref()],
-        bump,
         payer = payer,
         mint::token_program = token_program,
         mint::decimals = 0,
