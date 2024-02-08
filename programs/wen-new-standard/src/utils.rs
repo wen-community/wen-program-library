@@ -1,8 +1,8 @@
 use anchor_lang::{
     prelude::Result,
     solana_program::{
-        account_info::AccountInfo, program::invoke, rent::Rent,
-        system_instruction::transfer, sysvar::Sysvar,
+        account_info::AccountInfo, program::invoke, rent::Rent, system_instruction::transfer,
+        sysvar::Sysvar,
     },
     Lamports,
 };
