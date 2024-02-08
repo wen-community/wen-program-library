@@ -18,8 +18,8 @@ default = []
 # action to merge Anchor support for these tools, we have added the 
 # compiled Anchor binaries to the root of this directory.
 [dependencies]
-anchor-lang = { path = "~/anchor/lang" }
-anchor-spl = { path = "~/anchor/spl", features = ["token_2022_extensions", "token_2022"] }
+anchor-lang = { path = "../../../../bridgesplit/bridgesplit/anchor/lang", features = ["interface-instructions", "init-if-needed"] }
+anchor-spl = { path = "../../../../bridgesplit/bridgesplit/anchor/spl", features = ["token_2022_extensions", "token_2022"] }
 
 [dev-dependencies.cargo-husky]
 version = "1"

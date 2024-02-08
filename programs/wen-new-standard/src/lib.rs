@@ -1,8 +1,10 @@
 use anchor_lang::prelude::*;
 
 pub mod instructions;
+pub mod utils;
 
 pub use instructions::*;
+pub use utils::*;
 
 declare_id!("8e9NZefQowF1ViN4eiz8r3wgKw9xLESGkkQEZJWox49o");
 
@@ -14,11 +16,11 @@ pub mod wen_new_standard {
         Token mint instructions
     */
 
-    /// Mint new NFT
-    pub fn mint(
-        ctx: Context<MintNft>,
-        args: MintArgs,
+    /// create mint
+    pub fn create_mint_account(
+        ctx: Context<CreateMintAccount>,
+        args: CreateMintAccountArgs,
     ) -> Result<()> {
-        instructions::token::mint::handler(ctx, args)
+        instructions::mint::create::handler(ctx, args)
     }
 }

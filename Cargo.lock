@@ -195,6 +195,7 @@ dependencies = [
  "spl-token-2022",
  "spl-token-group-interface",
  "spl-token-metadata-interface",
+ "toml_edit 0.21.0",
 ]
 
 [[package]]

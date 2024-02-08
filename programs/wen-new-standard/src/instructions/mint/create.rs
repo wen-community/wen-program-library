@@ -1,51 +1,56 @@
-use anchor_lang::{
-    prelude::*,
-    solana_program::{entrypoint::ProgramResult, program::invoke, system_instruction::transfer},
-};
+use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
+
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
         mint_to, set_authority,
         spl_token_2022::{extension::ExtensionType, instruction::AuthorityType},
-        token_metadata_initialize,
-        MetadataPointerInitializeArgs, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
-        TokenMetadataInitialize,
-        TokenMetadataInitializeArgs,
+        token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
+        TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
 
+use crate::update_mint_lamports_to_minimum_balance;
+
 #[derive(AnchorDeserialize, AnchorSerialize)]
-pub struct MintArgs {
+pub struct CreateMintAccountArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
 }
 
-pub const MINT_EXTENSIONS: [ExtensionType; 1] =
-    [ExtensionType::MetadataPointer];
+pub const MINT_EXTENSIONS: [ExtensionType; 4] = [
+    ExtensionType::MetadataPointer,
+    ExtensionType::GroupMemberPointer,
+    ExtensionType::TransferHook,
+    ExtensionType::MintCloseAuthority,
+];
 
 #[derive(Accounts)]
-#[instruction(args: MintArgs)]
-pub struct MintNft<'info> {
+#[instruction(args: CreateMintAccountArgs)]
+pub struct CreateMintAccount<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(mut)]
+    /// CHECK: can be any account
     pub authority: Signer<'info>,
     #[account()]
     /// CHECK: can be any account
     pub receiver: UncheckedAccount<'info>,
     #[account(
         init,
+        signer,
         payer = payer,
         mint::token_program = token_program,
         mint::decimals = 0,
         mint::authority = authority,
         mint::freeze_authority = authority,
         mint::extensions = MINT_EXTENSIONS.to_vec(),
-        mint::metadata_pointer_data = MetadataPointerInitializeArgs {
-            authority: Some(authority.key()),
-            metadata_address: Some(mint.key())
-        }
+        extensions::metadata_pointer::authority = authority.key(),
+        extensions::metadata_pointer::metadata_address = mint.key(),
+        extensions::group_member_pointer::authority = authority.key(),
+        extensions::transfer_hook::authority = authority.key(),
+        extensions::close_authority::authority = receiver.key(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
@@ -53,7 +58,7 @@ pub struct MintNft<'info> {
         payer = payer,
         associated_token::token_program = token_program,
         associated_token::mint = mint,
-        associated_token::authority = authority,
+        associated_token::authority = receiver,
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     pub system_program: Program<'info, System>,
@@ -62,7 +67,7 @@ pub struct MintNft<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-impl<'info> MintNft<'info> {
+impl<'info> CreateMintAccount<'info> {
     fn initialize_token_metadata(&self, args: TokenMetadataInitializeArgs) -> ProgramResult {
         let cpi_accounts = TokenMetadataInitialize {
             token_program_id: self.token_program.to_account_info(),
@@ -74,18 +79,6 @@ impl<'info> MintNft<'info> {
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
         token_metadata_initialize(cpi_ctx, args)?;
         Ok(())
-    }
-
-    fn fund_nft_mint(&self, amount: u64) -> Result<()> {
-        invoke(
-            &transfer(self.payer.key, &self.mint.key(), amount),
-            &[
-                self.payer.to_account_info(),
-                self.mint.to_account_info(),
-                self.system_program.to_account_info(),
-            ],
-        )
-        .map_err(Into::into)
     }
 
     fn mint_to_receiver(&self) -> Result<()> {
@@ -110,12 +103,8 @@ impl<'info> MintNft<'info> {
     }
 }
 
-pub fn handler(
-    ctx: Context<MintNft>,
-    args: MintArgs,
-) -> Result<()> {
-
-    // Initialize token metadata in Token 2022 extension.
+pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
+    // initialize token metadata
     ctx.accounts
         .initialize_token_metadata(TokenMetadataInitializeArgs {
             name: args.name,
@@ -123,18 +112,18 @@ pub fn handler(
             uri: args.uri,
         })?;
 
-
-    // Payer funds mint account
-    let lamports = Rent::get()?.minimum_balance(ctx.accounts.mint.to_account_info().data_len())
-        - ctx.accounts.mint.get_lamports();
-
-    ctx.accounts.fund_nft_mint(lamports)?;
-
-    // Mint NFT to receiver
+    // mint to receiver
     ctx.accounts.mint_to_receiver()?;
 
-    // Restrict ability to mint
+    // remove mint authority
     ctx.accounts.remove_mint_authority()?;
+
+    // transfer minimum rent to mint account
+    update_mint_lamports_to_minimum_balance(
+        ctx.accounts.mint.to_account_info(),
+        ctx.accounts.payer.to_account_info(),
+        ctx.accounts.system_program.to_account_info(),
+    )?;
 
     Ok(())
 }

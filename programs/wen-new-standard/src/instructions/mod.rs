@@ -1,3 +1,3 @@
-pub mod token;
+pub mod mint;
 
-pub use token::*;
+pub use mint::*;
