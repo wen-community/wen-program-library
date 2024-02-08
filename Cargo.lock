@@ -2445,6 +2445,7 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "cargo-husky",
+ "spl-pod",
 ]
 
 [[package]]
