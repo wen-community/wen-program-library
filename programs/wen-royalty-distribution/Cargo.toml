@@ -15,8 +15,8 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { path = "../../../../bridgesplit/bridgesplit/anchor/lang", features = ["interface-instructions"] }
-anchor-spl = { path = "../../../../bridgesplit/bridgesplit/anchor/spl", features = ["token_2022_extensions", "token_2022"] }
+anchor-lang = { path = "../../../anchor/lang", features = ["interface-instructions"] }
+anchor-spl = { path = "../../../anchor/spl", features = ["token_2022_extensions", "token_2022"] }
 spl-transfer-hook-interface = { version = "0.5.0" } 
 spl-tlv-account-resolution = "0.4.0"
 spl-pod = "0.1.0"
