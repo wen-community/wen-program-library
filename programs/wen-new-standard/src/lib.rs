@@ -52,4 +52,23 @@ pub mod wen_new_standard {
     pub fn add_group_to_mint(ctx: Context<AddGroup>) -> Result<()> {
         instructions::mint::group::add::handler(ctx)
     }
+
+    /// add royalties to mint
+    pub fn add_royalties_to_mint(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()> {
+        instructions::mint::royalties::add::handler(ctx, args)
+    }
+
+    /*
+        Royalty distribution + enforcement instructions
+    */
+    /// validate transfer
+    #[interface(spl_transfer_hook_interface::execute)]
+    pub fn execute(_ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
+        Ok(())
+    }
+
+    /// approve transfer
+    pub fn approve(ctx: Context<ApproveTransfer>, amount: u64) -> Result<()> {
+        instructions::royalty::approve::handler(ctx, amount)
+    }
 }
