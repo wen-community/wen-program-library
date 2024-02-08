@@ -29,6 +29,14 @@ pub mod wen_new_standard {
         instructions::group::create::handler(ctx, args)
     }
 
+    /// update group
+    pub fn update_group_account(
+        ctx: Context<UpdateGroupAccount>,
+        args: UpdateGroupAccountArgs,
+    ) -> Result<()> {
+        instructions::group::update::handler(ctx, args)
+    }
+
     /*
         Token mint instructions
     */
