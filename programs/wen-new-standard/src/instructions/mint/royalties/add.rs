@@ -106,8 +106,8 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
     // add creators and their respective shares to metadata
     for creator in args.creators {
         let total_share_res = total_share.checked_add(creator.share);
-        if total_share_res.is_some() {
-            total_share = total_share_res.unwrap();
+        if let Some(unwraped_shares) = total_share_res {
+            total_share = unwraped_shares;
         } else {
             return Err(MetadataErrors::CreatorShareInvalid.into());
         }
