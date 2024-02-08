@@ -10,7 +10,7 @@ pub use instructions::*;
 pub use state::*;
 pub use utils::*;
 
-declare_id!("8fZkX7UXQ8iGes5evhScXjrGfaVgJc76QZiQVWBtLyhc");
+declare_id!("diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay");
 
 #[program]
 pub mod wen_royalty_distribution {
