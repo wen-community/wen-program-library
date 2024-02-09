@@ -105,12 +105,9 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
     let mut total_share: u8 = 0;
     // add creators and their respective shares to metadata
     for creator in args.creators {
-        let total_share_res = total_share.checked_add(creator.share);
-        if let Some(unwraped_shares) = total_share_res {
-            total_share = unwraped_shares;
-        } else {
-            return Err(MetadataErrors::CreatorShareInvalid.into());
-        }
+        total_share = total_share
+            .checked_add(creator.share)
+            .ok_or(MetadataErrors::CreatorShareInvalid)?;
         ctx.accounts
             .update_token_metadata_field(Field::Key(creator.address), creator.share.to_string())?;
     }
