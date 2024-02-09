@@ -1,5 +1,5 @@
 export type WenNewStandard = {
-  "version": "0.0.0",
+  "version": "0.0.1",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -36,6 +36,11 @@ export type WenNewStandard = {
         {
           "name": "mintTokenAccount",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -143,6 +148,11 @@ export type WenNewStandard = {
         {
           "name": "mintTokenAccount",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -450,6 +460,16 @@ export type WenNewStandard = {
             "type": "u32"
           }
         ]
+      }
+    },
+    {
+      "name": "manager",
+      "docs": [
+        "Data struct for a `Manager`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {
@@ -612,7 +632,7 @@ export type WenNewStandard = {
 };
 
 export const IDL: WenNewStandard = {
-  "version": "0.0.0",
+  "version": "0.0.1",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -649,6 +669,11 @@ export const IDL: WenNewStandard = {
         {
           "name": "mintTokenAccount",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -756,6 +781,11 @@ export const IDL: WenNewStandard = {
         {
           "name": "mintTokenAccount",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1063,6 +1093,16 @@ export const IDL: WenNewStandard = {
             "type": "u32"
           }
         ]
+      }
+    },
+    {
+      "name": "manager",
+      "docs": [
+        "Data struct for a `Manager`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {

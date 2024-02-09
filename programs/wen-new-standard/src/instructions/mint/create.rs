@@ -10,7 +10,7 @@ use anchor_spl::{
     },
 };
 
-use crate::update_mint_lamports_to_minimum_balance;
+use crate::{update_mint_lamports_to_minimum_balance, Manager, MANAGER_SEED};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateMintAccountArgs {
@@ -61,6 +61,11 @@ pub struct CreateMintAccount<'info> {
         associated_token::authority = receiver,
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    #[account(
+        seeds = [MANAGER_SEED],
+        bump
+    )]
+    pub manager: Account<'info, Manager>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
     pub associated_token_program: Program<'info, AssociatedToken>,

@@ -1,5 +1,5 @@
 import { Provider } from "@coral-xyz/anchor";
-import { getATAAddressSync, getExtraMetasAccount, getGroupAccount, getMemberAccount, getMetadataProgram } from "./core";
+import { getATAAddressSync, getExtraMetasAccount, getGroupAccount, getManagerAccount, getMemberAccount, getMetadataProgram } from "./core";
 import { CreateNftArgs, Creator } from "./interfaces";
 import { PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "./constants";
@@ -9,6 +9,7 @@ export const buildMintNftIx = async (provider: Provider, args: CreateNftArgs, mi
     const metadataProgram = getMetadataProgram(provider);
 
     const mintPubkey = new PublicKey(args.mint);
+    const managerAccount = getManagerAccount();
     const authorityPubkey = new PublicKey(authority);
     const minterPubkey = new PublicKey(minter);
 
@@ -23,7 +24,8 @@ export const buildMintNftIx = async (provider: Provider, args: CreateNftArgs, mi
             systemProgram: SystemProgram.programId,
             rent: SYSVAR_RENT_PUBKEY,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            tokenProgram: TOKEN_PROGRAM_ID
+            tokenProgram: TOKEN_PROGRAM_ID,
+            manager: managerAccount
         })
         .instruction();
     return ix;
