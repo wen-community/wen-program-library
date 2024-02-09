@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.0.1",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -363,11 +363,6 @@
         {
           "name": "distribution",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
           "isSigner": false
         },
         {

@@ -55,7 +55,6 @@ pub struct ApproveTransfer<'info> {
     /// CHECK: cpi checks
     #[account(mut)]
     pub distribution: UncheckedAccount<'info>,
-    pub clock: Sysvar<'info, Clock>,
     pub system_program: Program<'info, System>,
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,
     pub token_program: Program<'info, Token2022>,
@@ -92,7 +91,9 @@ pub fn handler(ctx: Context<ApproveTransfer>, amount: u64) -> Result<()> {
     let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
-    ctx.accounts.approve_account.slot = ctx.accounts.clock.slot;
+    // Load clock and write slot
+    let clock = Clock::get()?;
+    ctx.accounts.approve_account.slot = clock.slot;
 
     // get royalty basis points from metadata Vec(String, String)
     let royalty_basis_points = metadata

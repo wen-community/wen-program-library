@@ -1,4 +1,4 @@
-import { PublicKey, SYSVAR_CLOCK_PUBKEY, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { TransferNftArgs } from "./interfaces";
 import { BN, Provider } from "@coral-xyz/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, createTransferCheckedWithTransferHookInstruction } from "@solana/spl-token";
@@ -37,8 +37,7 @@ export const buildApproveIx = async (provider: Provider, sender: string, mint: s
             payerAddress: senderTokenAccount,
             distribution: distributionAccount,
             distributionAddress: programTokenAccount,
-            distributionProgram: DISTRIBUTION_PROGRAM_ID,
-            clock: SYSVAR_CLOCK_PUBKEY
+            distributionProgram: DISTRIBUTION_PROGRAM_ID
         })
         .instruction();
 
