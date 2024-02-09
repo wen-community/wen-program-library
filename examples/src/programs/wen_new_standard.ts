@@ -376,11 +376,6 @@ export type WenNewStandard = {
           "isSigner": false
         },
         {
-          "name": "clock",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1006,11 +1001,6 @@ export const IDL: WenNewStandard = {
         {
           "name": "distribution",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "clock",
-          "isMut": false,
           "isSigner": false
         },
         {
