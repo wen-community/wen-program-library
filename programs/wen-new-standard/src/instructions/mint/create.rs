@@ -3,9 +3,9 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to, set_authority,
-        spl_token_2022::{extension::ExtensionType, instruction::AuthorityType},
-        token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
+        mint_to,
+        spl_token_2022::extension::ExtensionType,
+        token_metadata_initialize, Mint, MintTo, Token2022, TokenAccount,
         TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
@@ -96,16 +96,6 @@ impl<'info> CreateMintAccount<'info> {
         mint_to(cpi_accounts, 1)?;
         Ok(())
     }
-
-    fn remove_mint_authority(&self) -> Result<()> {
-        let cpi_accounts = SetAuthority {
-            current_authority: self.authority.to_account_info(),
-            account_or_mint: self.mint.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        set_authority(cpi_ctx, AuthorityType::MintTokens, None)?;
-        Ok(())
-    }
 }
 
 pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
@@ -120,8 +110,7 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;
 
-    // remove mint authority
-    ctx.accounts.remove_mint_authority()?;
+    // TODO: Once Token Extension program supports Group/Member accounts natively, should lock Mint Authority
 
     // transfer minimum rent to mint account
     update_mint_lamports_to_minimum_balance(
