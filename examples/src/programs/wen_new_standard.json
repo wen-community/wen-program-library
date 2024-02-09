@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0",
+  "version": "0.0.1",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -36,6 +36,11 @@
         {
           "name": "mintTokenAccount",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -143,6 +148,11 @@
         {
           "name": "mintTokenAccount",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "manager",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -450,6 +460,16 @@
             "type": "u32"
           }
         ]
+      }
+    },
+    {
+      "name": "Manager",
+      "docs": [
+        "Data struct for a `Manager`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
       }
     },
     {

@@ -74,3 +74,9 @@ export const getDistributionAccount = (collection: string) => {
 
     return distributionAccount;
 }
+
+export const getManagerAccount = () => {
+    const [managerAccount] = PublicKey.findProgramAddressSync([utils.bytes.utf8.encode("manager")], WNS_PROGRAM_ID);
+
+    return managerAccount;
+}
