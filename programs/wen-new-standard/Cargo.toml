@@ -1,6 +1,6 @@
 [package]
 name = "wen_new_standard"
-version = "0.0.1"
+version = "0.0.0"
 description = "An open and composable NFT standard on Solana."
 edition = "2021"
 
