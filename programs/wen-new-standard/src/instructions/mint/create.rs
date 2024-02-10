@@ -3,10 +3,8 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to,
-        spl_token_2022::extension::ExtensionType,
-        token_metadata_initialize, Mint, MintTo, Token2022, TokenAccount,
-        TokenMetadataInitialize, TokenMetadataInitializeArgs,
+        mint_to, spl_token_2022::extension::ExtensionType, token_metadata_initialize, Mint, MintTo,
+        Token2022, TokenAccount, TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
 
