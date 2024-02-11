@@ -41,7 +41,7 @@ pub struct CreateMintAccount<'info> {
         payer = payer,
         mint::token_program = token_program,
         mint::decimals = 0,
-        mint::authority = authority,
+        mint::authority = manager,
         mint::freeze_authority = authority,
         mint::extensions = MINT_EXTENSIONS.to_vec(),
         extensions::metadata_pointer::authority = authority.key(),
