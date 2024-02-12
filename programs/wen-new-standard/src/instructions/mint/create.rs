@@ -3,8 +3,10 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to, spl_token_2022::extension::ExtensionType, token_metadata_initialize, Mint, MintTo,
-        Token2022, TokenAccount, TokenMetadataInitialize, TokenMetadataInitializeArgs,
+        mint_to, set_authority,
+        spl_token_2022::{extension::ExtensionType, instruction::AuthorityType},
+        token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
+        TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
 
@@ -41,14 +43,14 @@ pub struct CreateMintAccount<'info> {
         payer = payer,
         mint::token_program = token_program,
         mint::decimals = 0,
-        mint::authority = manager,
-        mint::freeze_authority = receiver,
+        mint::authority = authority,
+        mint::freeze_authority = manager,
         mint::extensions = MINT_EXTENSIONS.to_vec(),
         extensions::metadata_pointer::authority = authority.key(),
         extensions::metadata_pointer::metadata_address = mint.key(),
         extensions::group_member_pointer::authority = authority.key(),
         extensions::transfer_hook::authority = authority.key(),
-        extensions::close_authority::authority = receiver.key(),
+        extensions::close_authority::authority = manager.key(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
@@ -94,6 +96,16 @@ impl<'info> CreateMintAccount<'info> {
         mint_to(cpi_accounts, 1)?;
         Ok(())
     }
+
+    fn update_mint_authority(&self, manager_auth: Pubkey) -> Result<()> {
+        let cpi_accounts = SetAuthority {
+            current_authority: self.authority.to_account_info(),
+            account_or_mint: self.mint.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
+        set_authority(cpi_ctx, AuthorityType::MintTokens, Some(manager_auth))?;
+        Ok(())
+    }
 }
 
 pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
@@ -108,6 +120,9 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;
 
+    let manager_pubkey = ctx.accounts.manager.key();
+    // move mint authority to Manager
+    ctx.accounts.update_mint_authority(manager_pubkey)?;
     // TODO: Once Token Extension program supports Group/Member accounts natively, should lock Mint Authority
 
     // transfer minimum rent to mint account
