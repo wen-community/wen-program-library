@@ -1,5 +1,5 @@
 # Wen New Standard
-Current Version: ```0.0.0```
+Current Version: ```0.0.1```
 
 The current WNS version shows the minting of a non-fungible token from the Token Extensions [(Token 2022)](https://spl.solana.com/token-2022) program. It restricts the decimals to 0 and the supply of the mint to 1. It also initializes core metadata of Name, Symbol, and Uri as apart of the token directly. There are no external metadata accounts or programs needed.
 

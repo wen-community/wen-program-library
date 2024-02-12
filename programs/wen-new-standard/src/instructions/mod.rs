@@ -1,3 +1,7 @@
-pub mod token;
+pub mod group;
+pub mod mint;
+pub mod royalty;
 
-pub use token::*;
+pub use group::*;
+pub use mint::*;
+pub use royalty::*;
