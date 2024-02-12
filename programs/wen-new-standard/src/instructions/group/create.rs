@@ -53,7 +53,7 @@ pub struct CreateGroupAccount<'info> {
         mint::token_program = token_program,
         mint::decimals = 0,
         mint::authority = manager,
-        mint::freeze_authority = authority,
+        mint::freeze_authority = receiver,
         mint::extensions = GROUP_EXTENSIONS.to_vec(),
         extensions::metadata_pointer::authority = authority.key(),
         extensions::metadata_pointer::metadata_address = mint.key(),
