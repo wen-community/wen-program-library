@@ -1,5 +1,5 @@
 export type WenNewStandard = {
-  "version": "0.0.1",
+  "version": "0.0.1-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -627,7 +627,7 @@ export type WenNewStandard = {
 };
 
 export const IDL: WenNewStandard = {
-  "version": "0.0.1",
+  "version": "0.0.1-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
