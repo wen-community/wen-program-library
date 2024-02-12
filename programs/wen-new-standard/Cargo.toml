@@ -1,8 +1,11 @@
 [package]
 name = "wen_new_standard"
-version = "0.0.1"
+version = "0.0.1-alpha"
 description = "An open and composable NFT standard on Solana."
 edition = "2021"
+
+[package.metadata.docs.rs]
+tags = ["wns", "alpha", "solana", "token_extensions"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
