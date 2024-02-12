@@ -52,12 +52,12 @@ pub struct CreateGroupAccount<'info> {
         payer = payer,
         mint::token_program = token_program,
         mint::decimals = 0,
-        mint::authority = manager,
-        mint::freeze_authority = receiver,
+        mint::authority = authority,
+        mint::freeze_authority = manager,
         mint::extensions = GROUP_EXTENSIONS.to_vec(),
         extensions::metadata_pointer::authority = authority.key(),
         extensions::metadata_pointer::metadata_address = mint.key(),
-        extensions::group_pointer::authority = authority.key(),
+        extensions::group_pointer::authority = manager.key(),
         extensions::group_pointer::group_address = group.key(),
         extensions::close_authority::authority = receiver.key(),
     )]
@@ -106,13 +106,13 @@ impl<'info> CreateGroupAccount<'info> {
         Ok(())
     }
 
-    fn remove_mint_authority(&self) -> Result<()> {
+    fn update_mint_authority(&self, manager_auth: Pubkey) -> Result<()> {
         let cpi_accounts = SetAuthority {
             current_authority: self.authority.to_account_info(),
             account_or_mint: self.mint.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        set_authority(cpi_ctx, AuthorityType::MintTokens, None)?;
+        set_authority(cpi_ctx, AuthorityType::MintTokens, Some(manager_auth))?;
         Ok(())
     }
 }
@@ -136,8 +136,9 @@ pub fn handler(ctx: Context<CreateGroupAccount>, args: CreateGroupAccountArgs) -
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;
 
-    // remove mint authority
-    ctx.accounts.remove_mint_authority()?;
+    let manager_pubkey = ctx.accounts.manager.key();
+    // move mint authority to Manager
+    ctx.accounts.update_mint_authority(manager_pubkey)?;
 
     // update mint lamports to minimum rent balance
     update_mint_lamports_to_minimum_balance(
