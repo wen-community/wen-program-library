@@ -39,10 +39,16 @@ pub fn handler(ctx: Context<ExecuteTransferHook>) -> Result<()> {
         if ctx.remaining_accounts.is_empty() {
             return Err(MetadataErrors::MissingApproveAccount.into());
         }
-        let approve_account: ApproveAccount = AnchorDeserialize::deserialize(
+        let mut approve_account: ApproveAccount = AnchorDeserialize::deserialize(
             &mut &ctx.remaining_accounts[0].try_borrow_mut_data()?[8..],
         )?;
         if approve_account.slot == Clock::get()?.slot {
+            // mark approve account as used by setting slot to 0
+            approve_account.slot = 0;
+            AnchorSerialize::serialize(
+                &approve_account,
+                &mut &mut ctx.remaining_accounts[0].try_borrow_mut_data()?[8..],
+            )?;
             Ok(())
         } else {
             Err(MetadataErrors::ExpiredApproveAccount.into())
