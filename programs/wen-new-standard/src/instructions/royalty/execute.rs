@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
-use crate::{in_cpi, ApproveAccount, MetadataErrors, META_LIST_ACCOUNT_SEED};
+use crate::{hook_in_cpi, ApproveAccount, MetadataErrors, META_LIST_ACCOUNT_SEED};
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
@@ -32,7 +32,7 @@ pub struct ExecuteTransferHook<'info> {
 
 pub fn handler(ctx: Context<ExecuteTransferHook>) -> Result<()> {
     // if transfer is a cpi, enforce royalties if applicable, else do nothing
-    if in_cpi() {
+    if hook_in_cpi() {
         if ctx.remaining_accounts.is_empty() {
             return Err(MetadataErrors::MissingApproveAccount.into());
         }

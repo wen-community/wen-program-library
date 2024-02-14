@@ -61,8 +61,12 @@ pub fn get_approve_account_pda(mint: Pubkey) -> Pubkey {
 }
 
 /// Determine if we are in CPI
-pub fn in_cpi() -> bool {
-    get_stack_height() > TRANSACTION_LEVEL_STACK_HEIGHT
+pub fn hook_in_cpi() -> bool {
+    let stack_height = get_stack_height();
+    let tx_height = TRANSACTION_LEVEL_STACK_HEIGHT;
+    let hook_height: usize = tx_height + 1;
+
+    stack_height > hook_height
 }
 
 pub fn get_meta_list(approve_account: Option<Pubkey>) -> Vec<ExtraAccountMeta> {
