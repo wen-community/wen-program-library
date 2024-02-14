@@ -1,5 +1,5 @@
 import express from "express";
-import { claimDistribution, createCollectionWithRoyalties, mintNft, transferMint } from "./util";
+import { claimDistribution, createCollectionWithRoyalties, mintNft, purchaseNft, transferNft } from "./util";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -10,7 +10,7 @@ app.post("/createCollectionAccount", async (req, res) => {
         Will use AUTHORITY_ACCOUNT as signer and collection authority, will mint Collection NFT to AUTHORITY_ACCOUNT
         BODY --
         name: string; 
-        symbol: string; 
+        symbol: string;
         uri: string; 
         maxSize: number;
     */
@@ -36,17 +36,27 @@ app.post("/createMintAccount", async (req, res) => {
     res.send(txn);
 });
 
-app.post("/transferMint", async (req, res) => {
+app.post("/purchaseNft", async (req, res) => {
     /*
         Will use USER_ACCOUNT as signer and "from" account
         BODY --
         collection: string;
         nftMint: string;
-        paymentMint: string;
         paymentAmount: number;
+        buyer: string;
+    */
+    const txn = await purchaseNft(req.body);
+    res.send(txn);
+});
+
+app.post("/transferNft", async (req, res) => {
+    /*
+        Will use USER_ACCOUNT as signer and "from" account
+        BODY --
+        nftMint: string;
         to: string;
     */
-    const txn = await transferMint(req.body);
+    const txn = await transferNft(req.body);
     res.send(txn);
 });
 

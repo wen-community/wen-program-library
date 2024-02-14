@@ -1,8 +1,13 @@
 use anchor_lang::{
     prelude::Result,
     solana_program::{
-        account_info::AccountInfo, program::invoke, pubkey::Pubkey, rent::Rent,
-        system_instruction::transfer, sysvar::Sysvar,
+        account_info::AccountInfo,
+        instruction::{get_stack_height, TRANSACTION_LEVEL_STACK_HEIGHT},
+        program::invoke,
+        pubkey::Pubkey,
+        rent::Rent,
+        system_instruction::transfer,
+        sysvar::{self, Sysvar},
     },
     Lamports,
 };
@@ -14,19 +19,20 @@ use anchor_spl::token_interface::{
     },
     spl_token_metadata_interface::state::TokenMetadata,
 };
+use spl_tlv_account_resolution::account::ExtraAccountMeta;
 
 use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
 
-pub fn update_mint_lamports_to_minimum_balance<'info>(
-    mint: AccountInfo<'info>,
+pub fn update_account_lamports_to_minimum_balance<'info>(
+    account: AccountInfo<'info>,
     payer: AccountInfo<'info>,
     system_program: AccountInfo<'info>,
 ) -> Result<()> {
-    let extra_lamports = Rent::get()?.minimum_balance(mint.data_len()) - mint.get_lamports();
+    let extra_lamports = Rent::get()?.minimum_balance(account.data_len()) - account.get_lamports();
     if extra_lamports > 0 {
         invoke(
-            &transfer(payer.key, mint.key, extra_lamports),
-            &[payer, mint, system_program],
+            &transfer(payer.key, account.key, extra_lamports),
+            &[payer, account, system_program],
         )?;
     }
     Ok(())
@@ -52,4 +58,34 @@ pub fn get_extra_meta_list_account_pda(mint: Pubkey) -> Pubkey {
 
 pub fn get_approve_account_pda(mint: Pubkey) -> Pubkey {
     Pubkey::find_program_address(&[APPROVE_ACCOUNT_SEED, mint.as_ref()], &crate::id()).0
+}
+
+/// Determine if we are in CPI
+pub fn in_cpi() -> bool {
+    get_stack_height() > TRANSACTION_LEVEL_STACK_HEIGHT
+}
+
+pub fn get_meta_list(approve_account: Option<Pubkey>) -> Vec<ExtraAccountMeta> {
+    let mut meta_list = vec![
+        // instructions program
+        ExtraAccountMeta {
+            discriminator: 0,
+            address_config: sysvar::instructions::id().to_bytes(),
+            is_signer: false.into(),
+            is_writable: false.into(),
+        },
+    ];
+    if let Some(approve_account) = approve_account {
+        meta_list.push(ExtraAccountMeta {
+            discriminator: 0,
+            address_config: approve_account.to_bytes(),
+            is_signer: false.into(),
+            is_writable: true.into(),
+        });
+    }
+    meta_list
+}
+
+pub fn get_meta_list_size(approve_account: Option<Pubkey>) -> usize {
+    get_meta_list(approve_account).len()
 }

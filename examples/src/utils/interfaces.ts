@@ -35,11 +35,16 @@ export interface RoyaltyEnforcementArgs {
     creators: Creator[];
 }
 
-// Transfer NFT
-export interface TransferNftArgs {
+// Purchase NFT
+export interface PurchaseNftArgs {
     collection: string;
     nftMint: string;
-    paymentMint: string;
-    paymentAmount: number;
+    paymentLamports: number;
+    buyer: string;
+}
+
+// Transfer NFT
+export interface TransferNftArgs {
+    nftMint: string;
     to: string;
 }

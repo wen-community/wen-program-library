@@ -63,8 +63,8 @@ pub mod wen_new_standard {
     */
     /// validate transfer
     #[interface(spl_transfer_hook_interface::execute)]
-    pub fn execute(_ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
-        Ok(())
+    pub fn execute(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
+        instructions::royalty::execute::handler(ctx)
     }
 
     /// approve transfer

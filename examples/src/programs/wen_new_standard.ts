@@ -151,6 +151,11 @@ export type WenNewStandard = {
           "isSigner": false
         },
         {
+          "name": "extraMetasAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "manager",
           "isMut": false,
           "isSigner": false
@@ -252,7 +257,7 @@ export type WenNewStandard = {
         },
         {
           "name": "extraMetasAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -314,11 +319,6 @@ export type WenNewStandard = {
         {
           "name": "extraMetasAccount",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "approveAccount",
-          "isMut": true,
           "isSigner": false
         }
       ],
@@ -622,6 +622,16 @@ export type WenNewStandard = {
       "code": 6002,
       "name": "CreatorShareInvalid",
       "msg": "Creators shares must add up to 100."
+    },
+    {
+      "code": 6003,
+      "name": "MissingApproveAccount",
+      "msg": "Missing approve account."
+    },
+    {
+      "code": 6004,
+      "name": "ExpiredApproveAccount",
+      "msg": "Approve account has expired."
     }
   ]
 };
@@ -779,6 +789,11 @@ export const IDL: WenNewStandard = {
           "isSigner": false
         },
         {
+          "name": "extraMetasAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "manager",
           "isMut": false,
           "isSigner": false
@@ -880,7 +895,7 @@ export const IDL: WenNewStandard = {
         },
         {
           "name": "extraMetasAccount",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -942,11 +957,6 @@ export const IDL: WenNewStandard = {
         {
           "name": "extraMetasAccount",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "approveAccount",
-          "isMut": true,
           "isSigner": false
         }
       ],
@@ -1250,6 +1260,16 @@ export const IDL: WenNewStandard = {
       "code": 6002,
       "name": "CreatorShareInvalid",
       "msg": "Creators shares must add up to 100."
+    },
+    {
+      "code": 6003,
+      "name": "MissingApproveAccount",
+      "msg": "Missing approve account."
+    },
+    {
+      "code": 6004,
+      "name": "ExpiredApproveAccount",
+      "msg": "Approve account has expired."
     }
   ]
 };
