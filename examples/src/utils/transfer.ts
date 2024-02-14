@@ -1,6 +1,6 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { BN, Provider } from "@coral-xyz/anchor";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, createTransferCheckedWithTransferHookInstruction } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, createTransferCheckedInstruction, createTransferCheckedWithTransferHookInstruction } from "@solana/spl-token";
 import { getATAAddressSync, getApprovalAccount, getDistributionAccount, getMetadataProgram } from "./core";
 import { TOKEN_PROGRAM_ID, DISTRIBUTION_PROGRAM_ID } from "./constants";
 
@@ -59,12 +59,33 @@ export const buildAtaCreateIx = async (payer: string, mint: string, owner: strin
     return createTaIx;
 }
 
-export const buildTransferIx = async (provider: Provider, mint: string, sender: string, receiver: string) => {
+export const buildTransferIx = async (mint: string, sender: string, receiver: string) => {
     const mintPubkey = new PublicKey(mint);
     const senderPubkey = new PublicKey(sender);
     const receiverPubkey = new PublicKey(receiver);
 
-    // // get transfer ix
+    // get transfer ix
+    const transferIx = createTransferCheckedInstruction(
+        getATAAddressSync({ mint: mintPubkey, owner: senderPubkey }),
+        mintPubkey,
+        getATAAddressSync({ mint: mintPubkey, owner: receiverPubkey }),
+        senderPubkey,
+        BigInt(1),
+        0,
+        []
+    );
+
+    transferIx.keys.push({ pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false });
+
+    return transferIx;
+}
+
+export const buildCpiTransferIx = async (provider: Provider, mint: string, sender: string, receiver: string) => {
+    const mintPubkey = new PublicKey(mint);
+    const senderPubkey = new PublicKey(sender);
+    const receiverPubkey = new PublicKey(receiver);
+
+    // get transfer ix
     const transferIx = await createTransferCheckedWithTransferHookInstruction(
         provider.connection,
         getATAAddressSync({ mint: mintPubkey, owner: senderPubkey }),
