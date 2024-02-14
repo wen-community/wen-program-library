@@ -2,11 +2,12 @@ use anchor_lang::{
     prelude::Result,
     solana_program::{
         account_info::AccountInfo,
+        instruction::{get_stack_height, TRANSACTION_LEVEL_STACK_HEIGHT},
         program::invoke,
         pubkey::Pubkey,
         rent::Rent,
         system_instruction::transfer,
-        sysvar::{self, instructions::load_current_index_checked, Sysvar},
+        sysvar::{self, Sysvar},
     },
     Lamports,
 };
@@ -59,14 +60,9 @@ pub fn get_approve_account_pda(mint: Pubkey) -> Pubkey {
     Pubkey::find_program_address(&[APPROVE_ACCOUNT_SEED, mint.as_ref()], &crate::id()).0
 }
 
-/// Returns true if the transfer is a cpi call
-/// currently executing `Transaction`
-pub fn is_cpi(instruction_sysvar_account_info: &AccountInfo) -> Result<bool> {
-    let current_index = load_current_index_checked(instruction_sysvar_account_info)?;
-    if current_index == 0 {
-        return Ok(false);
-    }
-    Ok(true)
+/// Determine if we are in CPI
+pub fn in_cpi() -> bool {
+    get_stack_height() > TRANSACTION_LEVEL_STACK_HEIGHT
 }
 
 pub fn get_meta_list(approve_account: Option<Pubkey>) -> Vec<ExtraAccountMeta> {

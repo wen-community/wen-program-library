@@ -320,11 +320,6 @@ export type WenNewStandard = {
           "name": "extraMetasAccount",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "instructionsProgram",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": [
@@ -961,11 +956,6 @@ export const IDL: WenNewStandard = {
         },
         {
           "name": "extraMetasAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "instructionsProgram",
           "isMut": false,
           "isSigner": false
         }

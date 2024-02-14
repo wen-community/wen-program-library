@@ -1,7 +1,7 @@
-use anchor_lang::{prelude::*, solana_program::sysvar};
+use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
-use crate::{is_cpi, ApproveAccount, MetadataErrors, META_LIST_ACCOUNT_SEED};
+use crate::{in_cpi, ApproveAccount, MetadataErrors, META_LIST_ACCOUNT_SEED};
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
@@ -28,14 +28,11 @@ pub struct ExecuteTransferHook<'info> {
         bump,
     )]
     pub extra_metas_account: UncheckedAccount<'info>,
-    #[account(address = sysvar::instructions::id())]
-    /// CHECK: constraint check
-    pub instructions_program: UncheckedAccount<'info>,
 }
 
 pub fn handler(ctx: Context<ExecuteTransferHook>) -> Result<()> {
     // if transfer is a cpi, enforce royalties if applicable, else do nothing
-    if is_cpi(&ctx.accounts.instructions_program.to_account_info())? {
+    if in_cpi() {
         if ctx.remaining_accounts.is_empty() {
             return Err(MetadataErrors::MissingApproveAccount.into());
         }

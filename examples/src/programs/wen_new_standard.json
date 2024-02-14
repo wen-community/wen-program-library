@@ -320,11 +320,6 @@
           "name": "extraMetasAccount",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "instructionsProgram",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": [
