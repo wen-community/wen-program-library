@@ -33,7 +33,7 @@ pub struct ExecuteTransferHook<'info> {
     pub instructions_program: UncheckedAccount<'info>,
 }
 
-pub fn handler(ctx: Context<ExecuteTransferHook>, _amount: u64) -> Result<()> {
+pub fn handler(ctx: Context<ExecuteTransferHook>) -> Result<()> {
     // if transfer is a cpi, enforce royalties if applicable, else do nothing
     if is_cpi(&ctx.accounts.instructions_program.to_account_info())? {
         if ctx.remaining_accounts.is_empty() {
