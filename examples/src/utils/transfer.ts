@@ -1,5 +1,4 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { TransferNftArgs } from "./interfaces";
 import { BN, Provider } from "@coral-xyz/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, createTransferCheckedWithTransferHookInstruction } from "@solana/spl-token";
 import { getATAAddressSync, getApprovalAccount, getDistributionAccount, getMetadataProgram } from "./core";

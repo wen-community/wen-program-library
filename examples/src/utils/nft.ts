@@ -12,6 +12,7 @@ export const buildMintNftIx = async (provider: Provider, args: CreateNftArgs, mi
     const managerAccount = getManagerAccount();
     const authorityPubkey = new PublicKey(authority);
     const minterPubkey = new PublicKey(minter);
+    const extraMetasAccount = getExtraMetasAccount(args.mint);
 
     const ix = await metadataProgram.methods
         .createMintAccount(args)
@@ -25,7 +26,8 @@ export const buildMintNftIx = async (provider: Provider, args: CreateNftArgs, mi
             rent: SYSVAR_RENT_PUBKEY,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             tokenProgram: TOKEN_PROGRAM_ID,
-            manager: managerAccount
+            manager: managerAccount,
+            extraMetasAccount,
         })
         .instruction();
     return ix;

@@ -9,8 +9,13 @@ use anchor_spl::{
         TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
+use spl_tlv_account_resolution::state::ExtraAccountMetaList;
+use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
-use crate::{update_mint_lamports_to_minimum_balance, Manager, MANAGER_SEED};
+use crate::{
+    get_meta_list, get_meta_list_size, update_account_lamports_to_minimum_balance, Manager,
+    MANAGER_SEED, META_LIST_ACCOUNT_SEED,
+};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateMintAccountArgs {
@@ -61,6 +66,15 @@ pub struct CreateMintAccount<'info> {
         associated_token::authority = receiver,
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    /// CHECK: This account's data is a buffer of TLV data
+    #[account(
+        init_if_needed,
+        space = get_meta_list_size(None),
+        seeds = [META_LIST_ACCOUNT_SEED, mint.key().as_ref()],
+        bump,
+        payer = payer,
+    )]
+    pub extra_metas_account: UncheckedAccount<'info>,
     #[account(
         seeds = [MANAGER_SEED],
         bump
@@ -125,8 +139,14 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
     ctx.accounts.update_mint_authority(manager_pubkey)?;
     // TODO: Once Token Extension program supports Group/Member accounts natively, should lock Mint Authority
 
+    // initialize the extra metas account
+    let extra_metas_account = &ctx.accounts.extra_metas_account;
+    let metas = get_meta_list(None);
+    let mut data = extra_metas_account.try_borrow_mut_data()?;
+    ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
+
     // transfer minimum rent to mint account
-    update_mint_lamports_to_minimum_balance(
+    update_account_lamports_to_minimum_balance(
         ctx.accounts.mint.to_account_info(),
         ctx.accounts.payer.to_account_info(),
         ctx.accounts.system_program.to_account_info(),

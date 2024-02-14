@@ -1,5 +1,5 @@
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
-use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
+use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -11,25 +11,9 @@ use anchor_spl::{
 };
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
-fn get_meta_list(approve_account: Pubkey) -> Vec<ExtraAccountMeta> {
-    vec![
-        // mint
-        ExtraAccountMeta {
-            discriminator: 0,
-            address_config: approve_account.to_bytes(),
-            is_signer: false.into(),
-            is_writable: true.into(),
-        },
-    ]
-}
-
-fn get_meta_list_size() -> usize {
-    ExtraAccountMetaList::size_of(1).unwrap()
-}
-
 use crate::{
-    get_approve_account_pda, update_mint_lamports_to_minimum_balance, MetadataErrors,
-    META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
+    get_approve_account_pda, get_meta_list, update_account_lamports_to_minimum_balance,
+    MetadataErrors, META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
 };
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
@@ -58,11 +42,8 @@ pub struct AddRoyalties<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     /// CHECK: This account's data is a buffer of TLV data
     #[account(
-        init_if_needed,
-        space = get_meta_list_size(),
         seeds = [META_LIST_ACCOUNT_SEED, mint.key().as_ref()],
         bump,
-        payer = payer,
     )]
     pub extra_metas_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
@@ -116,18 +97,26 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
         return Err(MetadataErrors::CreatorShareInvalid.into());
     }
 
-    // initialize the extra metas account
+    // update the extra metas account to include the approve account
     let extra_metas_account = &ctx.accounts.extra_metas_account;
     let approve_account = get_approve_account_pda(ctx.accounts.mint.to_account_info().key());
-    let metas = get_meta_list(approve_account);
+    let metas = get_meta_list(Some(approve_account));
     let mut data = extra_metas_account.try_borrow_mut_data()?;
     ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
 
     // add metadata program as the transfer hook program
     ctx.accounts.update_transfer_hook_program_id()?;
 
-    update_mint_lamports_to_minimum_balance(
+    // transfer minimum rent to mint account
+    update_account_lamports_to_minimum_balance(
         ctx.accounts.mint.to_account_info(),
+        ctx.accounts.payer.to_account_info(),
+        ctx.accounts.system_program.to_account_info(),
+    )?;
+
+    // transfer minimum rent to account metas list account
+    update_account_lamports_to_minimum_balance(
+        ctx.accounts.extra_metas_account.to_account_info(),
         ctx.accounts.payer.to_account_info(),
         ctx.accounts.system_program.to_account_info(),
     )?;

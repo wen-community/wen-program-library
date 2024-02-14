@@ -10,7 +10,8 @@ use anchor_spl::{
 };
 
 use crate::{
-    update_mint_lamports_to_minimum_balance, Manager, TokenGroup, GROUP_ACCOUNT_SEED, MANAGER_SEED,
+    update_account_lamports_to_minimum_balance, Manager, TokenGroup, GROUP_ACCOUNT_SEED,
+    MANAGER_SEED,
 };
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
@@ -141,7 +142,7 @@ pub fn handler(ctx: Context<CreateGroupAccount>, args: CreateGroupAccountArgs) -
     ctx.accounts.update_mint_authority(manager_pubkey)?;
 
     // update mint lamports to minimum rent balance
-    update_mint_lamports_to_minimum_balance(
+    update_account_lamports_to_minimum_balance(
         ctx.accounts.mint.to_account_info(),
         ctx.accounts.payer.to_account_info(),
         ctx.accounts.system_program.to_account_info(),
