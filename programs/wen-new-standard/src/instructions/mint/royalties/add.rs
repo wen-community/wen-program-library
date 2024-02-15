@@ -12,8 +12,9 @@ use anchor_spl::{
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 use crate::{
-    get_approve_account_pda, get_meta_list, update_account_lamports_to_minimum_balance,
-    MetadataErrors, META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
+    get_approve_account_pda, get_meta_list, get_meta_list_size,
+    update_account_lamports_to_minimum_balance, MetadataErrors, META_LIST_ACCOUNT_SEED,
+    ROYALTY_BASIS_POINTS_FIELD,
 };
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
@@ -100,9 +101,14 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
     // update the extra metas account to include the approve account
     let extra_metas_account = &ctx.accounts.extra_metas_account;
     let approve_account = get_approve_account_pda(ctx.accounts.mint.to_account_info().key());
+    let new_size = get_meta_list_size(Some(approve_account));
+    extra_metas_account.realloc(new_size, false)?;
     let metas = get_meta_list(Some(approve_account));
-    let mut data = extra_metas_account.try_borrow_mut_data()?;
+    let mut data = vec![0u8; new_size as usize];
     ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
+    extra_metas_account
+        .try_borrow_mut_data()?
+        .copy_from_slice(&data);
 
     // add metadata program as the transfer hook program
     ctx.accounts.update_transfer_hook_program_id()?;

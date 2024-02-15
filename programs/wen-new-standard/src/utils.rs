@@ -7,7 +7,7 @@ use anchor_lang::{
         pubkey::Pubkey,
         rent::Rent,
         system_instruction::transfer,
-        sysvar::{self, Sysvar},
+        sysvar::Sysvar,
     },
     Lamports,
 };
@@ -19,7 +19,7 @@ use anchor_spl::token_interface::{
     },
     spl_token_metadata_interface::state::TokenMetadata,
 };
-use spl_tlv_account_resolution::account::ExtraAccountMeta;
+use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
 
 use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
 
@@ -70,26 +70,18 @@ pub fn hook_in_cpi() -> bool {
 }
 
 pub fn get_meta_list(approve_account: Option<Pubkey>) -> Vec<ExtraAccountMeta> {
-    let mut meta_list = vec![
-        // instructions program
-        ExtraAccountMeta {
-            discriminator: 0,
-            address_config: sysvar::instructions::id().to_bytes(),
-            is_signer: false.into(),
-            is_writable: false.into(),
-        },
-    ];
     if let Some(approve_account) = approve_account {
-        meta_list.push(ExtraAccountMeta {
+        return vec![ExtraAccountMeta {
             discriminator: 0,
             address_config: approve_account.to_bytes(),
             is_signer: false.into(),
             is_writable: true.into(),
-        });
+        }];
     }
-    meta_list
+    vec![]
 }
 
 pub fn get_meta_list_size(approve_account: Option<Pubkey>) -> usize {
-    get_meta_list(approve_account).len()
+    // safe because it's either 0 or 1
+    ExtraAccountMetaList::size_of(get_meta_list(approve_account).len()).unwrap()
 }
