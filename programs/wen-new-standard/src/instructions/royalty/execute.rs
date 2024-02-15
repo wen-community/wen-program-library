@@ -21,7 +21,8 @@ pub struct ExecuteTransferHook<'info> {
         token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
     )]
     pub destination_account: Box<InterfaceAccount<'info, TokenAccount>>,
-    pub owner_delegate: SystemAccount<'info>,
+    /// CHECK: can be any type of account, checked with a constraint above
+    pub owner_delegate: UncheckedAccount<'info>,
     /// CHECK: meta list account
     #[account(
         seeds = [META_LIST_ACCOUNT_SEED, mint.key().as_ref()],
