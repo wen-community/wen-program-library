@@ -351,6 +351,16 @@
           "isSigner": false
         },
         {
+          "name": "group",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "member",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "approveAccount",
           "isMut": true,
           "isSigner": false
