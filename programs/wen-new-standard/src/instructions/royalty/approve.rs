@@ -20,11 +20,11 @@ use anchor_spl::{
 use wen_royalty_distribution::{
     cpi::{accounts::UpdateDistribution, update_distribution},
     program::WenRoyaltyDistribution,
-    DistributionErrors, UpdateDistributionArgs,
+    DistributionAccount, UpdateDistributionArgs,
 };
 
 use crate::{
-    ApproveAccount, TokenGroup, TokenGroupMember, APPROVE_ACCOUNT_SEED, MEMBER_ACCOUNT_SEED,
+    ApproveAccount, TokenGroupMember, APPROVE_ACCOUNT_SEED, MEMBER_ACCOUNT_SEED,
     ROYALTY_BASIS_POINTS_FIELD,
 };
 
@@ -40,13 +40,9 @@ pub struct ApproveTransfer<'info> {
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
-        mut,
-        constraint = group.key() == member.group.key(),
-    )]
-    pub group: Account<'info, TokenGroup>,
-    #[account(
         seeds = [MEMBER_ACCOUNT_SEED, mint.key().as_ref()],
-        bump
+        bump,
+        constraint = member.group.key() == distribution.collection.key()
     )]
     pub member: Account<'info, TokenGroupMember>,
     #[account(
@@ -67,7 +63,7 @@ pub struct ApproveTransfer<'info> {
     pub payer_address: UncheckedAccount<'info>,
     /// CHECK: cpi checks
     #[account(mut)]
-    pub distribution: UncheckedAccount<'info>,
+    pub distribution: Account<'info, DistributionAccount>,
     pub system_program: Program<'info, System>,
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,
     pub token_program: Program<'info, Token2022>,
@@ -104,17 +100,6 @@ pub fn handler(ctx: Context<ApproveTransfer>, amount: u64) -> Result<()> {
     let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
-    let group = &mut ctx.accounts.group;
-    let distribution_program_address = ctx.accounts.distribution_program.key();
-    let distribution_account = ctx.accounts.distribution.key();
-
-    let collection = group.mint.key();
-
-    let derived_distribution =
-        Pubkey::find_program_address(&[collection.as_ref()], &distribution_program_address).0;
-    if derived_distribution != distribution_account {
-        return Err(DistributionErrors::IncorrectDistributionAccount.into());
-    }
     // Load clock and write slot
     let clock = Clock::get()?;
     ctx.accounts.approve_account.slot = clock.slot;

@@ -34,6 +34,7 @@ pub fn handler(ctx: Context<InitializeDistribution>) -> Result<()> {
     let mint_account = &mut ctx.accounts.mint.to_account_info();
     let group_pointer = get_extension_data::<GroupPointer>(mint_account)?;
 
+    let group = get_pubkey_from_optional_nonzero_pubkey(group_pointer.group_address).unwrap();
     let authority = get_pubkey_from_optional_nonzero_pubkey(group_pointer.authority).unwrap();
 
     if authority != ctx.accounts.authority.key() {
@@ -42,6 +43,6 @@ pub fn handler(ctx: Context<InitializeDistribution>) -> Result<()> {
 
     ctx.accounts.distribution.data = vec![];
     ctx.accounts.distribution.authority = authority;
-    ctx.accounts.distribution.collection = ctx.accounts.mint.key();
+    ctx.accounts.distribution.collection = group;
     Ok(())
 }
