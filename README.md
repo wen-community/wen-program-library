@@ -1,9 +1,9 @@
 # Wen New Standard
 Current Version: ```0.0.1```
 
-The current WNS version shows the minting of a non-fungible token from the Token Extensions [(Token 2022)](https://spl.solana.com/token-2022) program. It restricts the decimals to 0 and the supply of the mint to 1. It also initializes core metadata of Name, Symbol, and Uri as apart of the token directly. There are no external metadata accounts or programs needed.
+The current WNS version shows the minting of a non-fungible token from the Token Extensions [(Token 2022)](https://spl.solana.com/token-2022) program. It restricts the decimals to 0 and the supply of the mint to 1. It also initializes core metadata of Name, Symbol, and Uri as apart of the token directly. There are no external metadata accounts or programs needed. Group and Member accounts are copies of the Solana Extensions and will be migrated to be within the mint account once they're released on mainnet. Royalties are implmented via the extra_metadata field in the Metadata account and distributed through the Wen Royalty Distribution Contract.
 
-A sample NFT from this version is [here](https://explorer.solana.com/address/FumKKEEuQj8ZHqJi7Pj7uVCmjpGN5iv4nZdEeqPTuRM1).
+A sample NFT collection from this version is [here](https://www.tensor.trade/trade/assetdash_elements).
 
 ## Specification
 The work-in-progress specification for this implementation can be found [here](https://docs.google.com/document/d/1IF9osst7OmX8nwkLDtDSin_b-zkQsj7GhS0x7T0TQcg/edit).
@@ -14,12 +14,10 @@ The initial proposal in the Jupiter Research Forum can be found [here]()
 ## Proposal
 Next steps for this repository are fully featuring the NFT's to include the most common functionalities requested by NFT communities including:
 - Collection Instructions
-    - Create Collection
-    - Add NFT to Collection
     - Remove NFT from Collection
 - Metadata Instructions
-    - Update Metadata
-    - Add Creators
+    - Update creators
+    - Update royalties amount
 - Token Instructions
     - Burn
     - Freeze
