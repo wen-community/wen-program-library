@@ -16,3 +16,5 @@ pub struct DistributionAccount {
 impl DistributionAccount {
     pub const LEN: usize = 8 + ((32 + 8) * 10); // 10 pairs of creator tuples
 }
+
+pub const ROYALTY_BASIS_POINTS_FIELD: &str = "royalty_basis_points";
