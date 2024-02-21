@@ -19,7 +19,7 @@ export type WenRoyaltyDistribution = {
           "isSigner": true
         },
         {
-          "name": "mint",
+          "name": "group",
           "isMut": false,
           "isSigner": false
         },
@@ -163,6 +163,46 @@ export type WenRoyaltyDistribution = {
                 "defined": "Creator"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "tokenGroup",
+      "docs": [
+        "Data struct for a `TokenGroup`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "updateAuthority",
+            "docs": [
+              "The authority that can sign to update the group"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "mint",
+            "docs": [
+              "The associated mint, used to counter spoofing to be sure that group",
+              "belongs to a particular mint"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "size",
+            "docs": [
+              "The current number of group members"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "maxSize",
+            "docs": [
+              "The maximum number of group members"
+            ],
+            "type": "u32"
           }
         ]
       }
@@ -258,7 +298,7 @@ export const IDL: WenRoyaltyDistribution = {
           "isSigner": true
         },
         {
-          "name": "mint",
+          "name": "group",
           "isMut": false,
           "isSigner": false
         },
@@ -402,6 +442,46 @@ export const IDL: WenRoyaltyDistribution = {
                 "defined": "Creator"
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "tokenGroup",
+      "docs": [
+        "Data struct for a `TokenGroup`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "updateAuthority",
+            "docs": [
+              "The authority that can sign to update the group"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "mint",
+            "docs": [
+              "The associated mint, used to counter spoofing to be sure that group",
+              "belongs to a particular mint"
+            ],
+            "type": "publicKey"
+          },
+          {
+            "name": "size",
+            "docs": [
+              "The current number of group members"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "maxSize",
+            "docs": [
+              "The maximum number of group members"
+            ],
+            "type": "u32"
           }
         ]
       }

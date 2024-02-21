@@ -1,11 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{
-    get_extension_data, get_pubkey_from_optional_nonzero_pubkey, DistributionAccount,
-    DistributionErrors,
-};
-
-use anchor_spl::token_interface::{spl_token_2022::extension::group_pointer::GroupPointer, Mint};
+use crate::{DistributionAccount, TokenGroup};
 
 #[derive(Accounts)]
 #[instruction()]
@@ -15,13 +10,12 @@ pub struct InitializeDistribution<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     #[account(
-        mint::token_program = anchor_spl::token_interface::spl_token_2022::id()
+        constraint = group.update_authority.key() == authority.key()
     )]
-    /// CHECK: collection account, can be any account
-    pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub group: Account<'info, TokenGroup>,
     #[account(
         init,
-        seeds = [mint.key().as_ref()],
+        seeds = [group.mint.key().as_ref()],
         bump,
         payer = payer,
         space = DistributionAccount::LEN
@@ -31,18 +25,11 @@ pub struct InitializeDistribution<'info> {
 }
 
 pub fn handler(ctx: Context<InitializeDistribution>) -> Result<()> {
-    let mint_account = &mut ctx.accounts.mint.to_account_info();
-    let group_pointer = get_extension_data::<GroupPointer>(mint_account)?;
-
-    let group = get_pubkey_from_optional_nonzero_pubkey(group_pointer.group_address).unwrap();
-    let authority = get_pubkey_from_optional_nonzero_pubkey(group_pointer.authority).unwrap();
-
-    if authority != ctx.accounts.authority.key() {
-        return Err(DistributionErrors::InvalidGroupAuthority.into());
-    }
+    let group = &mut ctx.accounts.group;
+    let mint = group.mint.key();
 
     ctx.accounts.distribution.data = vec![];
-    ctx.accounts.distribution.authority = authority;
-    ctx.accounts.distribution.collection = group;
+    ctx.accounts.distribution.authority = ctx.accounts.authority.key();
+    ctx.accounts.distribution.collection = group.key();
     Ok(())
 }
