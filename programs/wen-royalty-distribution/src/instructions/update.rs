@@ -138,10 +138,14 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
             }
         }
         if !creator_found {
-            new_data.push(Creator {
-                address: orig_creator.address,
-                amount: orig_creator.amount,
-            });
+            // Check if creator is still owed anything
+            if orig_creator.amount > 0 {
+                new_data.push(Creator {
+                    address: orig_creator.address,
+                    amount: orig_creator.amount,
+                });
+            }
+            // If not, they don't need to take up the space.
         }
     }
     if pct_sum != 100 {
