@@ -53,6 +53,11 @@ export type WenRoyaltyDistribution = {
           "isSigner": true
         },
         {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "distribution",
           "isMut": true,
           "isSigner": false
@@ -192,14 +197,6 @@ export type WenRoyaltyDistribution = {
           {
             "name": "paymentMint",
             "type": "publicKey"
-          },
-          {
-            "name": "creators",
-            "type": {
-              "vec": {
-                "defined": "CreatorShare"
-              }
-            }
           }
         ]
       }
@@ -224,6 +221,11 @@ export type WenRoyaltyDistribution = {
   "errors": [
     {
       "code": 6000,
+      "name": "InvalidGroupAuthority",
+      "msg": "Invalid Group Authority for collection account"
+    },
+    {
+      "code": 6001,
       "name": "InvalidCreatorPctAmount",
       "msg": "Invalid creator pct amount. Must add up to 100"
     }
@@ -285,6 +287,11 @@ export const IDL: WenRoyaltyDistribution = {
           "isSigner": true
         },
         {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "distribution",
           "isMut": true,
           "isSigner": false
@@ -424,14 +431,6 @@ export const IDL: WenRoyaltyDistribution = {
           {
             "name": "paymentMint",
             "type": "publicKey"
-          },
-          {
-            "name": "creators",
-            "type": {
-              "vec": {
-                "defined": "CreatorShare"
-              }
-            }
           }
         ]
       }
@@ -456,6 +455,11 @@ export const IDL: WenRoyaltyDistribution = {
   "errors": [
     {
       "code": 6000,
+      "name": "InvalidGroupAuthority",
+      "msg": "Invalid Group Authority for collection account"
+    },
+    {
+      "code": 6001,
       "name": "InvalidCreatorPctAmount",
       "msg": "Invalid creator pct amount. Must add up to 100"
     }

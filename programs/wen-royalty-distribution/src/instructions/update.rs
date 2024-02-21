@@ -1,14 +1,24 @@
+use std::str::FromStr;
+
 use anchor_lang::{
     prelude::*,
     solana_program::{entrypoint::ProgramResult, program::invoke, system_instruction::transfer},
 };
+
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{self, Transfer},
-    token_interface::Token2022,
+    token_interface::{
+        spl_token_2022::{
+            extension::{BaseStateWithExtensions, StateWithExtensions},
+            state::Mint as BaseStateMint,
+        },
+        spl_token_metadata_interface::state::TokenMetadata,
+        Mint, Token2022,
+    },
 };
 
-use crate::{Creator, DistributionAccount, DistributionErrors};
+use crate::{Creator, DistributionAccount, DistributionErrors, ROYALTY_BASIS_POINTS_FIELD};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreatorShare {
@@ -20,7 +30,6 @@ pub struct CreatorShare {
 pub struct UpdateDistributionArgs {
     pub amount: u64,
     pub payment_mint: Pubkey,
-    pub creators: Vec<CreatorShare>,
 }
 
 #[derive(Accounts)]
@@ -30,6 +39,10 @@ pub struct UpdateDistribution<'info> {
     pub payer: Signer<'info>,
     #[account(mut)]
     pub authority: Signer<'info>,
+    #[account(
+        mint::token_program = anchor_spl::token_interface::spl_token_2022::id(),
+    )]
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(mut)]
     pub distribution: Account<'info, DistributionAccount>,
     /// CHECK: can be token account or distribution account
@@ -74,12 +87,29 @@ impl UpdateDistribution<'_> {
 }
 
 pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -> Result<()> {
+    let mint_account = ctx.accounts.mint.to_account_info();
+    let mint_account_data = mint_account.try_borrow_data()?;
+    let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
+    let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
+
+    // get all creators from metadata Vec(String, String), only royalty_basis_points needs to be removed
+    // TODO: If creator adds other extra metadata or an invalid pubkey they will be unable to pay royalties. Should handle this gracefully, although this is not possible currently.
+    let creators = metadata
+        .additional_metadata
+        .iter()
+        .filter(|(key, _)| key != ROYALTY_BASIS_POINTS_FIELD)
+        .map(|(key, value)| CreatorShare {
+            address: Pubkey::from_str(key).unwrap(),
+            pct: u8::from_str(value).unwrap(),
+        })
+        .collect::<Vec<CreatorShare>>();
+
     // update creator amounts in distribution account. add creator if not present, else update amount (amount * pct / 100)
     let current_data = ctx.accounts.distribution.data.clone();
     let mut new_data = vec![];
     let mut pct_sum: u8 = 0;
     // Incoming creator updates
-    for creator in args.creators.iter() {
+    for creator in creators.iter() {
         pct_sum += creator.pct;
         let mut creator_found = false;
         for current_creator in current_data.iter() {
