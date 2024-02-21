@@ -20,10 +20,13 @@ use anchor_spl::{
 use wen_royalty_distribution::{
     cpi::{accounts::UpdateDistribution, update_distribution},
     program::WenRoyaltyDistribution,
-    UpdateDistributionArgs,
+    DistributionAccount, UpdateDistributionArgs,
 };
 
-use crate::{ApproveAccount, APPROVE_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD};
+use crate::{
+    ApproveAccount, TokenGroupMember, APPROVE_ACCOUNT_SEED, MEMBER_ACCOUNT_SEED,
+    ROYALTY_BASIS_POINTS_FIELD,
+};
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
@@ -36,6 +39,12 @@ pub struct ApproveTransfer<'info> {
         mint::token_program = anchor_spl::token_interface::spl_token_2022::id(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
+    #[account(
+        seeds = [MEMBER_ACCOUNT_SEED, mint.key().as_ref()],
+        bump,
+        constraint = member.group.key() == distribution.collection.key()
+    )]
+    pub member: Account<'info, TokenGroupMember>,
     #[account(
         init_if_needed,
         seeds = [APPROVE_ACCOUNT_SEED, mint.key().as_ref()],
@@ -54,7 +63,7 @@ pub struct ApproveTransfer<'info> {
     pub payer_address: UncheckedAccount<'info>,
     /// CHECK: cpi checks
     #[account(mut)]
-    pub distribution: UncheckedAccount<'info>,
+    pub distribution: Account<'info, DistributionAccount>,
     pub system_program: Program<'info, System>,
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,
     pub token_program: Program<'info, Token2022>,

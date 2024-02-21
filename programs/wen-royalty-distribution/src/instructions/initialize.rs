@@ -30,6 +30,6 @@ pub fn handler(ctx: Context<InitializeDistribution>) -> Result<()> {
 
     ctx.accounts.distribution.data = vec![];
     ctx.accounts.distribution.authority = ctx.accounts.authority.key();
-    ctx.accounts.distribution.collection = mint;
+    ctx.accounts.distribution.collection = group.key();
     Ok(())
 }

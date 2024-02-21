@@ -266,6 +266,11 @@ export type WenRoyaltyDistribution = {
     },
     {
       "code": 6001,
+      "name": "IncorrectDistributionAccount",
+      "msg": "Invalid distribution account for mint"
+    },
+    {
+      "code": 6002,
       "name": "InvalidCreatorPctAmount",
       "msg": "Invalid creator pct amount. Must add up to 100"
     }
@@ -540,6 +545,11 @@ export const IDL: WenRoyaltyDistribution = {
     },
     {
       "code": 6001,
+      "name": "IncorrectDistributionAccount",
+      "msg": "Invalid distribution account for mint"
+    },
+    {
+      "code": 6002,
       "name": "InvalidCreatorPctAmount",
       "msg": "Invalid creator pct amount. Must add up to 100"
     }
