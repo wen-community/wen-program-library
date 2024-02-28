@@ -9,7 +9,7 @@ A sample NFT collection from this version is [here](https://www.tensor.trade/tra
 The work-in-progress specification for this implementation can be found [here](https://docs.google.com/document/d/1IF9osst7OmX8nwkLDtDSin_b-zkQsj7GhS0x7T0TQcg/edit).
 
 ## Proposal
-The initial proposal in the Jupiter Research Forum can be found [here]()
+The initial proposal in the Jupiter Research Forum can be found [here](https://www.jupresear.ch/)
 
 ## Proposal
 Next steps for this repository are fully featuring the NFT's to include the most common functionalities requested by NFT communities including:
