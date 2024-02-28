@@ -13,3 +13,9 @@ pub enum MetadataErrors {
     #[msg("Approve account has expired.")]
     ExpiredApproveAccount,
 }
+
+#[error_code]
+pub enum MintErrors {
+    #[msg("Missing permanent delegate account.")]
+    MissingPermanentDelegate,
+}

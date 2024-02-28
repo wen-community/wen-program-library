@@ -3,10 +3,10 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to, set_authority,
+        mint_to, permanent_delegate_initialize, set_authority,
         spl_token_2022::{extension::ExtensionType, instruction::AuthorityType},
-        token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
-        TokenMetadataInitialize, TokenMetadataInitializeArgs,
+        token_metadata_initialize, Mint, MintTo, PermanentDelegateInitialize, SetAuthority,
+        Token2022, TokenAccount, TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
@@ -14,7 +14,7 @@ use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 use crate::{
     get_meta_list, get_meta_list_size, update_account_lamports_to_minimum_balance, Manager,
-    MANAGER_SEED, META_LIST_ACCOUNT_SEED,
+    MintErrors, MANAGER_SEED, META_LIST_ACCOUNT_SEED,
 };
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
@@ -22,6 +22,7 @@ pub struct CreateMintAccountArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
+    pub additional_extensions: Vec<String>,
 }
 
 pub const MINT_EXTENSIONS: [ExtensionType; 4] = [
@@ -80,6 +81,9 @@ pub struct CreateMintAccount<'info> {
         bump
     )]
     pub manager: Account<'info, Manager>,
+    #[account()]
+    /// CHECK: can be any account
+    pub permanent_delegate: Option<UncheckedAccount<'info>>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -120,6 +124,22 @@ impl<'info> CreateMintAccount<'info> {
         set_authority(cpi_ctx, AuthorityType::MintTokens, Some(manager_auth))?;
         Ok(())
     }
+
+    fn add_permanent_delegate(&self) -> Result<()> {
+        let permanent_delegate = self
+            .permanent_delegate
+            .as_ref()
+            .ok_or(MintErrors::MissingPermanentDelegate)?;
+
+        let cpi_accounts = PermanentDelegateInitialize {
+            token_program_id: self.token_program.to_account_info(),
+            mint: self.mint.to_account_info(),
+            delegate: permanent_delegate.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
+        permanent_delegate_initialize(cpi_ctx)?;
+        Ok(())
+    }
 }
 
 pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
@@ -130,6 +150,10 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
             symbol: args.symbol,
             uri: args.uri,
         })?;
+
+    if args.additional_extensions.contains(&"".to_string()) {
+        ctx.accounts.add_permanent_delegate()?;
+    }
 
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;
