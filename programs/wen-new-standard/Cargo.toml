@@ -21,11 +21,12 @@ default = []
 # action to merge Anchor support for these tools, we have added the 
 # compiled Anchor binaries to the root of this directory.
 [dependencies]
-anchor-lang = { git = "ssh://git@github.com/bridgesplit/anchor", features = ["interface-instructions", "init-if-needed"] }
-anchor-spl = { git = "ssh://git@github.com/bridgesplit/anchor", features = ["token_2022_extensions", "token_2022"] }
+anchor-lang = { git = "https://github.com/bridgesplit/anchor.git", features = ["interface-instructions", "init-if-needed"] }
+anchor-spl = { git = "https://github.com/bridgesplit/anchor.git", features = ["token_2022_extensions", "token_2022"] }
 spl-pod = "0.1.0"
 spl-transfer-hook-interface = { version = "0.5.0" } 
 spl-tlv-account-resolution = "0.4.0"
+spl-token-metadata-interface = "=0.2"
 wen_royalty_distribution = { path = "../wen-royalty-distribution", features = ["cpi"] }
 
 [dev-dependencies.cargo-husky]

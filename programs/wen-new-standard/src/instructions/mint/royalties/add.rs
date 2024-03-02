@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 
@@ -87,6 +89,8 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
     let mut total_share: u8 = 0;
     // add creators and their respective shares to metadata
     for creator in args.creators {
+        // validate that the creator is a valid publickey
+        Pubkey::from_str(&creator.address).unwrap();
         total_share = total_share
             .checked_add(creator.share)
             .ok_or(MetadataErrors::CreatorShareInvalid)?;

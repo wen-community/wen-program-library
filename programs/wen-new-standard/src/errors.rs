@@ -12,4 +12,6 @@ pub enum MetadataErrors {
     MissingApproveAccount,
     #[msg("Approve account has expired.")]
     ExpiredApproveAccount,
+    #[msg("Invalid field. You cannot use a public key as a field.")]
+    InvalidField,
 }
