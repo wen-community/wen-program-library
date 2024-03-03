@@ -10,13 +10,13 @@ use anchor_spl::token_interface::{
 use crate::MetadataErrors;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
-pub struct UpdateMetadataArg {
+pub struct AddMetadataArgs {
     pub field: String,
     pub value: String,
 }
 
 #[derive(Accounts)]
-pub struct UpdateMetadata<'info> {
+pub struct AddMetadata<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(mut)]
@@ -29,7 +29,7 @@ pub struct UpdateMetadata<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-impl<'info> UpdateMetadata<'info> {
+impl<'info> AddMetadata<'info> {
     fn update_token_metadata_field(&self, field: Field, value: String) -> ProgramResult {
         let cpi_accounts = TokenMetadataUpdateField {
             token_program_id: self.token_program.to_account_info(),
@@ -42,13 +42,12 @@ impl<'info> UpdateMetadata<'info> {
     }
 }
 
-pub fn handler(ctx: Context<UpdateMetadata>, args: UpdateMetadataArg) -> Result<()> {
+pub fn handler(ctx: Context<AddMetadata>, args: AddMetadataArgs) -> Result<()> {
     match Pubkey::from_str(&args.field) {
         Ok(_) => {
             return Err(MetadataErrors::InvalidField.into());
         }
         Err(_) => {
-            // add the field to metadata
             ctx.accounts
                 .update_token_metadata_field(Field::Key(args.field), args.value.to_string())?;
         }

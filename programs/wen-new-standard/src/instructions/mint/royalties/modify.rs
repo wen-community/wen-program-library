@@ -27,14 +27,14 @@ pub struct CreatorWithShare {
 }
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
-pub struct ChangeRoyaltiesArgs {
+pub struct ModifyRoyaltiesArgs {
     pub royalty_basis_points: u16,
     pub creators: Vec<CreatorWithShare>,
 }
 
 #[derive(Accounts)]
-#[instruction(args: ChangeRoyaltiesArgs)]
-pub struct ChangeRoyalties<'info> {
+#[instruction(args: ModifyRoyaltiesArgs)]
+pub struct ModifyRoyalties<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(mut)]
@@ -47,7 +47,7 @@ pub struct ChangeRoyalties<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-impl<'info> ChangeRoyalties<'info> {
+impl<'info> ModifyRoyalties<'info> {
     fn update_token_metadata_field(&self, field: Field, value: String) -> ProgramResult {
         let cpi_accounts = TokenMetadataUpdateField {
             token_program_id: self.token_program.to_account_info(),
@@ -59,6 +59,7 @@ impl<'info> ChangeRoyalties<'info> {
         Ok(())
     }
 
+    // ToDo: Create a macro for it
     fn remove_token_metadata_field(&self, field: String) -> Result<()> {
         invoke(
             &remove_key(
@@ -78,7 +79,7 @@ impl<'info> ChangeRoyalties<'info> {
     }
 }
 
-pub fn handler(ctx: Context<ChangeRoyalties>, args: ChangeRoyaltiesArgs) -> Result<()> {
+pub fn handler(ctx: Context<ModifyRoyalties>, args: ModifyRoyaltiesArgs) -> Result<()> {
     let mint_account = ctx.accounts.mint.to_account_info();
     let mint_account_data = mint_account.try_borrow_data()?;
     let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
