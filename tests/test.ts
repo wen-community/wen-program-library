@@ -5,6 +5,7 @@ import {
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
   Keypair,
+  Transaction,
 } from "@solana/web3.js";
 
 import { 
@@ -48,27 +49,25 @@ describe("epplex-program", () => {
     uri: string;
   }
 
-  interface CreateCollectionArgs {
-    mint: string;
-    name: string;
-    symbol: string;
-    uri: string;
-    maxSize: number;
+  interface Creator {
+    address: string;
+    share: number;
   }
 
-  const collectionMint = Keypair.generate();
-  const collectionTokenAccount = getAssociatedTokenAddressSync(collectionMint.publicKey, wallet.publicKey);
-  const collectionArgs: CreateCollectionArgs = {
-    mint: collectionMint.publicKey.toString(),
-    name: "Test Collection",
-    symbol: "TST",
-    uri: "https://arweave.net/1234",
-    maxSize: 100,
-  };
-  const groupAccount = PublicKey.findProgramAddressSync([Buffer.from("group"), collectionMint.publicKey.toBuffer()], program.programId)[0];
+  interface MetadataArg {
+    field: string;
+    value: string;
+  }
 
   const nftMint = Keypair.generate();
-  const mintTokenAccount = getAssociatedTokenAddressSync(nftMint.publicKey, wallet.publicKey);
+  console.log(nftMint.publicKey.toBase58().toString());
+  const mintTokenAccount = getAssociatedTokenAddressSync(
+    nftMint.publicKey,
+    wallet.publicKey,
+    false,
+    TOKEN_PROGRAM_ID,
+    ASSOCIATED_TOKEN_PROGRAM_ID
+  );
   const nftArgs: CreateNftArgs = {
     mint: nftMint.publicKey.toString(),
     name: "Test NFT",
@@ -78,32 +77,19 @@ describe("epplex-program", () => {
   const managerAccount = PublicKey.findProgramAddressSync([Buffer.from("manager")], program.programId)[0];
   const [extraMetasAccount] = PublicKey.findProgramAddressSync([Buffer.from("extra-account-metas"), nftMint.publicKey.toBuffer()], program.programId);
 
-  it("Create a collection", async () => {
-    await program.methods
-    .createGroupAccount({
-      name: collectionArgs.name,
-      symbol: collectionArgs.symbol,
-      uri: collectionArgs.uri,
-      maxSize: collectionArgs.maxSize
-    })
-    .accounts({
-        payer: wallet.publicKey,
-        authority: wallet.publicKey,
-        receiver: wallet.publicKey,
-        mint: collectionArgs.mint,
-        mintTokenAccount: collectionTokenAccount,
-        systemProgram: SystemProgram.programId,
-        rent: SYSVAR_RENT_PUBKEY,
-        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        group: groupAccount,
-        manager: managerAccount
-    })
-    .signers([wallet.payer, collectionMint]).rpc({skipPreflight: true}).then(confirm).then(log);
-  });
+  const royaltyBasisPoints: number = 100;
+  let creators: Creator[] = [{
+    address: wallet.publicKey.toString(),
+    share: 100,
+  }];
+
+  const metadataArgs: MetadataArg = {
+    field: "test",
+    value: "200",
+  }
 
   it("Creates a new Nft", async () => {
-    await program.methods
+    const createNftIx = await program.methods
     .createMintAccount(nftArgs)
     .accounts({
         payer: wallet.publicKey,
@@ -118,6 +104,66 @@ describe("epplex-program", () => {
         manager: managerAccount,
         extraMetasAccount,
     })
-    .signers([wallet.payer, nftMint]).rpc({skipPreflight: true}).then(confirm).then(log);
+    .instruction();
+
+    const addRoyaltiesIx = await program.methods
+    .addRoyaltiesToMint({
+      royaltyBasisPoints, 
+      creators
+    })
+    .accounts({
+      payer: wallet.publicKey,
+      authority: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      extraMetasAccount,
+      mint: nftMint.publicKey,
+    })
+    .instruction();
+
+    const tx = new Transaction().add(createNftIx).add(addRoyaltiesIx);
+    await provider.sendAndConfirm(tx, [wallet.payer, nftMint], {skipPreflight: true}).then(confirm).then(log);
+  });
+
+  it("Add non-royalty related Metadata", async () => {
+    const addNonRoyaltyRelatedMetadata = await program.methods
+    .addMetadataToMint(metadataArgs)
+    .accounts({
+      payer: wallet.publicKey,
+      authority: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      mint: nftMint.publicKey,
+    })
+    .instruction();
+
+    const tx = new Transaction().add(addNonRoyaltyRelatedMetadata);
+    await provider.sendAndConfirm(tx, [wallet.payer], {skipPreflight: true}).then(confirm).then(log);
+  });
+
+  it("Modify the royalties of the Nft", async () => {
+    creators = [
+      {
+        address: PublicKey.default.toString(),
+        share: 100,
+      }
+    ];
+
+    const modifyRoyalitesIx = await program.methods
+    .modifyRoyaltiesOfMint({
+      royaltyBasisPoints, 
+      creators
+    })
+    .accounts({
+      payer: wallet.publicKey,
+      authority: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      mint: nftMint.publicKey,
+    })
+    .instruction();
+
+    const tx = new Transaction().add(modifyRoyalitesIx);
+    await provider.sendAndConfirm(tx, [wallet.payer], {skipPreflight: true}).then(confirm).then(log);
   });
 });

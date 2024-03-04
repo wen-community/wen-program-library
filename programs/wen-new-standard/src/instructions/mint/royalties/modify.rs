@@ -16,7 +16,9 @@ use anchor_spl::token_interface::{
     TokenMetadataUpdateFieldArgs,
 };
 
-use crate::{MetadataErrors, ROYALTY_BASIS_POINTS_FIELD};
+use crate::{
+    update_account_lamports_to_minimum_balance2, MetadataErrors, ROYALTY_BASIS_POINTS_FIELD,
+};
 
 use spl_token_metadata_interface::instruction::remove_key;
 
@@ -44,6 +46,7 @@ pub struct ModifyRoyalties<'info> {
         mint::token_program = token_program,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
 }
 
@@ -51,7 +54,7 @@ impl<'info> ModifyRoyalties<'info> {
     fn update_token_metadata_field(&self, field: Field, value: String) -> ProgramResult {
         let cpi_accounts = TokenMetadataUpdateField {
             token_program_id: self.token_program.to_account_info(),
-            metadata: self.mint.to_account_info(),
+            metadata: self.mint.to_account_info().clone(),
             update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
@@ -80,11 +83,20 @@ impl<'info> ModifyRoyalties<'info> {
 }
 
 pub fn handler(ctx: Context<ModifyRoyalties>, args: ModifyRoyaltiesArgs) -> Result<()> {
-    let mint_account = ctx.accounts.mint.to_account_info();
-    let mint_account_data = mint_account.try_borrow_data()?;
+    let mint_account = ctx.accounts.mint.to_account_info().clone();
+    let mint_account_data = mint_account.try_borrow_mut_data()?;
     let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
+
+    drop(mint_account_data);
+
     let creators_arg = &args.creators;
+
+    // validate that the fee_basis_point is less than 10000 (100%)
+    require!(
+        args.royalty_basis_points <= 10000,
+        MetadataErrors::RoyaltyBasisPointsInvalid
+    );
 
     // since this field is already there, it will just update it with the new value if there is one
     ctx.accounts.update_token_metadata_field(
@@ -93,16 +105,21 @@ pub fn handler(ctx: Context<ModifyRoyalties>, args: ModifyRoyaltiesArgs) -> Resu
     )?;
 
     let mut total_share: u8 = 0;
-
+    // add creators and their respective shares to metadata
     for creator in creators_arg {
-        Pubkey::from_str(&creator.address).unwrap();
-        total_share = total_share
-            .checked_add(creator.share)
-            .ok_or(MetadataErrors::CreatorShareInvalid)?;
-        ctx.accounts.update_token_metadata_field(
-            Field::Key(creator.address.clone()),
-            creator.share.to_string(),
-        )?;
+        // validate that the creator is a valid publickey
+        match Pubkey::from_str(&creator.address) {
+            Ok(_) => {
+                total_share = total_share
+                    .checked_add(creator.share)
+                    .ok_or(MetadataErrors::CreatorShareInvalid)?;
+                ctx.accounts.update_token_metadata_field(
+                    Field::Key(creator.address.clone()),
+                    creator.share.to_string(),
+                )?;
+            }
+            Err(_) => return Err(MetadataErrors::CreatorAddressInvalid.into()),
+        }
     }
 
     if total_share != 100 {
@@ -131,6 +148,13 @@ pub fn handler(ctx: Context<ModifyRoyalties>, args: ModifyRoyaltiesArgs) -> Resu
     for key in keys_to_remove {
         ctx.accounts.remove_token_metadata_field(key)?;
     }
+
+    // transfer minimum rent to mint account
+    update_account_lamports_to_minimum_balance2(
+        ctx.accounts.mint.to_account_info(),
+        ctx.accounts.payer.to_account_info(),
+        ctx.accounts.system_program.to_account_info(),
+    )?;
 
     Ok(())
 }

@@ -37,6 +37,32 @@ pub fn update_account_lamports_to_minimum_balance<'info>(
     Ok(())
 }
 
+pub fn update_account_lamports_to_minimum_balance2<'info>(
+    account: AccountInfo<'info>,
+    payer: AccountInfo<'info>,
+    system_program: AccountInfo<'info>,
+) -> Result<()> {
+    if Rent::get()?.minimum_balance(account.data_len()) > account.get_lamports() {
+        let extra_lamports =
+            Rent::get()?.minimum_balance(account.data_len()) - account.get_lamports();
+        invoke(
+            &transfer(payer.key, account.key, extra_lamports),
+            &[payer, account, system_program],
+        )?;
+    }
+    // else {
+    //     let extra_lamports = account.get_lamports() - Rent::get()?.minimum_balance(account.data_len());
+    //     if extra_lamports > 0 {
+    //         invoke(
+    //             &transfer(account.key, payer.key, extra_lamports),
+    //             &[payer, account, system_program],
+    //         )?;
+    //     }
+    // }
+
+    Ok(())
+}
+
 pub fn get_mint_metadata(account: &mut AccountInfo) -> Result<TokenMetadata> {
     let mint_data = account.data.borrow();
     let mint_with_extension = StateWithExtensions::<Mint>::unpack(&mint_data)?;

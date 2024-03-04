@@ -7,7 +7,7 @@ use anchor_spl::token_interface::{
     TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs,
 };
 
-use crate::errors::MetadataErrors;
+use crate::{errors::MetadataErrors, update_account_lamports_to_minimum_balance2};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct AddMetadataArgs {
@@ -26,6 +26,7 @@ pub struct AddMetadata<'info> {
         mint::token_program = token_program,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
 }
 
@@ -52,6 +53,13 @@ pub fn handler(ctx: Context<AddMetadata>, args: AddMetadataArgs) -> Result<()> {
                 .update_token_metadata_field(Field::Key(args.field), args.value.to_string())?;
         }
     }
+
+    // transfer minimum rent to mint account
+    update_account_lamports_to_minimum_balance2(
+        ctx.accounts.mint.to_account_info(),
+        ctx.accounts.payer.to_account_info(),
+        ctx.accounts.system_program.to_account_info(),
+    )?;
 
     Ok(())
 }

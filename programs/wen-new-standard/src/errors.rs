@@ -14,4 +14,8 @@ pub enum MetadataErrors {
     ExpiredApproveAccount,
     #[msg("Invalid field. You cannot use a public key as a field.")]
     InvalidField,
+    #[msg("The Address you provided is invalid. Please provide a valid address.")]
+    CreatorAddressInvalid,
+    #[msg("Royalty basis points must be less than or equal to 10000.")]
+    RoyaltyBasisPointsInvalid,
 }
