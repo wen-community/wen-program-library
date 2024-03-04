@@ -11,7 +11,7 @@ pub struct InitManagerAccount<'info> {
         init,
         payer = payer,
         seeds = [MANAGER_SEED],
-        space = Manager::LEN,
+        space = 8 + Manager::INIT_SPACE,
         bump
     )]
     pub manager: Account<'info, Manager>,
