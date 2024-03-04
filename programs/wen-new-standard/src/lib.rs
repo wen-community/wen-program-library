@@ -67,7 +67,10 @@ pub mod wen_new_standard {
     }
 
     /// add additional metadata to mint
-    pub fn add_metadata_to_mint(ctx: Context<AddMetadata>, args: AddMetadataArgs) -> Result<()> {
+    pub fn add_metadata_to_mint(
+        ctx: Context<AddMetadata>,
+        args: Vec<AddMetadataArgs>,
+    ) -> Result<()> {
         instructions::mint::add_metadata::handler(ctx, args)
     }
 

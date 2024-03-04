@@ -43,14 +43,19 @@ impl<'info> AddMetadata<'info> {
     }
 }
 
-pub fn handler(ctx: Context<AddMetadata>, args: AddMetadataArgs) -> Result<()> {
-    match Pubkey::from_str(&args.field) {
-        Ok(_) => {
-            return Err(MetadataErrors::InvalidField.into());
-        }
-        Err(_) => {
-            ctx.accounts
-                .update_token_metadata_field(Field::Key(args.field), args.value.to_string())?;
+pub fn handler(ctx: Context<AddMetadata>, args: Vec<AddMetadataArgs>) -> Result<()> {
+    for metadata_arg in args {
+        // validate that the field is not a publickey
+        match Pubkey::from_str(&metadata_arg.field) {
+            Ok(_) => {
+                return Err(MetadataErrors::InvalidField.into());
+            }
+            Err(_) => {
+                ctx.accounts.update_token_metadata_field(
+                    Field::Key(metadata_arg.field),
+                    metadata_arg.value.to_string(),
+                )?;
+            }
         }
     }
 

@@ -83,10 +83,16 @@ describe("epplex-program", () => {
     share: 100,
   }];
 
-  const metadataArgs: MetadataArg = {
-    field: "test",
-    value: "200",
-  }
+  const metadataArgs: MetadataArg[] = [
+    {
+      field: "field",
+      value: "value",
+    },
+    {
+      field: "field2",
+      value: "value",
+    }
+  ]
 
   it("Creates a new Nft", async () => {
     const createNftIx = await program.methods
