@@ -28,6 +28,10 @@ spl-transfer-hook-interface = { version = "0.5.0" }
 spl-tlv-account-resolution = "0.4.0"
 wen_royalty_distribution = { path = "../wen-royalty-distribution", features = ["cpi"] }
 
+spl-discriminator = { version = "0.1.0" }
+spl-type-length-value = { version = "0.3.0" }
+bytemuck = "1.14.0"
+
 [dev-dependencies.cargo-husky]
 version = "1"
 default-features = false # Disable features which are enabled by default

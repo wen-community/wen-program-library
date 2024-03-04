@@ -3,8 +3,9 @@ use anchor_spl::token_interface::{
     spl_token_metadata_interface::state::Field, token_metadata_update_field, Mint, Token2022,
     TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs,
 };
+use spl_type_length_value::state::TlvStateMut;
 
-use crate::{MetadataErrors, TokenGroup, GROUP_ACCOUNT_SEED};
+use crate::{MetadataErrors, TokenGroup, TokenGroupAccount, GROUP_ACCOUNT_SEED};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct UpdateGroupAccountArgs {
@@ -27,7 +28,7 @@ pub struct UpdateGroupAccount<'info> {
         seeds = [GROUP_ACCOUNT_SEED, mint.key().as_ref()],
         bump,
     )]
-    pub group: Account<'info, TokenGroup>,
+    pub group: Account<'info, TokenGroupAccount>,
     #[account(
         mint::token_program = token_program,
     )]
@@ -50,12 +51,17 @@ impl<'info> UpdateGroupAccount<'info> {
 }
 
 pub fn handler(ctx: Context<UpdateGroupAccount>, args: UpdateGroupAccountArgs) -> Result<()> {
-    if args.max_size < ctx.accounts.group.size {
+    let group_info = ctx.accounts.group.to_account_info();
+    let mut buffer = group_info.try_borrow_mut_data()?;
+    let mut state = TlvStateMut::unpack(&mut buffer)?;
+    let group = state.get_first_value_mut::<TokenGroup>()?;
+
+    if args.max_size < group.size {
         return Err(MetadataErrors::MaxSizeBelowCurrentSize.into());
     }
 
     // update group max size
-    ctx.accounts.group.max_size = args.max_size;
+    group.max_size = args.max_size;
 
     // update metadata name
     ctx.accounts.update_metadata(TokenMetadataUpdateFieldArgs {

@@ -2485,10 +2485,13 @@ version = "0.0.1-alpha"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "bytemuck",
  "cargo-husky",
+ "spl-discriminator",
  "spl-pod",
  "spl-tlv-account-resolution 0.4.0",
  "spl-transfer-hook-interface 0.5.0",
+ "spl-type-length-value",
  "wen_royalty_distribution",
 ]
 

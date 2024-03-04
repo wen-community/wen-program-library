@@ -3,8 +3,9 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{
     group_member_pointer_update, GroupMemberPointerUpdate, Mint, Token2022,
 };
+use spl_type_length_value::state::TlvStateMut;
 
-use crate::{TokenGroup, TokenGroupMember, MEMBER_ACCOUNT_SEED, TOKEN22};
+use crate::{TokenGroup, TokenGroupAccount, TokenGroupMember, MEMBER_ACCOUNT_SEED, TOKEN22};
 
 #[derive(Accounts)]
 #[instruction()]
@@ -13,11 +14,8 @@ pub struct AddGroup<'info> {
     pub payer: Signer<'info>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    #[account(
-        mut,
-        constraint = group.update_authority == authority.key(),
-    )]
-    pub group: Account<'info, TokenGroup>,
+    #[account(mut)]
+    pub group: Account<'info, TokenGroupAccount>,
     #[account(
         init,
         seeds = [MEMBER_ACCOUNT_SEED, mint.key().as_ref()],
@@ -48,11 +46,15 @@ impl AddGroup<'_> {
 }
 
 pub fn handler(ctx: Context<AddGroup>) -> Result<()> {
-    let group = &mut ctx.accounts.group;
+    let group_info = ctx.accounts.group.to_account_info();
+    let mut buffer = group_info.try_borrow_mut_data()?;
+    let mut state = TlvStateMut::unpack(&mut buffer)?;
+    let group = state.get_first_value_mut::<TokenGroup>()?;
+
     group.increment_size()?;
 
     let member = &mut ctx.accounts.member;
-    member.group = group.key();
+    member.group = ctx.accounts.group.key();
     member.mint = ctx.accounts.mint.key();
     member.member_number = group.size;
 

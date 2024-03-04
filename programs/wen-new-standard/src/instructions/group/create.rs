@@ -8,10 +8,11 @@ use anchor_spl::{
         TokenMetadataInitialize, TokenMetadataInitializeArgs,
     },
 };
+use spl_type_length_value::state::TlvStateMut;
 
 use crate::{
-    update_account_lamports_to_minimum_balance, Manager, TokenGroup, GROUP_ACCOUNT_SEED,
-    MANAGER_SEED,
+    update_account_lamports_to_minimum_balance, Manager, TokenGroup, TokenGroupAccount,
+    GROUP_ACCOUNT_SEED, MANAGER_SEED,
 };
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
@@ -44,9 +45,9 @@ pub struct CreateGroupAccount<'info> {
         seeds = [GROUP_ACCOUNT_SEED, mint.key().as_ref()],
         bump,
         payer = payer,
-        space = TokenGroup::LEN
+        space = TokenGroupAccount::len()
     )]
-    pub group: Account<'info, TokenGroup>,
+    pub group: Account<'info, TokenGroupAccount>,
     #[account(
         init,
         signer,
@@ -127,12 +128,14 @@ pub fn handler(ctx: Context<CreateGroupAccount>, args: CreateGroupAccountArgs) -
             uri: args.uri,
         })?;
 
+    // Allocate a TLV entry for the space and write it in
+    let group_info = ctx.accounts.group.to_account_info();
+    let mut buffer = group_info.try_borrow_mut_data()?;
+    let mut state = TlvStateMut::unpack(&mut buffer)?;
+    let (group, _) = state.init_value::<TokenGroup>(false)?;
+
     // using a custom group account until token22 implements group account
-    let group = &mut ctx.accounts.group;
-    group.max_size = args.max_size;
-    group.update_authority = ctx.accounts.authority.key();
-    group.mint = ctx.accounts.mint.key();
-    group.size = 0;
+    *group = TokenGroup::new(&ctx.accounts.mint.key(), ctx.accounts.authority.key(), 0);
 
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;

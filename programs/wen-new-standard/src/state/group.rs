@@ -1,10 +1,24 @@
 use anchor_lang::prelude::*;
+use bytemuck::{Pod, Zeroable};
+use spl_discriminator::SplDiscriminate;
 use spl_pod::error::PodSliceError;
+use spl_type_length_value::state::{TlvState, TlvStateBorrowed};
 
 use crate::MetadataErrors;
 
-/// Data struct for a `TokenGroup`
 #[account()]
+pub struct TokenGroupAccount {}
+
+impl TokenGroupAccount {
+    pub fn len() -> usize {
+        8 + TlvStateBorrowed::get_base_len() + std::mem::size_of::<TokenGroup>()
+    }
+}
+
+/// Data struct for a `TokenGroup`
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, Pod, Zeroable, PartialEq, SplDiscriminate)]
+#[discriminator_hash_input("spl_token_group_interface:group")]
 pub struct TokenGroup {
     /// The authority that can sign to update the group
     pub update_authority: Pubkey,
@@ -18,8 +32,6 @@ pub struct TokenGroup {
 }
 
 impl TokenGroup {
-    pub const LEN: usize = 8 + 32 + 32 + 4 + 4;
-
     /// Creates a new `TokenGroup` state
     pub fn new(mint: &Pubkey, update_authority: Pubkey, max_size: u32) -> Self {
         Self {
