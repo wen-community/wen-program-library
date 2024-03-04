@@ -72,9 +72,6 @@ pub struct CreateGroupAccount<'info> {
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
-        init_if_needed,
-        payer = payer,
-        space = Manager::LEN,
         seeds = [MANAGER_SEED],
         bump
     )]
