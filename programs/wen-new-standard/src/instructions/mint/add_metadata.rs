@@ -7,7 +7,7 @@ use anchor_spl::token_interface::{
     TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs,
 };
 
-use crate::MetadataErrors;
+use crate::errors::MetadataErrors;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct AddMetadataArgs {

@@ -21,7 +21,7 @@ use crate::{MetadataErrors, ROYALTY_BASIS_POINTS_FIELD};
 use spl_token_metadata_interface::instruction::remove_key;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
-pub struct CreatorWithShare {
+pub struct ModifyCreatorWithShare {
     pub address: String,
     pub share: u8,
 }
@@ -29,7 +29,7 @@ pub struct CreatorWithShare {
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct ModifyRoyaltiesArgs {
     pub royalty_basis_points: u16,
-    pub creators: Vec<CreatorWithShare>,
+    pub creators: Vec<ModifyCreatorWithShare>,
 }
 
 #[derive(Accounts)]
