@@ -13,9 +13,6 @@ import {
 	getNftTransferIx,
 } from '../src';
 import {setupTest} from './setup';
-// Import {
-// 	claimDistribution, createCollectionWithRoyalties, mintNft, purchaseNft, transferNft,
-// } from './util';
 import {expect, test, describe} from 'vitest';
 
 describe('e2e tests', () => {
