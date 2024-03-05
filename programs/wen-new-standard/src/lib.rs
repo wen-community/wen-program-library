@@ -74,6 +74,14 @@ pub mod wen_new_standard {
         instructions::mint::add_metadata::handler(ctx, args)
     }
 
+    /// remove additional metadata to mint
+    pub fn remove_metadata_to_mint(
+        ctx: Context<RemoveMetadata>,
+        args: Vec<RemoveMetadataArgs>,
+    ) -> Result<()> {
+        instructions::mint::remove_metadata::handler(ctx, args)
+    }
+
     /*
         Royalty distribution + enforcement instructions
     */

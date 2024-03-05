@@ -147,6 +147,22 @@ describe("epplex-program", () => {
     await provider.sendAndConfirm(tx, [wallet.payer], {skipPreflight: true}).then(confirm).then(log);
   });
 
+  it("Remove non-royalty related Metadata", async () => {
+    const removeNonRoyaltyRelatedMetadata = await program.methods
+    .removeMetadataToMint(metadataArgs)
+    .accounts({
+      payer: wallet.publicKey,
+      authority: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      mint: nftMint.publicKey,
+    })
+    .instruction();
+
+    const tx = new Transaction().add(removeNonRoyaltyRelatedMetadata);
+    await provider.sendAndConfirm(tx, [wallet.payer], {skipPreflight: true}).then(confirm).then(log);
+  });
+
   it("Modify the royalties of the Nft", async () => {
     creators = [
       {
