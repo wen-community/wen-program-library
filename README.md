@@ -23,7 +23,7 @@ Next steps for this repository are fully featuring the NFT's to include the most
     - Freeze
     - Unfreeze
 
-After these are completed, WNS will need sufficient tooling including collection mint contracts, CLI tooling, and more.
+After these are completed, WNS will need sufficient tooling including group mint contracts, CLI tooling, and more.
 
 ## Developing
 Wen New Standard Relies on Token Extension program and is built using the Anchor Framework. As of now, Anchor does not support Token Extensions directly beyond the core functions. We have written implementations for most extensions and are working to get these changes merged into Anchor proper. While waiting for these changes to be published, we have compiled the most recent fork into a binary in the root of this repository ```anchor```. 

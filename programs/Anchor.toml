@@ -1,0 +1,29 @@
+[features]
+seeds = false
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[workspace]
+members = [
+  "wen_new_standard",
+  "wen_royalty_distribution",
+]
+
+[programs.localnet]
+wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
+wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
+
+[scripts]
+test = "cd ../clients/wns-sdk && yarn test"
+
+
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"
+
+[[test.validator.clone]]
+address = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
