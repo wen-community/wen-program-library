@@ -53,13 +53,15 @@ pub struct CreateGroupAccount<'info> {
         mint::token_program = token_program,
         mint::decimals = 0,
         mint::authority = authority,
-        mint::freeze_authority = authority,
+        mint::freeze_authority = manager,
         mint::extensions = GROUP_EXTENSIONS.to_vec(),
         extensions::metadata_pointer::authority = authority.key(),
         extensions::metadata_pointer::metadata_address = mint.key(),
         // group pointer authority is left as the manager so that it can be updated once token group support inside mint is added
         extensions::group_pointer::authority = manager.key(),
         extensions::group_pointer::group_address = group.key(),
+        // temporary mint close authority until a better program accounts can be used
+        extensions::close_authority::authority = manager.key(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
@@ -71,9 +73,6 @@ pub struct CreateGroupAccount<'info> {
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
-        init_if_needed,
-        payer = payer,
-        space = 8 + Manager::INIT_SPACE,
         seeds = [MANAGER_SEED],
         bump
     )]
@@ -115,7 +114,9 @@ impl<'info> CreateGroupAccount<'info> {
             account_or_mint: self.mint.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        set_authority(cpi_ctx, AuthorityType::MintTokens, None)?;
+        // manager needs to be the new authority so that when solana upgrades to support group accounts, the mint can be updated
+        // this will updated to None once solana supports group accounts
+        set_authority(cpi_ctx, AuthorityType::MintTokens, Some(self.manager.key()))?;
         Ok(())
     }
 }

@@ -19,10 +19,11 @@ pub struct CreateMintAccountArgs {
     pub uri: String,
 }
 
-pub const MINT_EXTENSIONS: [ExtensionType; 3] = [
+pub const MINT_EXTENSIONS: [ExtensionType; 4] = [
     ExtensionType::MetadataPointer,
     ExtensionType::GroupMemberPointer,
     ExtensionType::TransferHook,
+    ExtensionType::MintCloseAuthority,
 ];
 
 #[derive(Accounts)]
@@ -43,12 +44,14 @@ pub struct CreateMintAccount<'info> {
         mint::token_program = token_program,
         mint::decimals = 0,
         mint::authority = authority,
-        mint::freeze_authority = authority,
+        mint::freeze_authority = manager,
         mint::extensions = MINT_EXTENSIONS.to_vec(),
         extensions::metadata_pointer::authority = authority.key(),
         extensions::metadata_pointer::metadata_address = mint.key(),
         extensions::group_member_pointer::authority = manager.key(),
         extensions::transfer_hook::authority = authority.key(),
+        // temporary mint close authority until a better program accounts can be used
+        extensions::close_authority::authority = manager.key(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
@@ -101,7 +104,9 @@ impl<'info> CreateMintAccount<'info> {
             account_or_mint: self.mint.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        set_authority(cpi_ctx, AuthorityType::MintTokens, None)?;
+        // manager needs to be the new authority so that when solana upgrades to support member accounts, the mint can be updated
+        // this will updated to None once solana supports member accounts
+        set_authority(cpi_ctx, AuthorityType::MintTokens, Some(self.manager.key()))?;
         Ok(())
     }
 }

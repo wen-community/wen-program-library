@@ -138,7 +138,7 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
             });
         }
     }
-    
+
     for orig_creator in current_data.iter() {
         let mut creator_found = false;
         for added_creator in new_data.iter() {
