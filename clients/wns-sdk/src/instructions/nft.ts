@@ -3,7 +3,7 @@ import {
 	getAtaAddress, getExtraMetasAccountPda, getManagerAccountPda, getMemberAccountPda, getMetadataProgram,
 } from '../utils/core';
 import {type CommonArgs, type Creator} from '../utils/types';
-import {SYSVAR_RENT_PUBKEY, SystemProgram} from '@solana/web3.js';
+import {PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram} from '@solana/web3.js';
 import {tokenProgramId} from '../utils/constants';
 import {ASSOCIATED_TOKEN_PROGRAM_ID} from '@solana/spl-token';
 
@@ -78,7 +78,10 @@ export const getAddRoyaltiesIx = async (provider: Provider, args: AddRoyaltiesAr
 	const ix = await metadataProgram.methods
 		.addRoyaltiesToMint({
 			royaltyBasisPoints: args.royaltyBasisPoints,
-			creators: args.creators,
+			creators: args.creators.map(creator => ({
+				address: new PublicKey(creator.address),
+				share: creator.share,
+			})),
 		})
 		.accountsStrict({
 			payer: args.payer,

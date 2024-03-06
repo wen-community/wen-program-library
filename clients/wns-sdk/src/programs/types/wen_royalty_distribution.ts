@@ -1,5 +1,5 @@
 export type WenRoyaltyDistribution = {
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "name": "wen_royalty_distribution",
   "instructions": [
     {
@@ -253,7 +253,7 @@ export type WenRoyaltyDistribution = {
 };
 
 export const IDL: WenRoyaltyDistribution = {
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "name": "wen_royalty_distribution",
   "instructions": [
     {

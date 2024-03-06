@@ -19,7 +19,7 @@ use crate::{
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreatorWithShare {
-    pub address: String,
+    pub address: Pubkey,
     pub share: u8,
 }
 
@@ -93,8 +93,10 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
         total_share = total_share
             .checked_add(creator.share)
             .ok_or(MetadataErrors::CreatorShareInvalid)?;
-        ctx.accounts
-            .update_token_metadata_field(Field::Key(creator.address), creator.share.to_string())?;
+        ctx.accounts.update_token_metadata_field(
+            Field::Key(creator.address.to_string()),
+            creator.share.to_string(),
+        )?;
     }
 
     if total_share != 100 {

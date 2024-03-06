@@ -1,5 +1,5 @@
 export type WenNewStandard = {
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -40,7 +40,7 @@ export type WenNewStandard = {
         },
         {
           "name": "manager",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -578,7 +578,7 @@ export type WenNewStandard = {
         "fields": [
           {
             "name": "address",
-            "type": "string"
+            "type": "publicKey"
           },
           {
             "name": "share",
@@ -638,7 +638,7 @@ export type WenNewStandard = {
 };
 
 export const IDL: WenNewStandard = {
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -679,7 +679,7 @@ export const IDL: WenNewStandard = {
         },
         {
           "name": "manager",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1217,7 +1217,7 @@ export const IDL: WenNewStandard = {
         "fields": [
           {
             "name": "address",
-            "type": "string"
+            "type": "publicKey"
           },
           {
             "name": "share",

@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -40,7 +40,7 @@
         },
         {
           "name": "manager",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -578,7 +578,7 @@
         "fields": [
           {
             "name": "address",
-            "type": "string"
+            "type": "publicKey"
           },
           {
             "name": "share",
