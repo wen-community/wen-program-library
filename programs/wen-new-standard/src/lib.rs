@@ -19,6 +19,14 @@ pub mod wen_new_standard {
     use super::*;
 
     /*
+        Manager instructions
+    */
+    /// Init manager account
+    pub fn init_manager_account(ctx: Context<InitManagerAccount>) -> Result<()> {
+        instructions::manager::init::handler(ctx)
+    }
+
+    /*
         Token group instructions
     */
     /// create group

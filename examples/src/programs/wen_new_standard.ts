@@ -3,6 +3,30 @@ export type WenNewStandard = {
   "name": "wen_new_standard",
   "instructions": [
     {
+      "name": "initManagerAccount",
+      "docs": [
+        "Init manager account"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createGroupAccount",
       "docs": [
         "create group"
@@ -640,6 +664,30 @@ export const IDL: WenNewStandard = {
   "version": "0.0.1-alpha",
   "name": "wen_new_standard",
   "instructions": [
+    {
+      "name": "initManagerAccount",
+      "docs": [
+        "Init manager account"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
     {
       "name": "createGroupAccount",
       "docs": [
