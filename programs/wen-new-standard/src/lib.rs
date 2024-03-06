@@ -66,6 +66,30 @@ pub mod wen_new_standard {
         instructions::mint::royalties::add::handler(ctx, args)
     }
 
+    /// modify royalties of mint
+    pub fn modify_royalties_of_mint(
+        ctx: Context<ModifyRoyalties>,
+        args: ModifyRoyaltiesArgs,
+    ) -> Result<()> {
+        instructions::mint::royalties::modify::handler(ctx, args)
+    }
+
+    /// add additional metadata to mint
+    pub fn add_metadata_to_mint(
+        ctx: Context<AddMetadata>,
+        args: Vec<AddMetadataArgs>,
+    ) -> Result<()> {
+        instructions::mint::add_metadata::handler(ctx, args)
+    }
+
+    /// remove additional metadata to mint
+    pub fn remove_metadata_to_mint(
+        ctx: Context<RemoveMetadata>,
+        args: Vec<RemoveMetadataArgs>,
+    ) -> Result<()> {
+        instructions::mint::remove_metadata::handler(ctx, args)
+    }
+
     /*
         Royalty distribution + enforcement instructions
     */

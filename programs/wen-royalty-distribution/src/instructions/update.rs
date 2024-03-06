@@ -93,14 +93,16 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
     // get all creators from metadata Vec(String, String), only royalty_basis_points needs to be removed
-    // TODO: If creator adds other extra metadata or an invalid pubkey they will be unable to pay royalties. Should handle this gracefully, although this is not possible currently.
     let creators = metadata
         .additional_metadata
         .iter()
         .filter(|(key, _)| key != ROYALTY_BASIS_POINTS_FIELD)
-        .map(|(key, value)| CreatorShare {
-            address: Pubkey::from_str(key).unwrap(),
-            pct: u8::from_str(value).unwrap(),
+        .filter_map(|(key, value)| match Pubkey::from_str(key) {
+            Ok(pubkey) => Some(CreatorShare {
+                address: pubkey,
+                pct: u8::from_str(value).unwrap(),
+            }),
+            Err(_) => None,
         })
         .collect::<Vec<CreatorShare>>();
 

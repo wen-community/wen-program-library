@@ -1,13 +1,11 @@
+use std::str::FromStr;
+
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{
-        spl_token_metadata_interface::state::Field, token_metadata_update_field,
-        transfer_hook_update, Mint, Token2022, TokenMetadataUpdateField,
-        TokenMetadataUpdateFieldArgs, TransferHookUpdate,
-    },
+use anchor_spl::token_interface::{
+    spl_token_metadata_interface::state::Field, token_metadata_update_field, transfer_hook_update,
+    Mint, Token2022, TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs, TransferHookUpdate,
 };
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
@@ -48,8 +46,6 @@ pub struct AddRoyalties<'info> {
     )]
     pub extra_metas_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
 }
 
@@ -78,6 +74,12 @@ impl<'info> AddRoyalties<'info> {
 }
 
 pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()> {
+    // validate that the fee_basis_point is less than 10000 (100%)
+    require!(
+        args.royalty_basis_points <= 10000,
+        MetadataErrors::RoyaltyBasisPointsInvalid
+    );
+
     // add royalty basis points to metadata
     ctx.accounts.update_token_metadata_field(
         Field::Key(ROYALTY_BASIS_POINTS_FIELD.to_owned()),
@@ -87,11 +89,19 @@ pub fn handler(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()>
     let mut total_share: u8 = 0;
     // add creators and their respective shares to metadata
     for creator in args.creators {
-        total_share = total_share
-            .checked_add(creator.share)
-            .ok_or(MetadataErrors::CreatorShareInvalid)?;
-        ctx.accounts
-            .update_token_metadata_field(Field::Key(creator.address), creator.share.to_string())?;
+        // validate that the creator is a valid publickey
+        match Pubkey::from_str(&creator.address) {
+            Ok(_) => {
+                total_share = total_share
+                    .checked_add(creator.share)
+                    .ok_or(MetadataErrors::CreatorShareInvalid)?;
+                ctx.accounts.update_token_metadata_field(
+                    Field::Key(creator.address),
+                    creator.share.to_string(),
+                )?;
+            }
+            Err(_) => return Err(MetadataErrors::CreatorAddressInvalid.into()),
+        }
     }
 
     if total_share != 100 {

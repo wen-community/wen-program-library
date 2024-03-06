@@ -1,3 +1,4 @@
+use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
 use anchor_lang::{
     prelude::Result,
     solana_program::{
@@ -21,8 +22,6 @@ use anchor_spl::token_interface::{
 };
 use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
 
-use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
-
 pub fn update_account_lamports_to_minimum_balance<'info>(
     account: AccountInfo<'info>,
     payer: AccountInfo<'info>,
@@ -35,6 +34,32 @@ pub fn update_account_lamports_to_minimum_balance<'info>(
             &[payer, account, system_program],
         )?;
     }
+    Ok(())
+}
+
+pub fn update_account_lamports_to_minimum_balance2<'info>(
+    account: AccountInfo<'info>,
+    payer: AccountInfo<'info>,
+    system_program: AccountInfo<'info>,
+) -> Result<()> {
+    if Rent::get()?.minimum_balance(account.data_len()) > account.get_lamports() {
+        let extra_lamports =
+            Rent::get()?.minimum_balance(account.data_len()) - account.get_lamports();
+        invoke(
+            &transfer(payer.key, account.key, extra_lamports),
+            &[payer, account, system_program],
+        )?;
+    }
+    // else {
+    //     let extra_lamports = account.get_lamports() - Rent::get()?.minimum_balance(account.data_len());
+    //     if extra_lamports > 0 {
+    //         invoke(
+    //             &transfer(account.key, payer.key, extra_lamports),
+    //             &[payer, account, system_program],
+    //         )?;
+    //     }
+    // }
+
     Ok(())
 }
 
