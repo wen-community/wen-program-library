@@ -46,3 +46,18 @@ export const getCreateGroupIx = async (provider: Provider, args: CreateGroupArgs
 	return ix;
 };
 
+export const getInitManagerIx = async (provider: Provider, payer: string) => {
+	const metadataProgram = getMetadataProgram(provider);
+	const managerAccount = getManagerAccountPda();
+
+	const ix = await metadataProgram.methods
+		.initManagerAccount()
+		.accountsStrict({
+			payer,
+			systemProgram: SystemProgram.programId,
+			manager: managerAccount,
+		})
+		.instruction();
+
+	return ix;
+};

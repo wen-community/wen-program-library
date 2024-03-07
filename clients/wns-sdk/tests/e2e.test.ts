@@ -8,6 +8,7 @@ import {
 	getAddDistributionIx, getAddNftToGroupIx, getAddRoyaltiesIx, getAtaCreateIx, getClaimDistributionIx, getCreateGroupIx, getDistributionAccount, getDistributionAccountPda, getDistributionProgram, getGroupAccount,
 	getGroupAccountPda,
 	getGroupMemberAccount,
+	getInitManagerIx,
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
@@ -40,6 +41,7 @@ describe('e2e tests', () => {
 			payer: setup.payer.publicKey.toString(),
 			authority: setup.authority.publicKey.toString(),
 		};
+		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
 		const createGroupIx = await getCreateGroupIx(setup.provider, args);
 		const addDistributionArgs = {
 			groupMint,
@@ -54,7 +56,7 @@ describe('e2e tests', () => {
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
 			recentBlockhash: blockhash,
-			instructions: [createGroupIx, addDistributionIx],
+			instructions: [createManagerIx, createGroupIx, addDistributionIx],
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, groupMintKp, setup.authority]);
