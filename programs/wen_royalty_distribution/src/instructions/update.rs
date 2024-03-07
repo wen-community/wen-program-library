@@ -141,8 +141,21 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         }
     }
 
-    // remove creators with 0 claim amount
-    new_data.retain(|creator| creator.claim_amount > 0);
+    // add creators from old data with claim amount > 0 if not present in incoming creator updates
+    for creator in current_data.iter() {
+        if creator.claim_amount > 0 {
+            let mut creator_found = false;
+            for new_creator in new_data.iter() {
+                if creator.address == new_creator.address {
+                    creator_found = true;
+                    break;
+                }
+            }
+            if !creator_found {
+                new_data.push(creator.clone());
+            }
+        }
+    }
 
     ctx.accounts.distribution_account.claim_data = new_data;
 
