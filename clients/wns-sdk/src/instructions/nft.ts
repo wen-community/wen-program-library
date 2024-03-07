@@ -48,7 +48,7 @@ export const getAddNftToGroupIx = async (provider: Provider, args: AddGroupArgs)
 	const memberAccount = getMemberAccountPda(args.mint);
 
 	const ix = await metadataProgram.methods
-		.addGroupToMint()
+		.addMintToGroup()
 		.accountsStrict({
 			payer: args.payer,
 			authority: args.authority,
@@ -76,7 +76,7 @@ export const getAddRoyaltiesIx = async (provider: Provider, args: AddRoyaltiesAr
 	const extraMetasAccount = getExtraMetasAccountPda(args.mint);
 
 	const ix = await metadataProgram.methods
-		.addRoyaltiesToMint({
+		.addRoyalties({
 			royaltyBasisPoints: args.royaltyBasisPoints,
 			creators: args.creators.map(creator => ({
 				address: new PublicKey(creator.address),

@@ -1,3 +1,4 @@
+use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
 use anchor_lang::{
     prelude::Result,
     solana_program::{
@@ -20,8 +21,6 @@ use anchor_spl::token_interface::{
     spl_token_metadata_interface::state::TokenMetadata,
 };
 use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
-
-use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
 
 pub fn get_bump_in_seed_form(bump: &u8) -> [u8; 1] {
     let bump_val = *bump;

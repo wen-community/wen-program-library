@@ -3,8 +3,33 @@ export type WenNewStandard = {
   "name": "wen_new_standard",
   "instructions": [
     {
+      "name": "initManagerAccount",
+      "docs": [
+        "Init manager account"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createGroupAccount",
       "docs": [
+        "Token group instructions",
         "create group"
       ],
       "accounts": [
@@ -186,7 +211,7 @@ export type WenNewStandard = {
       ]
     },
     {
-      "name": "addGroupToMint",
+      "name": "addMintToGroup",
       "docs": [
         "add mint to group"
       ],
@@ -235,7 +260,7 @@ export type WenNewStandard = {
       "args": []
     },
     {
-      "name": "addRoyaltiesToMint",
+      "name": "addRoyalties",
       "docs": [
         "add royalties to mint"
       ],
@@ -266,12 +291,43 @@ export type WenNewStandard = {
           "isSigner": false
         },
         {
-          "name": "rent",
+          "name": "tokenProgram",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "UpdateRoyaltiesArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "modifyRoyalties",
+      "docs": [
+        "modify royalties of mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
+          "name": "systemProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -285,7 +341,93 @@ export type WenNewStandard = {
         {
           "name": "args",
           "type": {
-            "defined": "AddRoyaltiesArgs"
+            "defined": "UpdateRoyaltiesArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "addMetadata",
+      "docs": [
+        "add additional metadata to mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": "AddMetadataArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "removeMetadata",
+      "docs": [
+        "remove additional metadata to mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": "RemoveMetadataArgs"
+            }
           }
         }
       ]
@@ -572,6 +714,38 @@ export type WenNewStandard = {
       }
     },
     {
+      "name": "AddMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemoveMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "name": "CreatorWithShare",
       "type": {
         "kind": "struct",
@@ -588,7 +762,7 @@ export type WenNewStandard = {
       }
     },
     {
-      "name": "AddRoyaltiesArgs",
+      "name": "UpdateRoyaltiesArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -633,6 +807,21 @@ export type WenNewStandard = {
       "code": 6004,
       "name": "ExpiredApproveAccount",
       "msg": "Approve account has expired."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidField",
+      "msg": "Invalid field. You cannot use a public key as a field."
+    },
+    {
+      "code": 6006,
+      "name": "CreatorAddressInvalid",
+      "msg": "The Address you provided is invalid. Please provide a valid address."
+    },
+    {
+      "code": 6007,
+      "name": "RoyaltyBasisPointsInvalid",
+      "msg": "Royalty basis points must be less than or equal to 10000."
     }
   ]
 };
@@ -642,8 +831,33 @@ export const IDL: WenNewStandard = {
   "name": "wen_new_standard",
   "instructions": [
     {
+      "name": "initManagerAccount",
+      "docs": [
+        "Init manager account"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createGroupAccount",
       "docs": [
+        "Token group instructions",
         "create group"
       ],
       "accounts": [
@@ -825,7 +1039,7 @@ export const IDL: WenNewStandard = {
       ]
     },
     {
-      "name": "addGroupToMint",
+      "name": "addMintToGroup",
       "docs": [
         "add mint to group"
       ],
@@ -874,7 +1088,7 @@ export const IDL: WenNewStandard = {
       "args": []
     },
     {
-      "name": "addRoyaltiesToMint",
+      "name": "addRoyalties",
       "docs": [
         "add royalties to mint"
       ],
@@ -905,12 +1119,43 @@ export const IDL: WenNewStandard = {
           "isSigner": false
         },
         {
-          "name": "rent",
+          "name": "tokenProgram",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "UpdateRoyaltiesArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "modifyRoyalties",
+      "docs": [
+        "modify royalties of mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
+          "name": "systemProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -924,7 +1169,93 @@ export const IDL: WenNewStandard = {
         {
           "name": "args",
           "type": {
-            "defined": "AddRoyaltiesArgs"
+            "defined": "UpdateRoyaltiesArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "addMetadata",
+      "docs": [
+        "add additional metadata to mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": "AddMetadataArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "removeMetadata",
+      "docs": [
+        "remove additional metadata to mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": "RemoveMetadataArgs"
+            }
           }
         }
       ]
@@ -1211,6 +1542,38 @@ export const IDL: WenNewStandard = {
       }
     },
     {
+      "name": "AddMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemoveMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "name": "CreatorWithShare",
       "type": {
         "kind": "struct",
@@ -1227,7 +1590,7 @@ export const IDL: WenNewStandard = {
       }
     },
     {
-      "name": "AddRoyaltiesArgs",
+      "name": "UpdateRoyaltiesArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1272,6 +1635,21 @@ export const IDL: WenNewStandard = {
       "code": 6004,
       "name": "ExpiredApproveAccount",
       "msg": "Approve account has expired."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidField",
+      "msg": "Invalid field. You cannot use a public key as a field."
+    },
+    {
+      "code": 6006,
+      "name": "CreatorAddressInvalid",
+      "msg": "The Address you provided is invalid. Please provide a valid address."
+    },
+    {
+      "code": 6007,
+      "name": "RoyaltyBasisPointsInvalid",
+      "msg": "Royalty basis points must be less than or equal to 10000."
     }
   ]
 };

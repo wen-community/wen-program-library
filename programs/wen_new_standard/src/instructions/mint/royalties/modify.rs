@@ -1,21 +1,31 @@
-use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
-use spl_tlv_account_resolution::state::ExtraAccountMetaList;
+use std::str::FromStr;
+
+use anchor_lang::{
+    prelude::*,
+    solana_program::{entrypoint::ProgramResult, program::invoke},
+};
 
 use anchor_spl::token_interface::{
-    spl_token_metadata_interface::state::Field, token_metadata_update_field, transfer_hook_update,
-    Mint, Token2022, TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs, TransferHookUpdate,
+    spl_token_2022::{
+        extension::{BaseStateWithExtensions, StateWithExtensions},
+        state::Mint as BaseStateMint,
+    },
+    spl_token_metadata_interface::state::Field,
+    spl_token_metadata_interface::state::TokenMetadata,
+    token_metadata_update_field, Mint, Token2022, TokenMetadataUpdateField,
+    TokenMetadataUpdateFieldArgs,
 };
-use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 use crate::{
-    get_approve_account_pda, get_meta_list, get_meta_list_size,
     update_account_lamports_to_minimum_balance, MetadataErrors, UpdateRoyaltiesArgs,
-    META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
+    ROYALTY_BASIS_POINTS_FIELD,
 };
+
+use spl_token_metadata_interface::instruction::remove_key;
 
 #[derive(Accounts)]
 #[instruction(args: UpdateRoyaltiesArgs)]
-pub struct AddRoyalties<'info> {
+pub struct ModifyRoyalties<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(mut)]
@@ -25,24 +35,15 @@ pub struct AddRoyalties<'info> {
         mint::token_program = token_program,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
-    /// CHECK: This account's data is a buffer of TLV data
-    #[account(
-        init,
-        space = get_meta_list_size(get_approve_account_pda(mint.key())),
-        seeds = [META_LIST_ACCOUNT_SEED, mint.key().as_ref()],
-        bump,
-        payer = payer,
-    )]
-    pub extra_metas_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
 }
 
-impl<'info> AddRoyalties<'info> {
+impl<'info> ModifyRoyalties<'info> {
     fn update_token_metadata_field(&self, field: Field, value: String) -> ProgramResult {
         let cpi_accounts = TokenMetadataUpdateField {
             token_program_id: self.token_program.to_account_info(),
-            metadata: self.mint.to_account_info(),
+            metadata: self.mint.to_account_info().clone(),
             update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
@@ -50,26 +51,39 @@ impl<'info> AddRoyalties<'info> {
         Ok(())
     }
 
-    fn update_transfer_hook_program_id(&self) -> Result<()> {
-        let cpi_accounts = TransferHookUpdate {
-            token_program_id: self.token_program.to_account_info(),
-            mint: self.mint.to_account_info(),
-            authority: self.authority.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        transfer_hook_update(cpi_ctx, Some(crate::id()))?;
+    // ToDo: Create a macro for it
+    fn remove_token_metadata_field(&self, field: String) -> Result<()> {
+        invoke(
+            &remove_key(
+                &self.token_program.key(),
+                &self.mint.key(),
+                &self.authority.key(),
+                field,
+                false,
+            ),
+            &[
+                self.mint.to_account_info(),
+                self.authority.to_account_info(),
+            ],
+        )?;
+
         Ok(())
     }
 }
 
-pub fn handler(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
+pub fn handler(ctx: Context<ModifyRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
+    let mint_account = ctx.accounts.mint.to_account_info().clone();
+    let mint_account_data = mint_account.try_borrow_mut_data()?;
+    let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
+    let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
+
     // validate that the fee_basis_point is less than 10000 (100%)
     require!(
         args.royalty_basis_points <= 10000,
         MetadataErrors::RoyaltyBasisPointsInvalid
     );
 
-    // add royalty basis points to metadata
+    // since this field is already there, it will just update it with the new value if there is one
     ctx.accounts.update_token_metadata_field(
         Field::Key(ROYALTY_BASIS_POINTS_FIELD.to_owned()),
         args.royalty_basis_points.to_string(),
@@ -77,7 +91,8 @@ pub fn handler(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<
 
     let mut total_share: u8 = 0;
     // add creators and their respective shares to metadata
-    for creator in args.creators {
+    for creator in args.creators.clone() {
+        // validate that the creator is a valid publickey
         total_share = total_share
             .checked_add(creator.share)
             .ok_or(MetadataErrors::CreatorShareInvalid)?;
@@ -91,14 +106,16 @@ pub fn handler(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<
         return Err(MetadataErrors::CreatorShareInvalid.into());
     }
 
-    // initialize the extra metas account
-    let extra_metas_account = &ctx.accounts.extra_metas_account;
-    let metas = get_meta_list(get_approve_account_pda(ctx.accounts.mint.key()));
-    let mut data = extra_metas_account.try_borrow_mut_data()?;
-    ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
-
-    // add metadata program as the transfer hook program
-    ctx.accounts.update_transfer_hook_program_id()?;
+    // for all the keys in metadata.additional_metadata, if the key is not in the args, remove it
+    let creators = args.creators;
+    for key in metadata.additional_metadata {
+        if !creators
+            .iter()
+            .any(|creator| creator.address == Pubkey::from_str(&key.0).unwrap())
+        {
+            ctx.accounts.remove_token_metadata_field(key.0)?;
+        }
+    }
 
     // transfer minimum rent to mint account
     update_account_lamports_to_minimum_balance(

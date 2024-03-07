@@ -18,6 +18,16 @@ declare_id!("wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM");
 pub mod wen_new_standard {
     use super::*;
 
+    /*
+        Manager instructions
+    */
+    /// Init manager account
+    pub fn init_manager_account(_ctx: Context<InitManagerAccount>) -> Result<()> {
+        // create manager happens in the macro, no extra processor needed
+        Ok(())
+    }
+
+    /// Token group instructions
     /// create group
     pub fn create_group_account(
         ctx: Context<CreateGroupAccount>,
@@ -43,13 +53,34 @@ pub mod wen_new_standard {
     }
 
     /// add mint to group
-    pub fn add_group_to_mint(ctx: Context<AddGroup>) -> Result<()> {
+    pub fn add_mint_to_group(ctx: Context<AddGroup>) -> Result<()> {
         instructions::mint::group::add::handler(ctx)
     }
 
     /// add royalties to mint
-    pub fn add_royalties_to_mint(ctx: Context<AddRoyalties>, args: AddRoyaltiesArgs) -> Result<()> {
+    pub fn add_royalties(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
         instructions::mint::royalties::add::handler(ctx, args)
+    }
+
+    /// modify royalties of mint
+    pub fn modify_royalties(
+        ctx: Context<ModifyRoyalties>,
+        args: UpdateRoyaltiesArgs,
+    ) -> Result<()> {
+        instructions::mint::royalties::modify::handler(ctx, args)
+    }
+
+    /// add additional metadata to mint
+    pub fn add_metadata(ctx: Context<AddMetadata>, args: Vec<AddMetadataArgs>) -> Result<()> {
+        instructions::mint::metadata::add::handler(ctx, args)
+    }
+
+    /// remove additional metadata to mint
+    pub fn remove_metadata(
+        ctx: Context<RemoveMetadata>,
+        args: Vec<RemoveMetadataArgs>,
+    ) -> Result<()> {
+        instructions::mint::metadata::remove::handler(ctx, args)
     }
 
     /// Royalty distribution + enforcement instructions

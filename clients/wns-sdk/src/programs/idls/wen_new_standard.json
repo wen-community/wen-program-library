@@ -3,8 +3,33 @@
   "name": "wen_new_standard",
   "instructions": [
     {
+      "name": "initManagerAccount",
+      "docs": [
+        "Init manager account"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "manager",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createGroupAccount",
       "docs": [
+        "Token group instructions",
         "create group"
       ],
       "accounts": [
@@ -186,7 +211,7 @@
       ]
     },
     {
-      "name": "addGroupToMint",
+      "name": "addMintToGroup",
       "docs": [
         "add mint to group"
       ],
@@ -235,7 +260,7 @@
       "args": []
     },
     {
-      "name": "addRoyaltiesToMint",
+      "name": "addRoyalties",
       "docs": [
         "add royalties to mint"
       ],
@@ -266,12 +291,43 @@
           "isSigner": false
         },
         {
-          "name": "rent",
+          "name": "tokenProgram",
           "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "UpdateRoyaltiesArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "modifyRoyalties",
+      "docs": [
+        "modify royalties of mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
+          "name": "systemProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -285,7 +341,93 @@
         {
           "name": "args",
           "type": {
-            "defined": "AddRoyaltiesArgs"
+            "defined": "UpdateRoyaltiesArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "addMetadata",
+      "docs": [
+        "add additional metadata to mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": "AddMetadataArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "removeMetadata",
+      "docs": [
+        "remove additional metadata to mint"
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": "RemoveMetadataArgs"
+            }
           }
         }
       ]
@@ -572,6 +714,38 @@
       }
     },
     {
+      "name": "AddMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemoveMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "name": "CreatorWithShare",
       "type": {
         "kind": "struct",
@@ -588,7 +762,7 @@
       }
     },
     {
-      "name": "AddRoyaltiesArgs",
+      "name": "UpdateRoyaltiesArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -633,6 +807,21 @@
       "code": 6004,
       "name": "ExpiredApproveAccount",
       "msg": "Approve account has expired."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidField",
+      "msg": "Invalid field. You cannot use a public key as a field."
+    },
+    {
+      "code": 6006,
+      "name": "CreatorAddressInvalid",
+      "msg": "The Address you provided is invalid. Please provide a valid address."
+    },
+    {
+      "code": 6007,
+      "name": "RoyaltyBasisPointsInvalid",
+      "msg": "Royalty basis points must be less than or equal to 10000."
     }
   ]
 }

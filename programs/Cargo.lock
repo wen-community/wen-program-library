@@ -74,7 +74,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-access-control"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "proc-macro2",
@@ -85,7 +85,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-account"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "bs58 0.5.0",
@@ -97,7 +97,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-constant"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -107,7 +107,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-error"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -117,7 +117,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-event"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "proc-macro2",
@@ -128,7 +128,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-program"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -138,7 +138,7 @@ dependencies = [
 [[package]]
 name = "anchor-derive-accounts"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -148,7 +148,7 @@ dependencies = [
 [[package]]
 name = "anchor-derive-serde"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-syn",
  "borsh-derive-internal 0.10.3",
@@ -160,7 +160,7 @@ dependencies = [
 [[package]]
 name = "anchor-derive-space"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -170,7 +170,7 @@ dependencies = [
 [[package]]
 name = "anchor-lang"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "ahash 0.8.5",
  "anchor-attribute-access-control",
@@ -195,7 +195,7 @@ dependencies = [
 [[package]]
 name = "anchor-spl"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anchor-lang",
  "borsh 0.10.3",
@@ -212,7 +212,7 @@ dependencies = [
 [[package]]
 name = "anchor-syn"
 version = "0.29.0"
-source = "git+ssh://git@github.com/bridgesplit/anchor#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
 dependencies = [
  "anyhow",
  "bs58 0.5.0",
@@ -617,9 +617,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "cc"
-version = "1.0.89"
+version = "1.0.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0ba8f7aaa012f30d5b2861462f6708eccd49c3c39863fe083a308035f63d723"
+checksum = "8cd6604a82acf3039f1144f54b8eb34e91ffba622051189e71b781822d5ee1f5"
 dependencies = [
  "jobserver",
  "libc",
@@ -633,9 +633,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.34"
+version = "0.4.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bc015644b92d5890fab7489e49d21f879d5c990186827d42ec511919404f38b"
+checksum = "8eaf5903dcbc0a39312feb77df2ff4c76387d591b9fc7b04a238dcf8bb62639a"
 dependencies = [
  "num-traits",
 ]
@@ -1075,9 +1075,9 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.68"
+version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "406cda4b368d531c842222cf9d2600a9a4acce8d29423695379c6868a143a9ee"
+checksum = "29c15563dc2726973df627357ce0c9ddddbea194836909d655df6a75d2cf296d"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -2435,9 +2435,9 @@ checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.91"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1e124130aee3fb58c5bdd6b639a0509486b0338acaaae0c84a5124b0f588b7f"
+checksum = "4be2531df63900aeb2bca0daaaddec08491ee64ceecbee5076636a3b026795a8"
 dependencies = [
  "cfg-if",
  "wasm-bindgen-macro",
@@ -2445,9 +2445,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.91"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9e7e1900c352b609c8488ad12639a311045f40a35491fb69ba8c12f758af70b"
+checksum = "614d787b966d3989fa7bb98a654e369c762374fd3213d212cfc0251257e747da"
 dependencies = [
  "bumpalo",
  "log",
@@ -2460,9 +2460,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.91"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b30af9e2d358182b5c7449424f017eba305ed32a7010509ede96cdc4696c46ed"
+checksum = "a1f8823de937b71b9460c0c34e25f3da88250760bec0ebac694b49997550d726"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -2470,9 +2470,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.91"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "642f325be6301eb8107a83d12a8ac6c1e1c54345a7ef1a9261962dfefda09e66"
+checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2483,15 +2483,15 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.91"
+version = "0.2.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f186bd2dcf04330886ce82d6f33dd75a7bfcf69ecf5763b89fcde53b6ac9838"
+checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 
 [[package]]
 name = "web-sys"
-version = "0.3.68"
+version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96565907687f7aceb35bc5fc03770a8a0471d82e479f25832f54a0e3f4b28446"
+checksum = "77afa9a11836342370f4817622a2f0f418b134426d91a82dfb48f532d2ec13ef"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -2505,6 +2505,7 @@ dependencies = [
  "anchor-spl",
  "spl-pod",
  "spl-tlv-account-resolution 0.4.0",
+ "spl-token-metadata-interface",
  "spl-transfer-hook-interface 0.5.1",
  "wen_royalty_distribution",
 ]
