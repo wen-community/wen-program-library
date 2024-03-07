@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {PublicKey, SystemProgram, type TransactionInstruction} from '@solana/web3.js';
 import {
 	ASSOCIATED_TOKEN_PROGRAM_ID,

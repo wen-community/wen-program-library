@@ -141,6 +141,9 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         }
     }
 
+    // remove creators with 0 claim amount
+    new_data.retain(|creator| creator.claim_amount > 0);
+
     ctx.accounts.distribution_account.claim_data = new_data;
 
     if args.payment_mint == Pubkey::default() {

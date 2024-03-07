@@ -87,8 +87,6 @@ export const getAddRoyaltiesIx = async (provider: Provider, args: AddRoyaltiesAr
 			payer: args.payer,
 			authority: args.authority,
 			systemProgram: SystemProgram.programId,
-			rent: SYSVAR_RENT_PUBKEY,
-			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
 			tokenProgram: tokenProgramId,
 			extraMetasAccount,
 			mint: args.mint,
