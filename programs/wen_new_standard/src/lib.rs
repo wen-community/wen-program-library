@@ -93,6 +93,11 @@ pub mod wen_new_standard {
         instructions::mint::thaw::handler(ctx)
     }
 
+    /// burn mint
+    pub fn burn_mint_account(ctx: Context<BurnMintAccount>) -> Result<()> {
+        instructions::mint::burn::handler(ctx)
+    }
+
     /// Royalty distribution + enforcement instructions
     /// validate transfer
     #[interface(spl_transfer_hook_interface::execute)]

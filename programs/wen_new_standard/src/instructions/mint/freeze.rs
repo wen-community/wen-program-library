@@ -17,9 +17,9 @@ pub struct FreezeDelegatedAccount<'info> {
     pub user: UncheckedAccount<'info>,
     #[account(mut)]
     pub delegate_authority: Signer<'info>,
-    #[account()]
     #[account(
-        mut
+        mut,
+        constraint = mint.freeze_authority == COption::Some(manager.key()) @MintErrors::InvalidFreezeAuthority
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
@@ -27,6 +27,7 @@ pub struct FreezeDelegatedAccount<'info> {
         associated_token::token_program = token_program,
         associated_token::mint = mint,
         associated_token::authority = user,
+        constraint = mint_token_account.delegate == COption::Some(delegate_authority.key()) @MintErrors::InvalidDelegateAuthority
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
@@ -38,17 +39,6 @@ pub struct FreezeDelegatedAccount<'info> {
 }
 
 impl<'info> FreezeDelegatedAccount<'info> {
-    fn assert_freeze_authority(&self) -> Result<()> {
-        require!(self.mint.freeze_authority == COption::Some(self.manager.key()), MintErrors::InvalidFreezeAuthority);
-
-        Ok(())
-    }
-
-    fn assert_delegate_authority(&self) -> Result<()> {
-        require!(self.mint_token_account.delegate == COption::Some(self.delegate_authority.key()), MintErrors::InvalidDelegateAuthority);
-
-        Ok(())
-    }
 
     fn freeze(&self, bumps: FreezeDelegatedAccountBumps) -> Result<()> {
         let seeds: &[&[u8]; 2] = &[
@@ -70,11 +60,6 @@ impl<'info> FreezeDelegatedAccount<'info> {
 }
 
 pub fn handler(ctx: Context<FreezeDelegatedAccount>) -> Result<()> {
-    // check if the freeze authority is the manager
-    ctx.accounts.assert_freeze_authority()?;
-
-    // check if the delegate authority is the signer passed in the instruction
-    ctx.accounts.assert_delegate_authority()?;
 
     // freeze the token account
     ctx.accounts.freeze(ctx.bumps)?;
