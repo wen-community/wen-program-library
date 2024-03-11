@@ -5,7 +5,7 @@ use anchor_spl::{
         mint_to, set_authority,
         spl_token_2022::{extension::ExtensionType, instruction::AuthorityType},
         token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
-        TokenMetadataInitialize, TokenMetadataInitializeArgs,
+        TokenMetadataInitialize,
     },
 };
 
@@ -54,14 +54,13 @@ pub struct CreateGroupAccount<'info> {
         mint::decimals = 0,
         mint::authority = authority,
         mint::freeze_authority = manager,
-        mint::extensions = GROUP_EXTENSIONS.to_vec(),
-        extensions::metadata_pointer::authority = authority.key(),
-        extensions::metadata_pointer::metadata_address = mint.key(),
+        extensions::metadata_pointer::authority = authority,
+        extensions::metadata_pointer::metadata_address = mint,
         // group pointer authority is left as the manager so that it can be updated once token group support inside mint is added
-        extensions::group_pointer::authority = manager.key(),
-        extensions::group_pointer::group_address = group.key(),
+        extensions::group_pointer::authority = manager,
+        extensions::group_pointer::group_address = group,
         // temporary mint close authority until a better program accounts can be used
-        extensions::close_authority::authority = manager.key(),
+        extensions::close_authority::authority = manager,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
@@ -84,7 +83,7 @@ pub struct CreateGroupAccount<'info> {
 }
 
 impl<'info> CreateGroupAccount<'info> {
-    fn initialize_metadata(&self, args: TokenMetadataInitializeArgs) -> ProgramResult {
+    fn initialize_metadata(&self, name: String, symbol: String, uri: String) -> ProgramResult {
         let cpi_accounts = TokenMetadataInitialize {
             token_program_id: self.token_program.to_account_info(),
             mint: self.mint.to_account_info(),
@@ -93,7 +92,7 @@ impl<'info> CreateGroupAccount<'info> {
             update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        token_metadata_initialize(cpi_ctx, args)?;
+        token_metadata_initialize(cpi_ctx, name, symbol, uri)?;
         Ok(())
     }
 
@@ -124,11 +123,7 @@ impl<'info> CreateGroupAccount<'info> {
 pub fn handler(ctx: Context<CreateGroupAccount>, args: CreateGroupAccountArgs) -> Result<()> {
     // initialize token metadata
     ctx.accounts
-        .initialize_metadata(TokenMetadataInitializeArgs {
-            name: args.name,
-            symbol: args.symbol,
-            uri: args.uri,
-        })?;
+        .initialize_metadata(args.name, args.symbol, args.uri)?;
 
     // using a custom group account until token22 implements group account
     let group = &mut ctx.accounts.group;

@@ -4,7 +4,7 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 
 use anchor_spl::token_interface::{
     spl_token_metadata_interface::state::Field, token_metadata_update_field, Mint, Token2022,
-    TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs,
+    TokenMetadataUpdateField,
 };
 
 use crate::{errors::MetadataErrors, update_account_lamports_to_minimum_balance};
@@ -38,7 +38,7 @@ impl<'info> AddMetadata<'info> {
             update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        token_metadata_update_field(cpi_ctx, TokenMetadataUpdateFieldArgs { field, value })?;
+        token_metadata_update_field(cpi_ctx, field, value)?;
         Ok(())
     }
 }
