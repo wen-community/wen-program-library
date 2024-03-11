@@ -74,7 +74,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-access-control"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "proc-macro2",
@@ -85,7 +85,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-account"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "bs58 0.5.0",
@@ -97,7 +97,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-constant"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -107,7 +107,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-error"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -117,7 +117,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-event"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "proc-macro2",
@@ -128,7 +128,7 @@ dependencies = [
 [[package]]
 name = "anchor-attribute-program"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -138,7 +138,7 @@ dependencies = [
 [[package]]
 name = "anchor-derive-accounts"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "quote",
@@ -148,7 +148,7 @@ dependencies = [
 [[package]]
 name = "anchor-derive-serde"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-syn",
  "borsh-derive-internal 0.10.3",
@@ -160,7 +160,7 @@ dependencies = [
 [[package]]
 name = "anchor-derive-space"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -170,7 +170,7 @@ dependencies = [
 [[package]]
 name = "anchor-lang"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "ahash 0.8.5",
  "anchor-attribute-access-control",
@@ -195,10 +195,9 @@ dependencies = [
 [[package]]
 name = "anchor-spl"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anchor-lang",
- "borsh 0.10.3",
  "solana-program",
  "spl-associated-token-account",
  "spl-pod",
@@ -212,7 +211,7 @@ dependencies = [
 [[package]]
 name = "anchor-syn"
 version = "0.29.0"
-source = "git+https://github.com/bridgesplit/anchor.git#ec22b3c1e34d7c72f013bfac5a5dec4002d38b8a"
+source = "git+https://github.com/bridgesplit/anchor.git#7df3458b959caf9d11fdc596a18b3f8a16b51a0f"
 dependencies = [
  "anyhow",
  "bs58 0.5.0",
@@ -575,9 +574,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.15.3"
+version = "3.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ea184aa71bb362a1157c896979544cc23974e08fd265f29ea96b59f0b4a555b"
+checksum = "7ff69b9dd49fd426c69a0db9fc04dd934cdb6645ff000864d98f7e2af8830eaa"
 
 [[package]]
 name = "bv"
@@ -600,9 +599,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck_derive"
-version = "1.5.0"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "965ab7eb5f8f97d2a083c799f3a1b994fc397b2fe2da5d1da1626ce15a39f2b1"
+checksum = "4da9a32f3fed317401fa3c862968128267c3106685286e15d5aaa3d7389c2f60"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1766,9 +1765,9 @@ checksum = "e6ecd384b10a64542d77071bd64bd7b231f4ed5940fba55e98c3de13824cf3d7"
 
 [[package]]
 name = "solana-frozen-abi"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b29d81ae90aa6acd4e7a3809d4f6516f888c780182819ccc12187cd02e59b94"
+checksum = "de577bb681dfc3afeda6247dbc381f8c74a31eeed141883e6a9a36e93fdcf784"
 dependencies = [
  "ahash 0.8.5",
  "blake3",
@@ -1796,9 +1795,9 @@ dependencies = [
 
 [[package]]
 name = "solana-frozen-abi-macro"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9c4400284bb28fedd23abc0e7008f9ec7db8d20f9b296a438bd08ed417db98e"
+checksum = "e6373184605334be54d85564b657e7b4d88bdf4e3c011abccce4fd2712c96caf"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1808,9 +1807,9 @@ dependencies = [
 
 [[package]]
 name = "solana-logger"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c0fbccd60c8332712714468630d51c8668c838459fc5ffecfa615c84248eb82"
+checksum = "f6959774302d4407c77d5fbdd4d5e31c2696f5ac1c74bf0cdcac704b474bc6fd"
 dependencies = [
  "env_logger",
  "lazy_static",
@@ -1819,9 +1818,9 @@ dependencies = [
 
 [[package]]
 name = "solana-program"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e6f6bf27bf9e16803bfe6a2fe01b2431258ec9b4d6ea17b801717480995aaa0"
+checksum = "9dd3bcc37b433d7e8d45236a0f5aa68df462c4d5c6a709a6efd916988ce3ac08"
 dependencies = [
  "ark-bn254",
  "ark-ec",
@@ -1873,9 +1872,9 @@ dependencies = [
 
 [[package]]
 name = "solana-sdk"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa149a29cb505742bca6bce7447d979e746452ec40e9b1eb3e50d51a0f0510cd"
+checksum = "a1de78b8c4fa09e4b90d720b2aa3ef3c80c4b956aa3d14616261a7f4bdf64c04"
 dependencies = [
  "assert_matches",
  "base64 0.21.7",
@@ -1927,9 +1926,9 @@ dependencies = [
 
 [[package]]
 name = "solana-sdk-macro"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd8ad88355cf03e34b60ba12f65dffc44054e453aa1113a50169ee42ab6ad7a3"
+checksum = "9b5055c4b785cf3e5f2f52d687bdd1a795755105fe4365182396bc8b6bb41cd5"
 dependencies = [
  "bs58 0.4.0",
  "proc-macro2",
@@ -1946,9 +1945,9 @@ checksum = "468aa43b7edb1f9b7b7b686d5c3aeb6630dc1708e86e31343499dd5c4d775183"
 
 [[package]]
 name = "solana-zk-token-sdk"
-version = "1.17.24"
+version = "1.17.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7845f8390725707661732fb4df99c5c82eb3f7549c187160c317706e839c5702"
+checksum = "d9e0b222c3aad3df370ae87e993b32419906f00827a1677b7c814c65c9682909"
 dependencies = [
  "aes-gcm-siv",
  "base64 0.21.7",

@@ -3,7 +3,7 @@ use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 
 use anchor_spl::token_interface::{
     spl_token_metadata_interface::state::Field, token_metadata_update_field, transfer_hook_update,
-    Mint, Token2022, TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs, TransferHookUpdate,
+    Mint, Token2022, TokenMetadataUpdateField, TransferHookUpdate,
 };
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
@@ -46,7 +46,7 @@ impl<'info> AddRoyalties<'info> {
             update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        token_metadata_update_field(cpi_ctx, TokenMetadataUpdateFieldArgs { field, value })?;
+        token_metadata_update_field(cpi_ctx, field, value)?;
         Ok(())
     }
 

@@ -1,7 +1,7 @@
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::token_interface::{
     spl_token_metadata_interface::state::Field, token_metadata_update_field, Mint, Token2022,
-    TokenMetadataUpdateField, TokenMetadataUpdateFieldArgs,
+    TokenMetadataUpdateField,
 };
 
 use crate::{MetadataErrors, TokenGroup, GROUP_ACCOUNT_SEED};
@@ -37,14 +37,14 @@ pub struct UpdateGroupAccount<'info> {
 }
 
 impl<'info> UpdateGroupAccount<'info> {
-    fn update_metadata(&self, args: TokenMetadataUpdateFieldArgs) -> ProgramResult {
+    fn update_metadata(&self, field: Field, value: String) -> ProgramResult {
         let cpi_accounts = TokenMetadataUpdateField {
             token_program_id: self.token_program.to_account_info(),
             metadata: self.mint.to_account_info(), // metadata account is the mint, since data is stored in mint
             update_authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        token_metadata_update_field(cpi_ctx, args)?;
+        token_metadata_update_field(cpi_ctx, field, value)?;
         Ok(())
     }
 }
@@ -58,22 +58,13 @@ pub fn handler(ctx: Context<UpdateGroupAccount>, args: UpdateGroupAccountArgs) -
     ctx.accounts.group.max_size = args.max_size;
 
     // update metadata name
-    ctx.accounts.update_metadata(TokenMetadataUpdateFieldArgs {
-        field: Field::Name,
-        value: args.name,
-    })?;
+    ctx.accounts.update_metadata(Field::Name, args.name)?;
 
     // update metadata symbol
-    ctx.accounts.update_metadata(TokenMetadataUpdateFieldArgs {
-        field: Field::Symbol,
-        value: args.symbol,
-    })?;
+    ctx.accounts.update_metadata(Field::Symbol, args.symbol)?;
 
     // update metadata uri
-    ctx.accounts.update_metadata(TokenMetadataUpdateFieldArgs {
-        field: Field::Uri,
-        value: args.uri,
-    })?;
+    ctx.accounts.update_metadata(Field::Uri, args.uri)?;
 
     Ok(())
 }
