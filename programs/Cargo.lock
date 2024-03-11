@@ -2498,7 +2498,7 @@ dependencies = [
 
 [[package]]
 name = "wen_new_standard"
-version = "0.0.2-alpha"
+version = "0.1.0-alpha"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -2511,7 +2511,7 @@ dependencies = [
 
 [[package]]
 name = "wen_royalty_distribution"
-version = "0.0.2-alpha"
+version = "0.1.0-alpha"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
