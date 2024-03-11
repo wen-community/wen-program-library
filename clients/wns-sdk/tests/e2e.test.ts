@@ -65,7 +65,6 @@ describe('e2e tests', () => {
 			payer: setup.payer.publicKey.toString(),
 			authority: setup.authority.publicKey.toString(),
 		};
-		// const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
 		const createGroupIx = await getCreateGroupIx(setup.provider, args);
 		const addDistributionArgs = {
 			groupMint,
