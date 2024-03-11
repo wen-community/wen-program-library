@@ -12,9 +12,12 @@ import {
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
+    tokenProgramId,
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
+import {getPermanentDelegate, getMint} from "@solana/spl-token"
+import {getManagerAccountPda} from "../src/utils/core"
 
 describe('e2e tests', () => {
 	const setup = setupTest();
@@ -41,7 +44,7 @@ describe('e2e tests', () => {
 			payer: setup.payer.publicKey.toString(),
 			authority: setup.authority.publicKey.toString(),
 		};
-		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
+		// const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
 		const createGroupIx = await getCreateGroupIx(setup.provider, args);
 		const addDistributionArgs = {
 			groupMint,
@@ -56,7 +59,7 @@ describe('e2e tests', () => {
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
 			recentBlockhash: blockhash,
-			instructions: [createManagerIx, createGroupIx, addDistributionIx],
+			instructions: [createGroupIx, addDistributionIx],
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, groupMintKp, setup.authority]);
@@ -82,6 +85,7 @@ describe('e2e tests', () => {
 			name: 'test nft',
 			symbol: 'TST',
 			uri: 'https://arweave.net/123',
+            permanentDelegate: null,
 			creators: [
 				{
 					address: setup.payer.publicKey.toString(),
@@ -117,6 +121,7 @@ describe('e2e tests', () => {
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, nftMintKp, setup.authority]);
 		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+        console.log("tx 1", txnId)
 		await setup.provider.connection.confirmTransaction(txnId);
 		expect(txnId).toBeTruthy();
 		const groupAccount = await getGroupAccount(setup.provider, groupMint);
@@ -125,6 +130,68 @@ describe('e2e tests', () => {
 		expect(groupMemberAccount?.mint.toString()).toBe(nftMint);
 		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
 		expect(groupMemberAccount?.memberNumber).toBe(1);
+
+        const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+        const mintPermanentDelegate = await getPermanentDelegate(mintData)
+        expect(mintPermanentDelegate?.delegate.toString()).toBe(getManagerAccountPda().toString());
+	});
+
+    test('create mint account with permanent delegate, add to group and add royalties', async () => {
+		const nftMintKp = new Keypair();
+		nftMint = nftMintKp.publicKey.toString();
+		const args = {
+			mint: nftMint,
+			name: 'test nft',
+			symbol: 'TST',
+			uri: 'https://arweave.net/123',
+            permanentDelegate: setup.authority.publicKey,
+			creators: [
+				{
+					address: setup.payer.publicKey.toString(),
+					share: 49,
+				},
+				{
+					address: setup.authority.publicKey.toString(),
+					share: 51,
+				},
+			],
+			royaltyBasisPoints,
+			receiver: setup.user1.publicKey.toString(),
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.authority.publicKey.toString(),
+		};
+		const createIx = await getMintNftIx(setup.provider, args);
+		const addArgs = {
+			mint: nftMint,
+			group: getGroupAccountPda(groupMint).toString(),
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.authority.publicKey.toString(),
+		};
+		const addIx = await getAddNftToGroupIx(setup.provider, addArgs);
+		const addRoyaltiesIx = await getAddRoyaltiesIx(setup.provider, args);
+		const blockhash = await setup.provider.connection
+			.getLatestBlockhash()
+			.then(res => res.blockhash);
+		const messageV0 = new TransactionMessage({
+			payerKey: setup.payer.publicKey,
+			recentBlockhash: blockhash,
+			instructions: [createIx, addIx, addRoyaltiesIx],
+		}).compileToV0Message();
+		const txn = new VersionedTransaction(messageV0);
+		txn.sign([setup.payer, nftMintKp, setup.authority]);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+        console.log("tx 2", txnId)
+		await setup.provider.connection.confirmTransaction(txnId);
+		expect(txnId).toBeTruthy();
+		const groupAccount = await getGroupAccount(setup.provider, groupMint);
+		expect(groupAccount?.size).toBe(2);
+		const groupMemberAccount = await getGroupMemberAccount(setup.provider, nftMint);
+		expect(groupMemberAccount?.mint.toString()).toBe(nftMint);
+		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
+		expect(groupMemberAccount?.memberNumber).toBe(2);
+        const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+        const mintPermanentDelegate = await getPermanentDelegate(mintData)
+        expect(mintPermanentDelegate?.delegate.toString()).toBe(setup.authority.publicKey.toString());
 	});
 
 	let buyAmounts = 0;
