@@ -17,6 +17,7 @@ pub struct CreateMintAccountArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
+    pub permanent_delegate: Option<Pubkey>,
 }
 
 pub const MINT_EXTENSIONS: [ExtensionType; 4] = [
@@ -49,6 +50,7 @@ pub struct CreateMintAccount<'info> {
         extensions::metadata_pointer::metadata_address = mint,
         extensions::group_member_pointer::authority = manager,
         extensions::transfer_hook::authority = authority,
+        extensions::permanent_delegate::delegate = args.permanent_delegate.unwrap_or_else(|| manager.key()),
         // temporary mint close authority until a better program accounts can be used
         extensions::close_authority::authority = manager,
     )]
