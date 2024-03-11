@@ -12,6 +12,8 @@ export type CreateNftArgs = {
 	name: string;
 	symbol: string;
 	uri: string;
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	permanentDelegate: PublicKey | null;
 	receiver: string;
 } & CommonArgs;
 
