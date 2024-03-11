@@ -9,6 +9,7 @@ import {
 	getGroupAccountPda,
 	getGroupMemberAccount,
 	getInitManagerIx,
+	getManagerAccount,
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
@@ -29,6 +30,26 @@ describe('e2e tests', () => {
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.authority.publicKey, 1000000000));
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user1.publicKey, 1000000000));
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user2.publicKey, 1000000000));
+	});
+
+    test('create manager account if not created already', async () => {
+        const managerAccount = await getManagerAccount(setup.provider);
+        if (managerAccount !== undefined) return
+
+		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
+		const blockhash = await setup.provider.connection
+			.getLatestBlockhash()
+			.then(res => res.blockhash);
+		const messageV0 = new TransactionMessage({
+			payerKey: setup.payer.publicKey,
+			recentBlockhash: blockhash,
+			instructions: [createManagerIx],
+		}).compileToV0Message();
+		const txn = new VersionedTransaction(messageV0);
+		txn.sign([setup.payer]);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+		await setup.provider.connection.confirmTransaction(txnId);
+		expect(txnId).toBeTruthy();
 	});
 
 	test('create group account and distribution account', async () => {
@@ -121,7 +142,6 @@ describe('e2e tests', () => {
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, nftMintKp, setup.authority]);
 		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-        console.log("tx 1", txnId)
 		await setup.provider.connection.confirmTransaction(txnId);
 		expect(txnId).toBeTruthy();
 		const groupAccount = await getGroupAccount(setup.provider, groupMint);
@@ -180,7 +200,6 @@ describe('e2e tests', () => {
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, nftMintKp, setup.authority]);
 		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-        console.log("tx 2", txnId)
 		await setup.provider.connection.confirmTransaction(txnId);
 		expect(txnId).toBeTruthy();
 		const groupAccount = await getGroupAccount(setup.provider, groupMint);
