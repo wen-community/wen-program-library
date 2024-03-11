@@ -19,9 +19,3 @@ pub enum MetadataErrors {
     #[msg("Royalty basis points must be less than or equal to 10000.")]
     RoyaltyBasisPointsInvalid,
 }
-
-#[error_code]
-pub enum MintErrors {
-    #[msg("Missing permanent delegate account.")]
-    MissingPermanentDelegate,
-}
