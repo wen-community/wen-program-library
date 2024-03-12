@@ -5,16 +5,19 @@ import {
 	Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction, TransactionMessage, VersionedTransaction, sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import {
-	getAddDistributionIx, getAddNftToGroupIx, getAddRoyaltiesIx, getAtaCreateIx, getClaimDistributionIx, getCreateGroupIx, getDistributionAccount, getDistributionAccountPda, getDistributionProgram, getGroupAccount,
+	getAddDistributionIx, getAddNftToGroupIx, getAddRoyaltiesIx, getAtaAddress, getAtaCreateIx, getBurnNftIx, getClaimDistributionIx, getCreateGroupIx, getDistributionAccount, getDistributionAccountPda, getDistributionProgram, getFreezeNftIx, getGroupAccount,
 	getGroupAccountPda,
 	getGroupMemberAccount,
 	getInitManagerIx,
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
+    getThawNftIx,
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
+import {getAccount} from "@solana/spl-token"
+import {tokenProgramId} from '../src/utils/constants';
 
 describe('e2e tests', () => {
 	const setup = setupTest();
@@ -261,5 +264,98 @@ describe('e2e tests', () => {
 					},
 				],
 			);
+	});
+
+	test('freeze NFT', async () => {
+        const args = {
+			mint: nftMint,
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.user1.publicKey.toString(),
+            delegateAuthority: setup.user2.publicKey.toString(), // user2 is the delegate auth
+		};
+		const ix = await getFreezeNftIx(setup.provider, args);
+		const txn = new Transaction().add(ix);
+		txn.feePayer = setup.authority.publicKey;
+		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.authority, setup.user2]);
+        console.log("tx1", txnId)
+		expect(txnId).toBeTruthy();
+
+        const isFrozen = (await getAccount(
+            setup.provider.connection,
+            getAtaAddress(args.mint, args.authority),
+            undefined,
+            tokenProgramId)
+        ).isFrozen
+        expect(isFrozen).toBe(true)
+	});
+
+
+	test('try thaw NFT with incorrect delegate authority', async () => {
+        const args = {
+			mint: nftMint,
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.user1.publicKey.toString(),
+            delegateAuthority: setup.payer.publicKey.toString(),
+		};
+		const ix = await getThawNftIx(setup.provider, args);
+		const txn = new Transaction().add(ix);
+		txn.feePayer = setup.authority.publicKey;
+		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer]);
+        console.log("tx5", txnId)
+		expect(txnId).toBeFalsy();
+
+        const isFrozen = (await getAccount(
+            setup.provider.connection,
+            getAtaAddress(args.mint, args.authority),
+            undefined,
+            tokenProgramId)
+        ).isFrozen
+        expect(isFrozen).toBe(true)
+	});
+
+	test('thaw NFT', async () => {
+        const args = {
+			mint: nftMint,
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.user1.publicKey.toString(),
+            delegateAuthority: setup.user2.publicKey.toString(),
+		};
+		const ix = await getThawNftIx(setup.provider, args);
+		const txn = new Transaction().add(ix);
+		txn.feePayer = setup.authority.publicKey;
+		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user2]);
+        console.log("tx2", txnId)
+		expect(txnId).toBeTruthy();
+
+        const isFrozen = (await getAccount(
+            setup.provider.connection,
+            getAtaAddress(args.mint, args.authority),
+            undefined,
+            tokenProgramId)
+        ).isFrozen
+        expect(isFrozen).toBe(false)
+	});
+
+	test('burn NFT', async () => {
+		const args = {
+			mint: nftMint,
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.user1.publicKey.toString(),
+		};
+		const ix = await getBurnNftIx(setup.provider, args);
+		const txn = new Transaction().add(ix);
+		txn.feePayer = setup.authority.publicKey;
+		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.authority]);
+        console.log("tx3", txnId)
+
+        // Check that mint does not exist
+        const mintAccount = await getAccount(setup.provider.connection, new PublicKey(args.mint), undefined, tokenProgramId)
+        const ata = await getAccount(setup.provider.connection, getAtaAddress(args.mint, args.authority), undefined, tokenProgramId)
+        expect(mintAccount).toBe(null);
+        expect(ata).toBe(null);
 	});
 });
