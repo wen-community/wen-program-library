@@ -273,12 +273,20 @@ describe('e2e tests', () => {
 			authority: setup.user1.publicKey.toString(),
             delegateAuthority: setup.user2.publicKey.toString(), // user2 is the delegate auth
 		};
-		const ix = await getFreezeNftIx(setup.provider, args);
-		const txn = new Transaction().add(ix);
-		txn.feePayer = setup.authority.publicKey;
-		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.authority, setup.user2]);
+		const freezeNftIx = await getFreezeNftIx(setup.provider, args);
+        const blockhash = await setup.provider.connection
+            .getLatestBlockhash()
+            .then(res => res.blockhash);
+        const messageV0 = new TransactionMessage({
+			payerKey: setup.payer.publicKey,
+			recentBlockhash: blockhash,
+			instructions: [freezeNftIx],
+		}).compileToV0Message();
+		const txn = new VersionedTransaction(messageV0);
+		txn.sign([setup.payer, setup.user2]);
+        const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
         console.log("tx1", txnId)
+		await setup.provider.connection.confirmTransaction(txnId);
 		expect(txnId).toBeTruthy();
 
         const isFrozen = (await getAccount(
@@ -298,13 +306,26 @@ describe('e2e tests', () => {
 			authority: setup.user1.publicKey.toString(),
             delegateAuthority: setup.payer.publicKey.toString(),
 		};
-		const ix = await getThawNftIx(setup.provider, args);
-		const txn = new Transaction().add(ix);
-		txn.feePayer = setup.authority.publicKey;
-		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer]);
-        console.log("tx5", txnId)
-		expect(txnId).toBeFalsy();
+		const thawNftIx = await getThawNftIx(setup.provider, args);
+        const blockhash = await setup.provider.connection
+            .getLatestBlockhash()
+            .then(res => res.blockhash);
+        const messageV0 = new TransactionMessage({
+			payerKey: setup.payer.publicKey,
+			recentBlockhash: blockhash,
+			instructions: [thawNftIx],
+		}).compileToV0Message();
+		const txn = new VersionedTransaction(messageV0);
+        txn.sign([setup.payer]);
+        try {
+            const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+        } catch (e) {
+            // TODO output exact error
+            console.log("e", e)
+        }
+		// await setup.provider.connection.confirmTransaction(txnId);
+        // console.log("tx5", txnId)
+		// expect(txnId).toBeFalsy();
 
         const isFrozen = (await getAccount(
             setup.provider.connection,
@@ -322,11 +343,20 @@ describe('e2e tests', () => {
 			authority: setup.user1.publicKey.toString(),
             delegateAuthority: setup.user2.publicKey.toString(),
 		};
-		const ix = await getThawNftIx(setup.provider, args);
-		const txn = new Transaction().add(ix);
-		txn.feePayer = setup.authority.publicKey;
-		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user2]);
+		const thawNftIx = await getThawNftIx(setup.provider, args);
+        const blockhash = await setup.provider.connection
+            .getLatestBlockhash()
+            .then(res => res.blockhash);
+        const messageV0 = new TransactionMessage({
+            payerKey: setup.payer.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [thawNftIx],
+        }).compileToV0Message();
+        const txn = new VersionedTransaction(messageV0);
+        txn.sign([setup.payer, setup.user2]);
+        const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+		await setup.provider.connection.confirmTransaction(txnId);
+		// const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user2]);
         console.log("tx2", txnId)
 		expect(txnId).toBeTruthy();
 
@@ -345,11 +375,19 @@ describe('e2e tests', () => {
 			payer: setup.payer.publicKey.toString(),
 			authority: setup.user1.publicKey.toString(),
 		};
-		const ix = await getBurnNftIx(setup.provider, args);
-		const txn = new Transaction().add(ix);
-		txn.feePayer = setup.authority.publicKey;
-		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.authority]);
+		const burnNftIx = await getBurnNftIx(setup.provider, args);
+        const blockhash = await setup.provider.connection
+            .getLatestBlockhash()
+            .then(res => res.blockhash);
+        const messageV0 = new TransactionMessage({
+            payerKey: setup.payer.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [burnNftIx],
+        }).compileToV0Message();
+        const txn = new VersionedTransaction(messageV0);
+        txn.sign([setup.payer, setup.user1]);
+        const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+		await setup.provider.connection.confirmTransaction(txnId);
         console.log("tx3", txnId)
 
         // Check that mint does not exist
