@@ -27,7 +27,7 @@ pub struct FreezeDelegatedAccount<'info> {
         associated_token::token_program = token_program,
         associated_token::mint = mint,
         associated_token::authority = user,
-        // constraint = mint_token_account.delegate == COption::Some(delegate_authority.key()) @MintErrors::InvalidDelegateAuthority
+        constraint = mint_token_account.delegate == COption::Some(delegate_authority.key()) @MintErrors::InvalidDelegateAuthority
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
