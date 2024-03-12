@@ -108,11 +108,11 @@ export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
 		.accountsStrict({
 			payer: args.payer,
 			user: args.authority,
-            mint: args.mint,
-            mintTokenAccount: getAtaAddress(args.mint, args.authority),
-            manager: getManagerAccountPda(),
-            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            tokenProgram: tokenProgramId,
+			mint: args.mint,
+			mintTokenAccount: getAtaAddress(args.mint, args.authority),
+			manager: getManagerAccountPda(),
+			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+			tokenProgram: tokenProgramId,
 		})
 		.instruction();
 
@@ -133,10 +133,10 @@ export const getThawNftIx = async (provider: Provider, args: ThawNftArgs) => {
 			payer: args.payer,
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
-            mint: args.mint,
-            mintTokenAccount: getAtaAddress(args.mint, args.authority),
-            manager: getManagerAccountPda(),
-            tokenProgram: tokenProgramId,
+			mint: args.mint,
+			mintTokenAccount: getAtaAddress(args.mint, args.authority),
+			manager: getManagerAccountPda(),
+			tokenProgram: tokenProgramId,
 		})
 		.instruction();
 
@@ -157,10 +157,10 @@ export const getFreezeNftIx = async (provider: Provider, args: FreezeNftArgs) =>
 			payer: args.payer,
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
-            mint: args.mint,
-            mintTokenAccount: getAtaAddress(args.mint, args.authority),
-            manager: getManagerAccountPda(),
-            tokenProgram: tokenProgramId,
+			mint: args.mint,
+			mintTokenAccount: getAtaAddress(args.mint, args.authority),
+			manager: getManagerAccountPda(),
+			tokenProgram: tokenProgramId,
 		})
 		.instruction();
 
