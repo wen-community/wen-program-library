@@ -12,9 +12,8 @@ export type CreateNftArgs = {
 	name: string;
 	symbol: string;
 	uri: string;
-	// eslint-disable-next-line @typescript-eslint/ban-types
-	permanentDelegate: PublicKey | null;
 	receiver: string;
+	permanentDelegate?: PublicKey;
 } & CommonArgs;
 
 export const getMintNftIx = async (provider: Provider, args: CreateNftArgs) => {
@@ -23,7 +22,10 @@ export const getMintNftIx = async (provider: Provider, args: CreateNftArgs) => {
 	const managerAccount = getManagerAccountPda();
 
 	const ix = await metadataProgram.methods
-		.createMintAccount(args)
+		.createMintAccount({
+			...args,
+			permanentDelegate: args.permanentDelegate ?? null,
+		})
 		.accountsStrict({
 			payer: args.payer,
 			authority: args.authority,

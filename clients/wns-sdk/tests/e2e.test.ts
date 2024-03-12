@@ -105,7 +105,6 @@ describe('e2e tests', () => {
 			name: 'test nft',
 			symbol: 'TST',
 			uri: 'https://arweave.net/123',
-            permanentDelegate: null,
 			creators: [
 				{
 					address: setup.payer.publicKey.toString(),
