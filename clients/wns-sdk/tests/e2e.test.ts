@@ -13,12 +13,12 @@ import {
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
-    tokenProgramId,
+	tokenProgramId,
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
-import {getPermanentDelegate, getMint} from "@solana/spl-token"
-import {getManagerAccountPda} from "../src/utils/core"
+import {getPermanentDelegate, getMint} from '@solana/spl-token';
+import {getManagerAccountPda} from '../src/utils/core';
 
 describe('e2e tests', () => {
 	const setup = setupTest();
@@ -32,9 +32,11 @@ describe('e2e tests', () => {
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user2.publicKey, 1000000000));
 	});
 
-    test('create manager account if not created already', async () => {
-        const managerAccount = await getManagerAccount(setup.provider);
-        if (managerAccount !== undefined) return
+	test('create manager account if not created already', async () => {
+		const managerAccount = await getManagerAccount(setup.provider);
+		if (managerAccount !== undefined) {
+			return;
+		}
 
 		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
 		const blockhash = await setup.provider.connection
@@ -149,12 +151,12 @@ describe('e2e tests', () => {
 		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
 		expect(groupMemberAccount?.memberNumber).toBe(1);
 
-        const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
-        const mintPermanentDelegate = await getPermanentDelegate(mintData)
-        expect(mintPermanentDelegate?.delegate.toString()).toBe(getManagerAccountPda().toString());
+		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+		const mintPermanentDelegate = getPermanentDelegate(mintData);
+		expect(mintPermanentDelegate?.delegate.toString()).toBe(PublicKey.default.toString());
 	});
 
-    test('create mint account with permanent delegate, add to group and add royalties', async () => {
+	test('create mint account with permanent delegate, add to group and add royalties', async () => {
 		const nftMintKp = new Keypair();
 		nftMint = nftMintKp.publicKey.toString();
 		const args = {
@@ -162,7 +164,7 @@ describe('e2e tests', () => {
 			name: 'test nft',
 			symbol: 'TST',
 			uri: 'https://arweave.net/123',
-            permanentDelegate: setup.authority.publicKey,
+			permanentDelegate: setup.authority.publicKey,
 			creators: [
 				{
 					address: setup.payer.publicKey.toString(),
@@ -206,9 +208,9 @@ describe('e2e tests', () => {
 		expect(groupMemberAccount?.mint.toString()).toBe(nftMint);
 		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
 		expect(groupMemberAccount?.memberNumber).toBe(2);
-        const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
-        const mintPermanentDelegate = await getPermanentDelegate(mintData)
-        expect(mintPermanentDelegate?.delegate.toString()).toBe(setup.authority.publicKey.toString());
+		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+		const mintPermanentDelegate = getPermanentDelegate(mintData);
+		expect(mintPermanentDelegate?.delegate.toString()).toBe(setup.authority.publicKey.toString());
 	});
 
 	let buyAmounts = 0;
