@@ -98,7 +98,6 @@ export const getAddRoyaltiesIx = async (provider: Provider, args: AddRoyaltiesAr
 
 export type BurnNftArgs = {
 	mint: string;
-    mintTokenAccount: string
 } & CommonArgs;
 
 export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
@@ -110,7 +109,7 @@ export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
 			payer: args.payer,
 			user: args.authority,
             mint: args.mint,
-            mintTokenAccount: args.mintTokenAccount,
+            mintTokenAccount: getAtaAddress(args.mint, args.authority),
             manager: getManagerAccountPda(),
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             tokenProgram: tokenProgramId,
@@ -122,7 +121,6 @@ export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
 
 export type ThawNftArgs = {
 	mint: string;
-    mintTokenAccount: string
 	delegateAuthority: string;
 } & CommonArgs;
 
@@ -136,7 +134,7 @@ export const getThawNftIx = async (provider: Provider, args: ThawNftArgs) => {
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
             mint: args.mint,
-            mintTokenAccount: args.mintTokenAccount,
+            mintTokenAccount: getAtaAddress(args.mint, args.authority),
             manager: getManagerAccountPda(),
             tokenProgram: tokenProgramId,
 		})
@@ -147,7 +145,6 @@ export const getThawNftIx = async (provider: Provider, args: ThawNftArgs) => {
 
 export type FreezeNftArgs = {
 	mint: string;
-    mintTokenAccount: string
 	delegateAuthority: string;
 } & CommonArgs;
 
@@ -161,7 +158,7 @@ export const getFreezeNftIx = async (provider: Provider, args: FreezeNftArgs) =>
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
             mint: args.mint,
-            mintTokenAccount: args.mintTokenAccount,
+            mintTokenAccount: getAtaAddress(args.mint, args.authority),
             manager: getManagerAccountPda(),
             tokenProgram: tokenProgramId,
 		})
