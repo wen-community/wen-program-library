@@ -17,6 +17,7 @@ pub struct CreateMintAccountArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
+    pub permanent_delegate: Option<Pubkey>,
 }
 
 pub const MINT_EXTENSIONS: [ExtensionType; 4] = [
@@ -49,6 +50,7 @@ pub struct CreateMintAccount<'info> {
         extensions::metadata_pointer::metadata_address = mint,
         extensions::group_member_pointer::authority = manager,
         extensions::transfer_hook::authority = authority,
+        extensions::permanent_delegate::delegate = args.permanent_delegate.unwrap_or_else(|| manager.key()),
         // temporary mint close authority until a better program accounts can be used
         extensions::close_authority::authority = manager,
     )]
@@ -113,9 +115,28 @@ impl<'info> CreateMintAccount<'info> {
         set_authority(cpi_ctx, AuthorityType::MintTokens, Some(self.manager.key()))?;
         Ok(())
     }
+
+    fn set_default_permanent_delegate(&self, bump: u8) -> Result<()> {
+        let seeds: &[&[u8]; 2] = &[
+            MANAGER_SEED,
+            &[bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+        let cpi_accounts = SetAuthority {
+            current_authority: self.manager.to_account_info(),
+            account_or_mint: self.mint.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), cpi_accounts, signer_seeds);
+        set_authority(cpi_ctx, AuthorityType::PermanentDelegate, None)?;
+        Ok(())
+    }
 }
 
 pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
+    if args.permanent_delegate.is_none() {
+        ctx.accounts.set_default_permanent_delegate(ctx.bumps.manager)?;
+    }
+
     // initialize token metadata
     ctx.accounts
         .initialize_token_metadata(args.name, args.symbol, args.uri)?;

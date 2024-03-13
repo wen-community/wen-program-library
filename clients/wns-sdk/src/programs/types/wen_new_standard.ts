@@ -836,6 +836,12 @@ export type WenNewStandard = {
           {
             "name": "uri",
             "type": "string"
+          },
+          {
+            "name": "permanentDelegate",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }
@@ -1805,6 +1811,12 @@ export const IDL: WenNewStandard = {
           {
             "name": "uri",
             "type": "string"
+          },
+          {
+            "name": "permanentDelegate",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }

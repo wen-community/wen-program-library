@@ -9,6 +9,7 @@ import {
 	getGroupAccountPda,
 	getGroupMemberAccount,
 	getInitManagerIx,
+	getManagerAccount,
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
@@ -16,7 +17,9 @@ import {
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
-import {getAccount, createApproveCheckedInstruction, TokenAccountNotFoundError} from '@solana/spl-token';
+import {
+	getAccount, createApproveCheckedInstruction, TokenAccountNotFoundError, getPermanentDelegate, getMint,
+} from '@solana/spl-token';
 import {tokenProgramId} from '../src/utils/constants';
 
 describe('e2e tests', () => {
@@ -29,6 +32,28 @@ describe('e2e tests', () => {
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.authority.publicKey, 1000000000));
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user1.publicKey, 1000000000));
 		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user2.publicKey, 1000000000));
+	});
+
+	test('create manager account if not created already', async () => {
+		const managerAccount = await getManagerAccount(setup.provider);
+		if (managerAccount !== undefined) {
+			return;
+		}
+
+		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
+		const blockhash = await setup.provider.connection
+			.getLatestBlockhash()
+			.then(res => res.blockhash);
+		const messageV0 = new TransactionMessage({
+			payerKey: setup.payer.publicKey,
+			recentBlockhash: blockhash,
+			instructions: [createManagerIx],
+		}).compileToV0Message();
+		const txn = new VersionedTransaction(messageV0);
+		txn.sign([setup.payer]);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+		await setup.provider.connection.confirmTransaction(txnId);
+		expect(txnId).toBeTruthy();
 	});
 
 	test('create group account and distribution account', async () => {
@@ -44,7 +69,6 @@ describe('e2e tests', () => {
 			payer: setup.payer.publicKey.toString(),
 			authority: setup.authority.publicKey.toString(),
 		};
-		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
 		const createGroupIx = await getCreateGroupIx(setup.provider, args);
 		const addDistributionArgs = {
 			groupMint,
@@ -59,7 +83,7 @@ describe('e2e tests', () => {
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
 			recentBlockhash: blockhash,
-			instructions: [createManagerIx, createGroupIx, addDistributionIx],
+			instructions: [createGroupIx, addDistributionIx],
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, groupMintKp, setup.authority]);
@@ -128,6 +152,67 @@ describe('e2e tests', () => {
 		expect(groupMemberAccount?.mint.toString()).toBe(nftMint);
 		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
 		expect(groupMemberAccount?.memberNumber).toBe(1);
+
+		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+		const mintPermanentDelegate = getPermanentDelegate(mintData);
+		expect(mintPermanentDelegate?.delegate.toString()).toBe(PublicKey.default.toString());
+	});
+
+	test('create mint account with permanent delegate, add to group and add royalties', async () => {
+		const nftMintKp = new Keypair();
+		nftMint = nftMintKp.publicKey.toString();
+		const args = {
+			mint: nftMint,
+			name: 'test nft',
+			symbol: 'TST',
+			uri: 'https://arweave.net/123',
+			permanentDelegate: setup.authority.publicKey,
+			creators: [
+				{
+					address: setup.payer.publicKey.toString(),
+					share: 49,
+				},
+				{
+					address: setup.authority.publicKey.toString(),
+					share: 51,
+				},
+			],
+			royaltyBasisPoints,
+			receiver: setup.user1.publicKey.toString(),
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.authority.publicKey.toString(),
+		};
+		const createIx = await getMintNftIx(setup.provider, args);
+		const addArgs = {
+			mint: nftMint,
+			group: getGroupAccountPda(groupMint).toString(),
+			payer: setup.payer.publicKey.toString(),
+			authority: setup.authority.publicKey.toString(),
+		};
+		const addIx = await getAddNftToGroupIx(setup.provider, addArgs);
+		const addRoyaltiesIx = await getAddRoyaltiesIx(setup.provider, args);
+		const blockhash = await setup.provider.connection
+			.getLatestBlockhash()
+			.then(res => res.blockhash);
+		const messageV0 = new TransactionMessage({
+			payerKey: setup.payer.publicKey,
+			recentBlockhash: blockhash,
+			instructions: [createIx, addIx, addRoyaltiesIx],
+		}).compileToV0Message();
+		const txn = new VersionedTransaction(messageV0);
+		txn.sign([setup.payer, nftMintKp, setup.authority]);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+		await setup.provider.connection.confirmTransaction(txnId);
+		expect(txnId).toBeTruthy();
+		const groupAccount = await getGroupAccount(setup.provider, groupMint);
+		expect(groupAccount?.size).toBe(2);
+		const groupMemberAccount = await getGroupMemberAccount(setup.provider, nftMint);
+		expect(groupMemberAccount?.mint.toString()).toBe(nftMint);
+		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
+		expect(groupMemberAccount?.memberNumber).toBe(2);
+		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+		const mintPermanentDelegate = getPermanentDelegate(mintData);
+		expect(mintPermanentDelegate?.delegate.toString()).toBe(setup.authority.publicKey.toString());
 	});
 
 	let buyAmounts = 0;
@@ -329,7 +414,7 @@ describe('e2e tests', () => {
 		try {
 			await setup.provider.connection.sendRawTransaction(txn.serialize());
 		} catch (e) {
-			const containsErrorMsg = e?.logs.some(log => log.includes('Invalid delegate authority'));
+			const containsErrorMsg = e?.logs?.some(log => typeof log === 'string' && log.includes?.('Invalid delegate authority'));
 			expect(containsErrorMsg).toBe(true);
 		}
 

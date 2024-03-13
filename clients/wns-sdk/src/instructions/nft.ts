@@ -13,6 +13,7 @@ export type CreateNftArgs = {
 	symbol: string;
 	uri: string;
 	receiver: string;
+	permanentDelegate?: PublicKey;
 } & CommonArgs;
 
 export const getMintNftIx = async (provider: Provider, args: CreateNftArgs) => {
@@ -21,7 +22,10 @@ export const getMintNftIx = async (provider: Provider, args: CreateNftArgs) => {
 	const managerAccount = getManagerAccountPda();
 
 	const ix = await metadataProgram.methods
-		.createMintAccount(args)
+		.createMintAccount({
+			...args,
+			permanentDelegate: args.permanentDelegate ?? null,
+		})
 		.accountsStrict({
 			payer: args.payer,
 			authority: args.authority,

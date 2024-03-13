@@ -836,6 +836,12 @@
           {
             "name": "uri",
             "type": "string"
+          },
+          {
+            "name": "permanentDelegate",
+            "type": {
+              "option": "publicKey"
+            }
           }
         ]
       }

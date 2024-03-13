@@ -19,7 +19,7 @@ default = []
 
 [dependencies]
 anchor-lang = { git = "https://github.com/bridgesplit/anchor.git", features = ["interface-instructions", "init-if-needed"] }
-anchor-spl = { git = "shttps://github.com/bridgesplit/anchor.git", features = ["token_2022_extensions", "token_2022"] }
-spl-transfer-hook-interface = { version = "0.5.0" } 
+anchor-spl = { git = "https://github.com/bridgesplit/anchor.git", features = ["token_2022_extensions", "token_2022"] }
+spl-transfer-hook-interface = { version = "0.5.0" }
 spl-tlv-account-resolution = "0.4.0"
 spl-pod = "0.1.0"
