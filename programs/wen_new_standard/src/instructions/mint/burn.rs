@@ -1,11 +1,10 @@
 use anchor_lang::prelude::*;
 
 use anchor_spl::{
-    associated_token::AssociatedToken,
     token_interface::{
         Mint, Token2022, TokenAccount,
         close_account, CloseAccount,
-        burn, Burn, 
+        burn, Burn,
     },
 };
 
@@ -73,7 +72,7 @@ impl<'info> BurnMintAccount<'info> {
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
         burn(cpi_ctx, 1)?;
-        
+
         Ok(())
     }
 }
