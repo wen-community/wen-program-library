@@ -31,7 +31,6 @@ pub struct BurnMintAccount<'info> {
         bump
     )]
     pub manager: Account<'info, Manager>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
 }
 

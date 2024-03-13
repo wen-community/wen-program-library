@@ -111,7 +111,6 @@ export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
 			mint: args.mint,
 			mintTokenAccount: getAtaAddress(args.mint, args.authority),
 			manager: getManagerAccountPda(),
-			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
 			tokenProgram: tokenProgramId,
 		})
 		.instruction();
