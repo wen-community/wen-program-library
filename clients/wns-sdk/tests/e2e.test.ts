@@ -5,7 +5,7 @@ import {
 	Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction, TransactionMessage, VersionedTransaction, sendAndConfirmTransaction
 } from '@solana/web3.js';
 import {
-	getAddDistributionIx, getAddNftToGroupIx, getAddRoyaltiesIx, getAtaAddress, getAtaCreateIx, getBurnNftIx, getClaimDistributionIx, getCreateGroupIx, getDistributionAccount, getDistributionAccountPda, getDistributionProgram, getFreezeNftIx, getGroupAccount,
+	getAddDistributionIx, getAddNftToGroupIx, getAddRoyaltiesIx, getAtaAddress, getAtaCreateIx, getBurnNftIx, getClaimDistributionIx, getCreateGroupIx, getDistributionAccount, getDistributionAccountPda, getFreezeNftIx, getGroupAccount,
 	getGroupAccountPda,
 	getGroupMemberAccount,
 	getInitManagerIx,
@@ -16,7 +16,7 @@ import {
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
-import {getAccount, createApproveCheckedInstruction} from "@solana/spl-token"
+import {getAccount, createApproveCheckedInstruction, TokenAccountNotFoundError} from "@solana/spl-token"
 import {tokenProgramId} from '../src/utils/constants';
 
 describe('e2e tests', () => {
@@ -266,7 +266,6 @@ describe('e2e tests', () => {
 			);
 	});
 
-    // TODO add not freeze auth
 	test('freeze NFT', async () => {
         const args = {
 			mint: nftMint,
@@ -310,7 +309,6 @@ describe('e2e tests', () => {
         expect(isFrozen).toBe(true)
 	});
 
-
 	test('try thaw NFT with incorrect delegate authority', async () => {
         const args = {
 			mint: nftMint,
@@ -329,13 +327,12 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
         txn.sign([setup.payer]);
+
         try {
             await setup.provider.connection.sendRawTransaction(txn.serialize());
         } catch (e) {
-            // TODO output exact error
-            console.log("e", e)
+            expect(e?.logs[0].includes("InvalidDelegateAuthority")).toBe(true)
         }
-
 
         const isFrozen = (await getAccount(
             setup.provider.connection,
@@ -399,11 +396,16 @@ describe('e2e tests', () => {
         const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
 		await setup.provider.connection.confirmTransaction(txnId);
         console.log("tx3", txnId)
+        try {
+            await getAccount(setup.provider.connection, new PublicKey(args.mint), undefined, tokenProgramId)
+        } catch (e) {
+            expect(e instanceof TokenAccountNotFoundError).toBe(true)
+        }
 
-        // Check that mint does not exist
-        const mintAccount = await getAccount(setup.provider.connection, new PublicKey(args.mint), undefined, tokenProgramId)
-        const ata = await getAccount(setup.provider.connection, getAtaAddress(args.mint, args.authority), undefined, tokenProgramId)
-        expect(mintAccount).toBe(null);
-        expect(ata).toBe(null);
+        try {
+            await getAccount(setup.provider.connection, getAtaAddress(args.mint, args.authority), undefined, tokenProgramId)
+        } catch (e) {
+            expect(e instanceof TokenAccountNotFoundError).toBe(true)
+        }
 	});
 });
