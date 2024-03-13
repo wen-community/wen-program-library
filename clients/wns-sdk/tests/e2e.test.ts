@@ -13,11 +13,13 @@ import {
 	getMintNftIx,
 	getNftTransferApproveIx,
 	getNftTransferIx,
-    getThawNftIx,
+	getThawNftIx,
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
-import {getAccount, createApproveCheckedInstruction, TokenAccountNotFoundError, getPermanentDelegate, getMint} from '@solana/spl-token';
+import {
+	getAccount, createApproveCheckedInstruction, TokenAccountNotFoundError, getPermanentDelegate, getMint,
+} from '@solana/spl-token';
 import {tokenProgramId} from '../src/utils/constants';
 
 describe('e2e tests', () => {
@@ -412,7 +414,7 @@ describe('e2e tests', () => {
 		try {
 			await setup.provider.connection.sendRawTransaction(txn.serialize());
 		} catch (e) {
-			const containsErrorMsg = e?.logs.some(log => log.includes('Invalid delegate authority'));
+			const containsErrorMsg = e?.logs?.some(log => typeof log === 'string' && log.includes?.('Invalid delegate authority'));
 			expect(containsErrorMsg).toBe(true);
 		}
 
