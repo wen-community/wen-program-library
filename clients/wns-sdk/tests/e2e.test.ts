@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import {
-	Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction, TransactionMessage, VersionedTransaction, sendAndConfirmTransaction,
+	Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction, TransactionMessage, VersionedTransaction, sendAndConfirmTransaction
 } from '@solana/web3.js';
 import {
 	getAddDistributionIx, getAddNftToGroupIx, getAddRoyaltiesIx, getAtaAddress, getAtaCreateIx, getBurnNftIx, getClaimDistributionIx, getCreateGroupIx, getDistributionAccount, getDistributionAccountPda, getDistributionProgram, getFreezeNftIx, getGroupAccount,
@@ -16,7 +16,7 @@ import {
 } from '../src';
 import {setupTest} from './setup';
 import {expect, test, describe} from 'vitest';
-import {getAccount} from "@solana/spl-token"
+import {getAccount, createApproveCheckedInstruction} from "@solana/spl-token"
 import {tokenProgramId} from '../src/utils/constants';
 
 describe('e2e tests', () => {
@@ -266,6 +266,7 @@ describe('e2e tests', () => {
 			);
 	});
 
+    // TODO add not freeze auth
 	test('freeze NFT', async () => {
         const args = {
 			mint: nftMint,
@@ -273,6 +274,17 @@ describe('e2e tests', () => {
 			authority: setup.user1.publicKey.toString(),
             delegateAuthority: setup.user2.publicKey.toString(), // user2 is the delegate auth
 		};
+        const ata = getAtaAddress(args.mint, args.authority);
+        const ix = createApproveCheckedInstruction(
+            ata,
+            new PublicKey(args.mint),
+            new PublicKey(args.delegateAuthority),
+            new PublicKey(args.authority),
+            1,
+            0,
+            undefined,
+            tokenProgramId
+        );
 		const freezeNftIx = await getFreezeNftIx(setup.provider, args);
         const blockhash = await setup.provider.connection
             .getLatestBlockhash()
@@ -280,10 +292,10 @@ describe('e2e tests', () => {
         const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
 			recentBlockhash: blockhash,
-			instructions: [freezeNftIx],
+			instructions: [ix, freezeNftIx],
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
-		txn.sign([setup.payer, setup.user2]);
+		txn.sign([setup.payer, setup.user1, setup.user2]);
         const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
         console.log("tx1", txnId)
 		await setup.provider.connection.confirmTransaction(txnId);
@@ -291,7 +303,7 @@ describe('e2e tests', () => {
 
         const isFrozen = (await getAccount(
             setup.provider.connection,
-            getAtaAddress(args.mint, args.authority),
+            ata,
             undefined,
             tokenProgramId)
         ).isFrozen
@@ -318,14 +330,12 @@ describe('e2e tests', () => {
 		const txn = new VersionedTransaction(messageV0);
         txn.sign([setup.payer]);
         try {
-            const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
+            await setup.provider.connection.sendRawTransaction(txn.serialize());
         } catch (e) {
             // TODO output exact error
             console.log("e", e)
         }
-		// await setup.provider.connection.confirmTransaction(txnId);
-        // console.log("tx5", txnId)
-		// expect(txnId).toBeFalsy();
+
 
         const isFrozen = (await getAccount(
             setup.provider.connection,
