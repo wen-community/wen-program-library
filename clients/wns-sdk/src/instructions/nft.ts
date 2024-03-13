@@ -95,3 +95,73 @@ export const getAddRoyaltiesIx = async (provider: Provider, args: AddRoyaltiesAr
 
 	return ix;
 };
+
+export type BurnNftArgs = {
+	mint: string;
+} & CommonArgs;
+
+export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
+	const metadataProgram = getMetadataProgram(provider);
+
+	const ix = await metadataProgram.methods
+		.burnMintAccount()
+		.accountsStrict({
+			payer: args.payer,
+			user: args.authority,
+			mint: args.mint,
+			mintTokenAccount: getAtaAddress(args.mint, args.authority),
+			manager: getManagerAccountPda(),
+			tokenProgram: tokenProgramId,
+		})
+		.instruction();
+
+	return ix;
+};
+
+export type ThawNftArgs = {
+	mint: string;
+	delegateAuthority: string;
+} & CommonArgs;
+
+export const getThawNftIx = async (provider: Provider, args: ThawNftArgs) => {
+	const metadataProgram = getMetadataProgram(provider);
+
+	const ix = await metadataProgram.methods
+		.thawMintAccount()
+		.accountsStrict({
+			payer: args.payer,
+			user: args.authority,
+			delegateAuthority: args.delegateAuthority,
+			mint: args.mint,
+			mintTokenAccount: getAtaAddress(args.mint, args.authority),
+			manager: getManagerAccountPda(),
+			tokenProgram: tokenProgramId,
+		})
+		.instruction();
+
+	return ix;
+};
+
+export type FreezeNftArgs = {
+	mint: string;
+	delegateAuthority: string;
+} & CommonArgs;
+
+export const getFreezeNftIx = async (provider: Provider, args: FreezeNftArgs) => {
+	const metadataProgram = getMetadataProgram(provider);
+
+	const ix = await metadataProgram.methods
+		.freezeMintAccount()
+		.accountsStrict({
+			payer: args.payer,
+			user: args.authority,
+			delegateAuthority: args.delegateAuthority,
+			mint: args.mint,
+			mintTokenAccount: getAtaAddress(args.mint, args.authority),
+			manager: getManagerAccountPda(),
+			tokenProgram: tokenProgramId,
+		})
+		.instruction();
+
+	return ix;
+};

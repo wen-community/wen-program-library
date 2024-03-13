@@ -83,6 +83,21 @@ pub mod wen_new_standard {
         instructions::mint::metadata::remove::handler(ctx, args)
     }
 
+    /// freeze mint
+    pub fn freeze_mint_account(ctx: Context<FreezeDelegatedAccount>) -> Result<()> {
+        instructions::mint::freeze::handler(ctx)
+    }
+
+    /// thaw mint
+    pub fn thaw_mint_account(ctx: Context<ThawDelegatedAccount>) -> Result<()> {
+        instructions::mint::thaw::handler(ctx)
+    }
+
+    /// burn mint
+    pub fn burn_mint_account(ctx: Context<BurnMintAccount>) -> Result<()> {
+        instructions::mint::burn::handler(ctx)
+    }
+
     /// Royalty distribution + enforcement instructions
     /// validate transfer
     #[interface(spl_transfer_hook_interface::execute)]
