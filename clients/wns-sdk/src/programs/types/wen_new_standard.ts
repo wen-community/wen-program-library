@@ -238,7 +238,7 @@ export type WenNewStandard = {
         },
         {
           "name": "mint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1213,7 +1213,7 @@ export const IDL: WenNewStandard = {
         },
         {
           "name": "mint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
