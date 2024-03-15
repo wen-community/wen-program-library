@@ -71,8 +71,8 @@ impl<'info> CreateMintAccount<'info> {
     fn initialize_token_metadata(
         &self,
         name: String,
-        uri: String,
         symbol: String,
+        uri: String,
     ) -> ProgramResult {
         let cpi_accounts = TokenMetadataInitialize {
             token_program_id: self.token_program.to_account_info(),
