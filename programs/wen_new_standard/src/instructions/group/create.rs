@@ -3,7 +3,7 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
         mint_to, set_authority,
-        spl_token_2022::{extension::ExtensionType, instruction::AuthorityType},
+        spl_token_2022::instruction::AuthorityType,
         token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
         TokenMetadataInitialize,
     },
@@ -21,12 +21,6 @@ pub struct CreateGroupAccountArgs {
     pub uri: String,
     pub max_size: u32,
 }
-
-pub const GROUP_EXTENSIONS: [ExtensionType; 3] = [
-    ExtensionType::MetadataPointer,
-    ExtensionType::GroupPointer,
-    ExtensionType::MintCloseAuthority,
-];
 
 #[derive(Accounts)]
 #[instruction(args: CreateGroupAccountArgs)]

@@ -1,6 +1,6 @@
 {
     "name": "wns-sdk",
-    "version": "0.0.3-alpha",
+    "version": "0.0.4-alpha",
     "description": "Wen New Standard SDK",
     "homepage": "https://github.com/wen-foundation/wen-new-standard#readme",
     "scripts": {

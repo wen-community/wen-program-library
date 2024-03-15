@@ -1,5 +1,5 @@
 {
-  "version": "0.0.2-alpha",
+  "version": "0.3.1-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -238,7 +238,7 @@
         },
         {
           "name": "mint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

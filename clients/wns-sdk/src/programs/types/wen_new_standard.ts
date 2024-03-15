@@ -1,5 +1,5 @@
 export type WenNewStandard = {
-  "version": "0.0.2-alpha",
+  "version": "0.3.1-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -238,7 +238,7 @@ export type WenNewStandard = {
         },
         {
           "name": "mint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -974,7 +974,7 @@ export type WenNewStandard = {
 };
 
 export const IDL: WenNewStandard = {
-  "version": "0.0.2-alpha",
+  "version": "0.3.1-alpha",
   "name": "wen_new_standard",
   "instructions": [
     {
@@ -1213,7 +1213,7 @@ export const IDL: WenNewStandard = {
         },
         {
           "name": "mint",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
