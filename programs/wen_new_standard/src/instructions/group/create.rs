@@ -22,12 +22,6 @@ pub struct CreateGroupAccountArgs {
     pub max_size: u32,
 }
 
-pub const GROUP_EXTENSIONS: [ExtensionType; 3] = [
-    ExtensionType::MetadataPointer,
-    ExtensionType::GroupPointer,
-    ExtensionType::MintCloseAuthority,
-];
-
 #[derive(Accounts)]
 #[instruction(args: CreateGroupAccountArgs)]
 pub struct CreateGroupAccount<'info> {

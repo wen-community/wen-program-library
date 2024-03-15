@@ -20,13 +20,6 @@ pub struct CreateMintAccountArgs {
     pub permanent_delegate: Option<Pubkey>,
 }
 
-pub const MINT_EXTENSIONS: [ExtensionType; 4] = [
-    ExtensionType::MetadataPointer,
-    ExtensionType::GroupMemberPointer,
-    ExtensionType::TransferHook,
-    ExtensionType::MintCloseAuthority,
-];
-
 #[derive(Accounts)]
 #[instruction(args: CreateMintAccountArgs)]
 pub struct CreateMintAccount<'info> {
