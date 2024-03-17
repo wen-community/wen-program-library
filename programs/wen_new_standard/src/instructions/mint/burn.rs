@@ -34,18 +34,6 @@ pub struct BurnMintAccount<'info> {
 }
 
 impl<'info> BurnMintAccount<'info> {
-    fn close_token_account(&self) -> Result<()> {
-        let cpi_accounts = CloseAccount {
-            account: self.mint_token_account.to_account_info(),
-            destination: self.payer.to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        close_account(cpi_ctx)?;
-
-        Ok(())
-    }
-
     fn close_mint_account(&self, bumps: BurnMintAccountBumps) -> Result<()> {
         let seeds: &[&[u8]; 2] = &[
             MANAGER_SEED,
@@ -80,9 +68,6 @@ impl<'info> BurnMintAccount<'info> {
 pub fn handler(ctx: Context<BurnMintAccount>) -> Result<()> {
     // burn the token
     ctx.accounts.burn_token()?;
-
-    // close the token account
-    ctx.accounts.close_token_account()?;
 
     // close the mint account
     ctx.accounts.close_mint_account(ctx.bumps)?;
