@@ -527,9 +527,9 @@
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "receiver",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "user",

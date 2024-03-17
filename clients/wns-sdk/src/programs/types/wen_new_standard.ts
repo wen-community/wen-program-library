@@ -527,9 +527,9 @@ export type WenNewStandard = {
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "receiver",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "user",
@@ -1502,9 +1502,9 @@ export const IDL: WenNewStandard = {
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "receiver",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "user",
