@@ -1,11 +1,9 @@
 use anchor_lang::prelude::*;
 
-use anchor_spl::{
-    token_interface::{
-        Mint, Token2022, TokenAccount,
-        close_account, CloseAccount,
-        burn, Burn,
-    },
+use anchor_spl::token_interface::{
+    Mint, Token2022, TokenAccount,
+    close_account, CloseAccount,
+    burn, Burn,
 };
 
 use crate::{Manager, MANAGER_SEED};
@@ -13,7 +11,8 @@ use crate::{Manager, MANAGER_SEED};
 #[derive(Accounts)]
 pub struct BurnMintAccount<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
+    /// CHECK: can be any account
+    pub receiver: UncheckedAccount<'info>,
     #[account()]
     pub user: Signer<'info>,
     #[account(mut)]
@@ -43,7 +42,7 @@ impl<'info> BurnMintAccount<'info> {
 
         let cpi_accounts = CloseAccount {
             account: self.mint.to_account_info(),
-            destination: self.payer.to_account_info(),
+            destination: self.receiver.to_account_info(),
             authority: self.manager.to_account_info(),
         };
         let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), cpi_accounts, signer_seeds);
