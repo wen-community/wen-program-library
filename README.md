@@ -1,5 +1,5 @@
 # Wen New Standard
-Current Version: ```0.3.1-alpha```
+Current Version: ```0.3.2-alpha```
 
 The current WNS version shows the minting of a non-fungible token from the Token Extensions [(Token 2022)](https://spl.solana.com/token-2022) program. It restricts the decimals to 0 and the supply of the mint to 1. It also initializes core metadata of Name, Symbol, and Uri as apart of the token directly. There are no external metadata accounts or programs needed. Group and Member accounts are copies of the Solana Extensions and will be migrated to be within the mint account once they're released on mainnet. Royalties are implmented via the extra_metadata field in the Metadata account and distributed through the Wen Royalty Distribution Contract.
 
