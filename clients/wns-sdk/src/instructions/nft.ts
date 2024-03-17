@@ -110,7 +110,7 @@ export const getBurnNftIx = async (provider: Provider, args: BurnNftArgs) => {
 	const ix = await metadataProgram.methods
 		.burnMintAccount()
 		.accountsStrict({
-			payer: args.payer,
+			receiver: args.payer,
 			user: args.authority,
 			mint: args.mint,
 			mintTokenAccount: getAtaAddress(args.mint, args.authority),
