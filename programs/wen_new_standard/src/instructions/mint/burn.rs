@@ -19,9 +19,8 @@ pub struct BurnMintAccount<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
         mut,
-        associated_token::token_program = token_program,
-        associated_token::mint = mint,
-        associated_token::authority = user,
+        token::mint = mint.key(),
+        token::token_program = token_program.key(),
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
