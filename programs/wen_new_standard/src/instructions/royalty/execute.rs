@@ -8,7 +8,6 @@ use crate::{hook_in_cpi, ApproveAccount, MetadataErrors, META_LIST_ACCOUNT_SEED}
 pub struct ExecuteTransferHook<'info> {
     #[account(
         token::mint = mint,
-        token::authority = owner_delegate,
         token::token_program = anchor_spl::token_interface::spl_token_2022::id(),
     )]
     pub source_account: Box<InterfaceAccount<'info, TokenAccount>>,
