@@ -43,7 +43,10 @@ pub struct UpdateDistribution<'info> {
         mint::token_program = anchor_spl::token_interface::spl_token_2022::id(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = args.amount > 0,
+    )]
     pub distribution_account: Account<'info, DistributionAccount>,
     /// CHECK: can be an initialized token account or an uninitialized token account, checks in cpi
     #[account(mut)]

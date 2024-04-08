@@ -94,6 +94,10 @@ pub fn handler(ctx: Context<ApproveTransfer>, amount: u64) -> Result<()> {
     let clock = Clock::get()?;
     ctx.accounts.approve_account.slot = clock.slot;
 
+    if amount == 0 {
+        return Ok(());
+    }
+
     // get royalty basis points from metadata Vec(String, String)
     let royalty_basis_points = metadata
         .additional_metadata
