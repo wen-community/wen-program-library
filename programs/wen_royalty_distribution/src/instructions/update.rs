@@ -35,7 +35,7 @@ pub struct UpdateDistributionArgs {
 }
 
 #[derive(Accounts)]
-#[instruction()]
+#[instruction(args: UpdateDistributionArgs)]
 pub struct UpdateDistribution<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
