@@ -85,6 +85,10 @@ impl ApproveTransfer<'_> {
 }
 
 pub fn handler(ctx: Context<ApproveTransfer>, amount: u64) -> Result<()> {
+    if amount == 0 {
+        // do nothing if amount is 0
+        Ok(())
+    }
     let mint_account = ctx.accounts.mint.to_account_info();
     let mint_account_data = mint_account.try_borrow_data()?;
     let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
@@ -105,8 +109,9 @@ pub fn handler(ctx: Context<ApproveTransfer>, amount: u64) -> Result<()> {
 
     let royalty_amount = (amount * royalty_basis_points) / 10000;
 
-    // transfer royalty amount to distribution pda
-    ctx.accounts.distribute_royalties(royalty_amount)?;
-
+    if royalty_amount != 0 {
+        // transfer royalty amount to distribution pda
+        ctx.accounts.distribute_royalties(royalty_amount)?;
+    }
     Ok(())
 }
