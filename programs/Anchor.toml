@@ -16,6 +16,7 @@ members = [
 
 [programs.localnet]
 wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
+wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
 
 [scripts]
 test = "cd ../clients/wns-sdk && yarn test"
