@@ -5,11 +5,13 @@ use anchor_lang::prelude::*;
 pub mod errors;
 pub mod instructions;
 pub mod state;
+pub mod token_22_cpi;
 pub mod utils;
 
 pub use errors::*;
 pub use instructions::*;
 pub use state::*;
+pub use token_22_cpi::*;
 pub use utils::*;
 
 declare_id!("wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM");
