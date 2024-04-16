@@ -20,13 +20,11 @@ export const getProvider = () => {
 
 export const getMetadataProgram = (provider: Provider) => new Program(
 	metadataIdl as Idl,
-	wnsProgramId,
 	provider,
 ) as unknown as Program<WenNewStandard>;
 
 export const getDistributionProgram = (provider: Provider) => new Program(
 	distributionIdl as Idl,
-	distributionProgramId,
 	provider,
 ) as unknown as Program<WenRoyaltyDistribution>;
 

@@ -1,27 +1,398 @@
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/wen_new_standard.json`.
+ */
 export type WenNewStandard = {
-  "version": "0.3.2-alpha",
-  "name": "wen_new_standard",
+  "address": "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM",
+  "metadata": {
+    "name": "wenNewStandard",
+    "version": "0.3.2-alpha",
+    "spec": "0.1.0",
+    "description": "An open and composable NFT standard on Solana."
+  },
   "instructions": [
     {
-      "name": "initManagerAccount",
+      "name": "addMetadata",
       "docs": [
-        "Init manager account"
+        "add additional metadata to mint"
+      ],
+      "discriminator": [
+        231,
+        195,
+        40,
+        240,
+        67,
+        231,
+        53,
+        136
       ],
       "accounts": [
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "manager",
-          "isMut": true,
-          "isSigner": false
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "addMetadataArgs"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "addMintToGroup",
+      "docs": [
+        "add mint to group"
+      ],
+      "discriminator": [
+        236,
+        25,
+        99,
+        48,
+        185,
+        60,
+        235,
+        112
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "group",
+          "writable": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  101,
+                  109,
+                  98,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "manager",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "addRoyalties",
+      "docs": [
+        "add royalties to mint"
+      ],
+      "discriminator": [
+        195,
+        251,
+        126,
+        230,
+        187,
+        134,
+        168,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "extraMetasAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  116,
+                  114,
+                  97,
+                  45,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "updateRoyaltiesArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "approveTransfer",
+      "docs": [
+        "approve transfer"
+      ],
+      "discriminator": [
+        198,
+        217,
+        247,
+        150,
+        208,
+        60,
+        169,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "approveAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  112,
+                  112,
+                  114,
+                  111,
+                  118,
+                  101,
+                  45,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "paymentMint"
+        },
+        {
+          "name": "distributionTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "authorityTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "distributionAccount",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "distributionProgram",
+          "address": "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+      ],
+      "args": [
+        {
+          "name": "buyAmount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "burnMintAccount",
+      "docs": [
+        "burn mint"
+      ],
+      "discriminator": [
+        60,
+        58,
+        247,
+        183,
+        185,
+        54,
+        114,
+        131
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user",
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "mintTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "manager",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": []
@@ -32,114 +403,103 @@ export type WenNewStandard = {
         "Token group instructions",
         "create group"
       ],
+      "discriminator": [
+        34,
+        65,
+        118,
+        12,
+        64,
+        190,
+        211,
+        145
+      ],
       "accounts": [
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "authority",
-          "isMut": false,
-          "isSigner": true
+          "signer": true
         },
         {
-          "name": "receiver",
-          "isMut": false,
-          "isSigner": false
+          "name": "receiver"
         },
         {
           "name": "group",
-          "isMut": true,
-          "isSigner": false
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  111,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
         },
         {
           "name": "mint",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
+          "writable": true
         },
         {
           "name": "manager",
-          "isMut": false,
-          "isSigner": false
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "11111111111111111111111111111111"
         },
         {
           "name": "rent",
-          "isMut": false,
-          "isSigner": false
+          "address": "SysvarRent111111111111111111111111111111111"
         },
         {
           "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
           "name": "args",
           "type": {
-            "defined": "CreateGroupAccountArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateGroupAccount",
-      "docs": [
-        "update group"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "group",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "UpdateGroupAccountArgs"
+            "defined": {
+              "name": "createGroupAccountArgs"
+            }
           }
         }
       ]
@@ -149,415 +509,85 @@ export type WenNewStandard = {
       "docs": [
         "create mint"
       ],
+      "discriminator": [
+        76,
+        184,
+        50,
+        62,
+        162,
+        141,
+        47,
+        103
+      ],
       "accounts": [
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "receiver",
-          "isMut": false,
-          "isSigner": false
+          "name": "receiver"
         },
         {
           "name": "mint",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
           "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
+          "writable": true
         },
         {
           "name": "manager",
-          "isMut": false,
-          "isSigner": false
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "11111111111111111111111111111111"
         },
         {
           "name": "rent",
-          "isMut": false,
-          "isSigner": false
+          "address": "SysvarRent111111111111111111111111111111111"
         },
         {
           "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
           "name": "args",
           "type": {
-            "defined": "CreateMintAccountArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "addMintToGroup",
-      "docs": [
-        "add mint to group"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "group",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "member",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "addRoyalties",
-      "docs": [
-        "add royalties to mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "extraMetasAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "UpdateRoyaltiesArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "modifyRoyalties",
-      "docs": [
-        "modify royalties of mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "UpdateRoyaltiesArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "addMetadata",
-      "docs": [
-        "add additional metadata to mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "vec": {
-              "defined": "AddMetadataArgs"
+            "defined": {
+              "name": "createMintAccountArgs"
             }
           }
         }
       ]
-    },
-    {
-      "name": "removeMetadata",
-      "docs": [
-        "remove additional metadata to mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "vec": {
-              "defined": "RemoveMetadataArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "freezeMintAccount",
-      "docs": [
-        "freeze mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "delegateAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "thawMintAccount",
-      "docs": [
-        "thaw mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "delegateAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "burnMintAccount",
-      "docs": [
-        "burn mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     },
     {
       "name": "execute",
@@ -565,31 +595,63 @@ export type WenNewStandard = {
         "Royalty distribution + enforcement instructions",
         "validate transfer"
       ],
+      "discriminator": [
+        105,
+        37,
+        101,
+        197,
+        75,
+        251,
+        102,
+        26
+      ],
       "accounts": [
         {
-          "name": "sourceAccount",
-          "isMut": false,
-          "isSigner": false
+          "name": "sourceAccount"
         },
         {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
+          "name": "mint"
         },
         {
-          "name": "destinationAccount",
-          "isMut": false,
-          "isSigner": false
+          "name": "destinationAccount"
         },
         {
-          "name": "ownerDelegate",
-          "isMut": false,
-          "isSigner": false
+          "name": "ownerDelegate"
         },
         {
           "name": "extraMetasAccount",
-          "isMut": false,
-          "isSigner": false
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  120,
+                  116,
+                  114,
+                  97,
+                  45,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -600,81 +662,464 @@ export type WenNewStandard = {
       ]
     },
     {
-      "name": "approveTransfer",
+      "name": "freezeMintAccount",
       "docs": [
-        "approve transfer"
+        "freeze mint"
+      ],
+      "discriminator": [
+        171,
+        30,
+        154,
+        191,
+        27,
+        0,
+        134,
+        216
       ],
       "accounts": [
         {
           "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "name": "user"
+        },
+        {
+          "name": "delegateAuthority",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "mint",
-          "isMut": false,
-          "isSigner": false
+          "writable": true
         },
         {
-          "name": "approveAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "mintTokenAccount",
+          "writable": true
         },
         {
-          "name": "paymentMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "distributionTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authorityTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "distributionAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "distributionProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "manager",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initManagerAccount",
+      "docs": [
+        "Init manager account"
+      ],
+      "discriminator": [
+        63,
+        114,
+        69,
+        118,
+        3,
+        198,
+        215,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "manager",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "modifyRoyalties",
+      "docs": [
+        "modify royalties of mint"
+      ],
+      "discriminator": [
+        199,
+        95,
+        20,
+        107,
+        136,
+        161,
+        93,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
-          "name": "buyAmount",
-          "type": "u64"
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "updateRoyaltiesArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "removeMetadata",
+      "docs": [
+        "remove additional metadata to mint"
+      ],
+      "discriminator": [
+        81,
+        68,
+        231,
+        49,
+        91,
+        8,
+        111,
+        160
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "removeMetadataArgs"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "thawMintAccount",
+      "docs": [
+        "thaw mint"
+      ],
+      "discriminator": [
+        27,
+        53,
+        61,
+        16,
+        162,
+        190,
+        27,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user"
+        },
+        {
+          "name": "delegateAuthority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "mintTokenAccount",
+          "writable": true
+        },
+        {
+          "name": "manager",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  110,
+                  97,
+                  103,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateGroupAccount",
+      "docs": [
+        "update group"
+      ],
+      "discriminator": [
+        153,
+        106,
+        174,
+        53,
+        133,
+        171,
+        207,
+        52
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority"
+        },
+        {
+          "name": "group",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  111,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "updateGroupAccountArgs"
+            }
+          }
         }
       ]
     }
   ],
   "accounts": [
+    {
+      "name": "approveAccount",
+      "discriminator": [
+        218,
+        253,
+        170,
+        2,
+        4,
+        47,
+        25,
+        99
+      ]
+    },
+    {
+      "name": "manager",
+      "discriminator": [
+        221,
+        78,
+        171,
+        233,
+        213,
+        142,
+        113,
+        56
+      ]
+    },
+    {
+      "name": "tokenGroup",
+      "discriminator": [
+        184,
+        107,
+        4,
+        187,
+        196,
+        55,
+        142,
+        134
+      ]
+    },
+    {
+      "name": "tokenGroupMember",
+      "discriminator": [
+        17,
+        208,
+        50,
+        173,
+        30,
+        127,
+        245,
+        94
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "sizeExceedsMaxSize",
+      "msg": "Collection size exceeds max size."
+    },
+    {
+      "code": 6001,
+      "name": "maxSizeBelowCurrentSize",
+      "msg": "Max size cannot be reduced below current size."
+    },
+    {
+      "code": 6002,
+      "name": "creatorShareInvalid",
+      "msg": "Creators shares must add up to 100."
+    },
+    {
+      "code": 6003,
+      "name": "missingApproveAccount",
+      "msg": "Missing approve account."
+    },
+    {
+      "code": 6004,
+      "name": "expiredApproveAccount",
+      "msg": "Approve account has expired."
+    },
+    {
+      "code": 6005,
+      "name": "invalidField",
+      "msg": "Invalid field. You cannot use a public key as a field."
+    },
+    {
+      "code": 6006,
+      "name": "creatorAddressInvalid",
+      "msg": "The Address you provided is invalid. Please provide a valid address."
+    },
+    {
+      "code": 6007,
+      "name": "royaltyBasisPointsInvalid",
+      "msg": "Royalty basis points must be less than or equal to 10000."
+    }
+  ],
+  "types": [
+    {
+      "name": "addMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
     {
       "name": "approveAccount",
       "type": {
@@ -683,6 +1128,98 @@ export type WenNewStandard = {
           {
             "name": "slot",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "createGroupAccountArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "maxSize",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "createMintAccountArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "permanentDelegate",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "creatorWithShare",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "share",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "manager",
+      "docs": [
+        "Data struct for a `Manager`"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    },
+    {
+      "name": "removeMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
           }
         ]
       }
@@ -700,7 +1237,7 @@ export type WenNewStandard = {
             "docs": [
               "The authority that can sign to update the group"
             ],
-            "type": "publicKey"
+            "type": "pubkey"
           },
           {
             "name": "mint",
@@ -708,7 +1245,7 @@ export type WenNewStandard = {
               "The associated mint, used to counter spoofing to be sure that group",
               "belongs to a particular mint"
             ],
-            "type": "publicKey"
+            "type": "pubkey"
           },
           {
             "name": "size",
@@ -728,16 +1265,6 @@ export type WenNewStandard = {
       }
     },
     {
-      "name": "manager",
-      "docs": [
-        "Data struct for a `Manager`"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
-      }
-    },
-    {
       "name": "tokenGroupMember",
       "docs": [
         "Data struct for a `TokenGroupMember`"
@@ -751,14 +1278,14 @@ export type WenNewStandard = {
               "The associated mint, used to counter spoofing to be sure that member",
               "belongs to a particular mint"
             ],
-            "type": "publicKey"
+            "type": "pubkey"
           },
           {
             "name": "group",
             "docs": [
               "The pubkey of the `TokenGroup`"
             ],
-            "type": "publicKey"
+            "type": "pubkey"
           },
           {
             "name": "memberNumber",
@@ -769,11 +1296,9 @@ export type WenNewStandard = {
           }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
-      "name": "CreateGroupAccountArgs",
+      "name": "updateGroupAccountArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -797,105 +1322,7 @@ export type WenNewStandard = {
       }
     },
     {
-      "name": "UpdateGroupAccountArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "name": "maxSize",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CreateMintAccountArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "name": "permanentDelegate",
-            "type": {
-              "option": "publicKey"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "AddMetadataArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field",
-            "type": "string"
-          },
-          {
-            "name": "value",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "name": "RemoveMetadataArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field",
-            "type": "string"
-          },
-          {
-            "name": "value",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CreatorWithShare",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "address",
-            "type": "publicKey"
-          },
-          {
-            "name": "share",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UpdateRoyaltiesArgs",
+      "name": "updateRoyaltiesArgs",
       "type": {
         "kind": "struct",
         "fields": [
@@ -907,1043 +1334,14 @@ export type WenNewStandard = {
             "name": "creators",
             "type": {
               "vec": {
-                "defined": "CreatorWithShare"
+                "defined": {
+                  "name": "creatorWithShare"
+                }
               }
             }
           }
         ]
       }
-    },
-    {
-      "name": "MintErrors",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "InvalidFreezeAuthority"
-          },
-          {
-            "name": "InvalidDelegateAuthority"
-          }
-        ]
-      }
-    }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "SizeExceedsMaxSize",
-      "msg": "Collection size exceeds max size."
-    },
-    {
-      "code": 6001,
-      "name": "MaxSizeBelowCurrentSize",
-      "msg": "Max size cannot be reduced below current size."
-    },
-    {
-      "code": 6002,
-      "name": "CreatorShareInvalid",
-      "msg": "Creators shares must add up to 100."
-    },
-    {
-      "code": 6003,
-      "name": "MissingApproveAccount",
-      "msg": "Missing approve account."
-    },
-    {
-      "code": 6004,
-      "name": "ExpiredApproveAccount",
-      "msg": "Approve account has expired."
-    },
-    {
-      "code": 6005,
-      "name": "InvalidField",
-      "msg": "Invalid field. You cannot use a public key as a field."
-    },
-    {
-      "code": 6006,
-      "name": "CreatorAddressInvalid",
-      "msg": "The Address you provided is invalid. Please provide a valid address."
-    },
-    {
-      "code": 6007,
-      "name": "RoyaltyBasisPointsInvalid",
-      "msg": "Royalty basis points must be less than or equal to 10000."
-    }
-  ]
-};
-
-export const IDL: WenNewStandard = {
-  "version": "0.3.2-alpha",
-  "name": "wen_new_standard",
-  "instructions": [
-    {
-      "name": "initManagerAccount",
-      "docs": [
-        "Init manager account"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "manager",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "createGroupAccount",
-      "docs": [
-        "Token group instructions",
-        "create group"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "receiver",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "group",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "CreateGroupAccountArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateGroupAccount",
-      "docs": [
-        "update group"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "group",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "UpdateGroupAccountArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "createMintAccount",
-      "docs": [
-        "create mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "receiver",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "CreateMintAccountArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "addMintToGroup",
-      "docs": [
-        "add mint to group"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "group",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "member",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "addRoyalties",
-      "docs": [
-        "add royalties to mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "extraMetasAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "UpdateRoyaltiesArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "modifyRoyalties",
-      "docs": [
-        "modify royalties of mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": "UpdateRoyaltiesArgs"
-          }
-        }
-      ]
-    },
-    {
-      "name": "addMetadata",
-      "docs": [
-        "add additional metadata to mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "vec": {
-              "defined": "AddMetadataArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "removeMetadata",
-      "docs": [
-        "remove additional metadata to mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "vec": {
-              "defined": "RemoveMetadataArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "freezeMintAccount",
-      "docs": [
-        "freeze mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "delegateAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "thawMintAccount",
-      "docs": [
-        "thaw mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "delegateAuthority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "burnMintAccount",
-      "docs": [
-        "burn mint"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mintTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "manager",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "execute",
-      "docs": [
-        "Royalty distribution + enforcement instructions",
-        "validate transfer"
-      ],
-      "accounts": [
-        {
-          "name": "sourceAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "destinationAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "ownerDelegate",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "extraMetasAccount",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "approveTransfer",
-      "docs": [
-        "approve transfer"
-      ],
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "authority",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "approveAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "paymentMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "distributionTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authorityTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "distributionAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "distributionProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "buyAmount",
-          "type": "u64"
-        }
-      ]
-    }
-  ],
-  "accounts": [
-    {
-      "name": "approveAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "slot",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "tokenGroup",
-      "docs": [
-        "Data struct for a `TokenGroup`"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "updateAuthority",
-            "docs": [
-              "The authority that can sign to update the group"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "mint",
-            "docs": [
-              "The associated mint, used to counter spoofing to be sure that group",
-              "belongs to a particular mint"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "size",
-            "docs": [
-              "The current number of group members"
-            ],
-            "type": "u32"
-          },
-          {
-            "name": "maxSize",
-            "docs": [
-              "The maximum number of group members"
-            ],
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "manager",
-      "docs": [
-        "Data struct for a `Manager`"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": []
-      }
-    },
-    {
-      "name": "tokenGroupMember",
-      "docs": [
-        "Data struct for a `TokenGroupMember`"
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "mint",
-            "docs": [
-              "The associated mint, used to counter spoofing to be sure that member",
-              "belongs to a particular mint"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "group",
-            "docs": [
-              "The pubkey of the `TokenGroup`"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "memberNumber",
-            "docs": [
-              "The member number"
-            ],
-            "type": "u32"
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "CreateGroupAccountArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "name": "maxSize",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UpdateGroupAccountArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "name": "maxSize",
-            "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CreateMintAccountArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "name": "permanentDelegate",
-            "type": {
-              "option": "publicKey"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "AddMetadataArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field",
-            "type": "string"
-          },
-          {
-            "name": "value",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "name": "RemoveMetadataArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field",
-            "type": "string"
-          },
-          {
-            "name": "value",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "name": "CreatorWithShare",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "address",
-            "type": "publicKey"
-          },
-          {
-            "name": "share",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UpdateRoyaltiesArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "royaltyBasisPoints",
-            "type": "u16"
-          },
-          {
-            "name": "creators",
-            "type": {
-              "vec": {
-                "defined": "CreatorWithShare"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "MintErrors",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "InvalidFreezeAuthority"
-          },
-          {
-            "name": "InvalidDelegateAuthority"
-          }
-        ]
-      }
-    }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "SizeExceedsMaxSize",
-      "msg": "Collection size exceeds max size."
-    },
-    {
-      "code": 6001,
-      "name": "MaxSizeBelowCurrentSize",
-      "msg": "Max size cannot be reduced below current size."
-    },
-    {
-      "code": 6002,
-      "name": "CreatorShareInvalid",
-      "msg": "Creators shares must add up to 100."
-    },
-    {
-      "code": 6003,
-      "name": "MissingApproveAccount",
-      "msg": "Missing approve account."
-    },
-    {
-      "code": 6004,
-      "name": "ExpiredApproveAccount",
-      "msg": "Approve account has expired."
-    },
-    {
-      "code": 6005,
-      "name": "InvalidField",
-      "msg": "Invalid field. You cannot use a public key as a field."
-    },
-    {
-      "code": 6006,
-      "name": "CreatorAddressInvalid",
-      "msg": "The Address you provided is invalid. Please provide a valid address."
-    },
-    {
-      "code": 6007,
-      "name": "RoyaltyBasisPointsInvalid",
-      "msg": "Royalty basis points must be less than or equal to 10000."
     }
   ]
 };

@@ -16,13 +16,11 @@ no-entrypoint = []
 no-idl = []
 cpi = ["no-entrypoint"]
 default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build", "wen_royalty_distribution/idl-build"]
 
-# This depends on a fork of Anchor, while determining the best course of
-# action to merge Anchor support for these tools, we have added the
-# compiled Anchor binaries to the root of this directory.
 [dependencies]
-anchor-lang = { git = "https://github.com/bridgesplit/anchor.git", features = ["interface-instructions", "init-if-needed"] }
-anchor-spl = { git = "https://github.com/bridgesplit/anchor.git", features = ["token_2022_extensions", "token_2022"] }
+anchor-lang = { version = "0.30.0", features = ["init-if-needed", "interface-instructions"] }
+anchor-spl = "0.30.0"
 spl-pod = "0.1.0"
 spl-transfer-hook-interface = { version = "0.5.0" }
 spl-tlv-account-resolution = "0.4.0"
