@@ -10,6 +10,7 @@ use anchor_spl::token_interface::{
         extension::{BaseStateWithExtensions, StateWithExtensions},
         state::Mint as BaseStateMint,
     },
+    spl_token_metadata_interface::instruction::remove_key,
     spl_token_metadata_interface::state::Field,
     spl_token_metadata_interface::state::TokenMetadata,
     token_metadata_update_field, Mint, Token2022, TokenMetadataUpdateField,
@@ -19,8 +20,6 @@ use crate::{
     update_account_lamports_to_minimum_balance, MetadataErrors, UpdateRoyaltiesArgs,
     ROYALTY_BASIS_POINTS_FIELD,
 };
-
-use spl_token_metadata_interface::instruction::remove_key;
 
 #[derive(Accounts)]
 #[instruction(args: UpdateRoyaltiesArgs)]

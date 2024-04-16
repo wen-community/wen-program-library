@@ -1,12 +1,11 @@
 use anchor_lang::prelude::*;
 
 use anchor_spl::token_interface::{
-    Mint, Token2022, TokenAccount,
-    ThawAccount, thaw_account,
-}; 
-use spl_pod::solana_program::program_option::COption;
+    spl_pod::solana_program::program_option::COption, thaw_account, Mint, ThawAccount, Token2022,
+    TokenAccount,
+};
 
-use crate::{Manager, MANAGER_SEED, MintErrors};
+use crate::{Manager, MintErrors, MANAGER_SEED};
 
 #[derive(Accounts)]
 pub struct ThawDelegatedAccount<'info> {
@@ -40,10 +39,7 @@ pub struct ThawDelegatedAccount<'info> {
 
 impl<'info> ThawDelegatedAccount<'info> {
     fn thaw(&self, bumps: ThawDelegatedAccountBumps) -> Result<()> {
-        let seeds: &[&[u8]; 2] = &[
-            MANAGER_SEED,
-            &[bumps.manager],
-        ];
+        let seeds: &[&[u8]; 2] = &[MANAGER_SEED, &[bumps.manager]];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = ThawAccount {
@@ -51,7 +47,11 @@ impl<'info> ThawDelegatedAccount<'info> {
             mint: self.mint.to_account_info(),
             authority: self.manager.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
         thaw_account(cpi_ctx)?;
 
         Ok(())
@@ -59,7 +59,6 @@ impl<'info> ThawDelegatedAccount<'info> {
 }
 
 pub fn handler(ctx: Context<ThawDelegatedAccount>) -> Result<()> {
-
     // thaw the token account
     ctx.accounts.thaw(ctx.bumps)?;
 

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use spl_pod::error::PodSliceError;
+use anchor_spl::token_interface::spl_pod::error::PodSliceError;
 
 use crate::MetadataErrors;
 

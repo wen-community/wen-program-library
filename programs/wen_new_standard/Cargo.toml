@@ -21,8 +21,6 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build", "wen_royalty_distr
 [dependencies]
 anchor-lang = { version = "0.30.0", features = ["init-if-needed", "interface-instructions"] }
 anchor-spl = "0.30.0"
-spl-pod = "0.1.0"
 spl-transfer-hook-interface = { version = "0.5.0" }
 spl-tlv-account-resolution = "0.4.0"
 wen_royalty_distribution = { path = "../wen_royalty_distribution", features = ["cpi"] }
-spl-token-metadata-interface = "=0.2"
