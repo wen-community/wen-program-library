@@ -232,7 +232,11 @@ dependencies = [
  "spl-token",
  "spl-token-2022",
  "spl-token-group-interface",
+<<<<<<< HEAD
  "spl-token-metadata-interface",
+=======
+ "spl-token-metadata-interface 0.3.3",
+>>>>>>> e3c0806 (chore: bump up anchor crates to 0.30.0)
 ]
 
 [[package]]
@@ -2279,7 +2283,11 @@ dependencies = [
  "spl-pod 0.2.2",
  "spl-token",
  "spl-token-group-interface",
+<<<<<<< HEAD
  "spl-token-metadata-interface",
+=======
+ "spl-token-metadata-interface 0.3.3",
+>>>>>>> e3c0806 (chore: bump up anchor crates to 0.30.0)
  "spl-transfer-hook-interface 0.6.3",
  "spl-type-length-value 0.4.3",
  "thiserror",
@@ -2306,6 +2314,23 @@ checksum = "30179c47e93625680dabb620c6e7931bd12d62af390f447bc7beb4a3a9b5feee"
 dependencies = [
  "borsh 1.4.0",
  "solana-program",
+<<<<<<< HEAD
+=======
+ "spl-discriminator 0.1.1",
+ "spl-pod 0.1.1",
+ "spl-program-error 0.3.1",
+ "spl-type-length-value 0.3.1",
+]
+
+[[package]]
+name = "spl-token-metadata-interface"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30179c47e93625680dabb620c6e7931bd12d62af390f447bc7beb4a3a9b5feee"
+dependencies = [
+ "borsh 1.4.0",
+ "solana-program",
+>>>>>>> e3c0806 (chore: bump up anchor crates to 0.30.0)
  "spl-discriminator 0.2.2",
  "spl-pod 0.2.2",
  "spl-program-error 0.4.0",
@@ -2668,7 +2693,13 @@ version = "0.3.2-alpha"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+<<<<<<< HEAD
  "spl-tlv-account-resolution 0.4.0",
+=======
+ "spl-pod 0.1.1",
+ "spl-tlv-account-resolution 0.4.0",
+ "spl-token-metadata-interface 0.2.1",
+>>>>>>> e3c0806 (chore: bump up anchor crates to 0.30.0)
  "spl-transfer-hook-interface 0.5.1",
  "wen_royalty_distribution",
 ]
@@ -2679,6 +2710,10 @@ version = "0.2.0-alpha"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+<<<<<<< HEAD
+=======
+ "spl-pod 0.1.1",
+>>>>>>> e3c0806 (chore: bump up anchor crates to 0.30.0)
  "spl-tlv-account-resolution 0.4.0",
  "spl-transfer-hook-interface 0.5.1",
 ]
