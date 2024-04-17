@@ -19,4 +19,17 @@ Next steps for this repository are fully featuring the NFT's to include the most
 After these are completed, WNS will need sufficient tooling including group mint contracts, CLI tooling, and more.
 
 ## Developing
-Wen New Standard Relies on Token Extension program and is built using the Anchor Framework. As of now, Anchor does not support Token Extensions directly beyond the core functions. We have written implementations for most extensions and are working to get these changes merged into Anchor proper. While waiting for these changes to be published, we have compiled the most recent fork into a binary in the root of this repository ```anchor```.
+
+Wen New Standard Relies on Token Extension program and is built using the Anchor Framework.
+
+- Use `solana-install` to ensure you have the correct version of solana available. You can check your version of solana with `solana-install --version`.
+- WNS uses anchor 0.30.0. As of now, the recommend installation for 0.30.0 is:
+```
+cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.0 avm --locked
+avm install latest
+```
+Switch to program directory and run specs:
+
+```
+anchor test
+```
