@@ -2,9 +2,10 @@ use std::str::FromStr;
 
 use anchor_lang::{prelude::*, solana_program::program::invoke};
 
-use anchor_spl::token_interface::{Mint, Token2022};
-
-use spl_token_metadata_interface::instruction::remove_key;
+use anchor_spl::{
+    token_interface::spl_token_metadata_interface::instruction::remove_key,
+    token_interface::{Mint, Token2022},
+};
 
 use crate::{errors::MetadataErrors, update_account_lamports_to_minimum_balance};
 

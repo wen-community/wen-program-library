@@ -28,10 +28,10 @@ describe('e2e tests', () => {
 	let nftMint: string;
 
 	test('setup provider', async () => {
-		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.payer.publicKey, 1000000000));
-		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.authority.publicKey, 1000000000));
-		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user1.publicKey, 1000000000));
-		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user2.publicKey, 1000000000));
+		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.payer.publicKey, 1 * Number(LAMPORTS_PER_SOL)), 'confirmed');
+		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.authority.publicKey, 1 * Number(LAMPORTS_PER_SOL)), 'confirmed');
+		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user1.publicKey, 1 * Number(LAMPORTS_PER_SOL)), 'confirmed');
+		await setup.provider.connection.confirmTransaction(await setup.provider.connection.requestAirdrop(setup.user2.publicKey, 1 * Number(LAMPORTS_PER_SOL)), 'confirmed');
 	});
 
 	test('create manager account if not created already', async () => {
@@ -42,7 +42,7 @@ describe('e2e tests', () => {
 
 		const createManagerIx = await getInitManagerIx(setup.provider, setup.payer.publicKey.toString());
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -51,8 +51,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		expect(txnId).toBeTruthy();
 	});
 
@@ -78,7 +78,7 @@ describe('e2e tests', () => {
 		};
 		const addDistributionIx = await getAddDistributionIx(setup.provider, addDistributionArgs);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -87,8 +87,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, groupMintKp, setup.authority]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		expect(txnId).toBeTruthy();
 		const groupAccount = await getGroupAccount(setup.provider, groupMint);
 		expect(groupAccount?.maxSize).toBe(2);
@@ -134,7 +134,7 @@ describe('e2e tests', () => {
 		const addIx = await getAddNftToGroupIx(setup.provider, addArgs);
 		const addRoyaltiesIx = await getAddRoyaltiesIx(setup.provider, args);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -143,8 +143,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, nftMintKp, setup.authority]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		expect(txnId).toBeTruthy();
 		const groupAccount = await getGroupAccount(setup.provider, groupMint);
 		expect(groupAccount?.size).toBe(1);
@@ -153,7 +153,7 @@ describe('e2e tests', () => {
 		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
 		expect(groupMemberAccount?.memberNumber).toBe(1);
 
-		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, 'confirmed', tokenProgramId);
 		const mintPermanentDelegate = getPermanentDelegate(mintData);
 		expect(mintPermanentDelegate?.delegate.toString()).toBe(PublicKey.default.toString());
 	});
@@ -192,7 +192,7 @@ describe('e2e tests', () => {
 		const addIx = await getAddNftToGroupIx(setup.provider, addArgs);
 		const addRoyaltiesIx = await getAddRoyaltiesIx(setup.provider, args);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -201,8 +201,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, nftMintKp, setup.authority]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		expect(txnId).toBeTruthy();
 		const groupAccount = await getGroupAccount(setup.provider, groupMint);
 		expect(groupAccount?.size).toBe(2);
@@ -210,7 +210,7 @@ describe('e2e tests', () => {
 		expect(groupMemberAccount?.mint.toString()).toBe(nftMint);
 		expect(groupMemberAccount?.group.toString()).toBe(getGroupAccountPda(groupMint).toString());
 		expect(groupMemberAccount?.memberNumber).toBe(2);
-		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, undefined, tokenProgramId);
+		const mintData = await getMint(setup.provider.connection, nftMintKp.publicKey, 'confirmed', tokenProgramId);
 		const mintPermanentDelegate = getPermanentDelegate(mintData);
 		expect(mintPermanentDelegate?.delegate.toString()).toBe(setup.authority.publicKey.toString());
 	});
@@ -240,7 +240,7 @@ describe('e2e tests', () => {
 		const approveIx = await getNftTransferApproveIx(setup.provider, args);
 		const ix = await getNftTransferIx(args);
 		const txn = new Transaction().add(ataIx).add(approveIx).add(ix);
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user1]);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user1], {skipPreflight: true, commitment: 'confirmed'});
 		expect(txnId).toBeTruthy();
 		minRentExemption = await setup.provider.connection.getMinimumBalanceForRentExemption(477);
 		const distributionAccount = await getDistributionAccount(setup.provider, groupMint, PublicKey.default.toString());
@@ -273,7 +273,7 @@ describe('e2e tests', () => {
 		const approveIx = await getNftTransferApproveIx(setup.provider, args);
 		const ix = await getNftTransferIx(args);
 		const txn = new Transaction().add(approveIx).add(ix);
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user2]);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer, setup.user2], {skipPreflight: true, commitment: 'confirmed'});
 		expect(txnId).toBeTruthy();
 		const distributionAccount = await getDistributionAccount(setup.provider, groupMint, PublicKey.default.toString());
 		expect(distributionAccount?.claimData.map(d => ({address: d.address.toString(), claimAmount: d.claimAmount.toNumber()})))
@@ -301,7 +301,7 @@ describe('e2e tests', () => {
 		txn.feePayer = setup.payer.publicKey;
 		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
 		const feeEstimation = (await txn.getEstimatedFee(setup.provider.connection))!;
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer]);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.payer], {skipPreflight: true, commitment: 'confirmed'});
 		expect(txnId).toBeTruthy();
 		const payerBalanceAfter = await setup.provider.connection.getBalance(setup.payer.publicKey);
 		expect(payerBalanceAfter - payerBalanceBefore).toBe(((buyAmounts * royaltyBasisPoints * 49) / (10000 * 100)) - feeEstimation);
@@ -331,7 +331,7 @@ describe('e2e tests', () => {
 		txn.feePayer = setup.authority.publicKey;
 		txn.recentBlockhash = await setup.provider.connection.getLatestBlockhash().then(res => res.blockhash);
 		const feeEstimation = (await txn.getEstimatedFee(setup.provider.connection))!;
-		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.authority]);
+		const txnId = await sendAndConfirmTransaction(setup.provider.connection, txn, [setup.authority], {skipPreflight: true, commitment: 'confirmed'});
 		expect(txnId).toBeTruthy();
 		const authorityBalanceAfter = await setup.provider.connection.getBalance(setup.authority.publicKey);
 		expect(authorityBalanceAfter - authorityBalanceBefore).toBe(((buyAmounts * royaltyBasisPoints * 51) / (10000 * 100)) - feeEstimation);
@@ -371,7 +371,7 @@ describe('e2e tests', () => {
 		);
 		const freezeNftIx = await getFreezeNftIx(setup.provider, args);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -380,8 +380,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, setup.user1, setup.user2]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		expect(txnId).toBeTruthy();
 
 		const {isFrozen} = await getAccount(
@@ -401,7 +401,7 @@ describe('e2e tests', () => {
 		};
 		const thawNftIx = await getThawNftIx(setup.provider, args);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -412,7 +412,7 @@ describe('e2e tests', () => {
 		txn.sign([setup.payer]);
 
 		try {
-			await setup.provider.connection.sendRawTransaction(txn.serialize());
+			await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
 		} catch (e) {
 			const containsErrorMsg = e?.logs?.some(log => typeof log === 'string' && log.includes?.('Invalid delegate authority'));
 			expect(containsErrorMsg).toBe(true);
@@ -435,7 +435,7 @@ describe('e2e tests', () => {
 		};
 		const thawNftIx = await getThawNftIx(setup.provider, args);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -444,8 +444,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, setup.user2]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		expect(txnId).toBeTruthy();
 
 		const {isFrozen} = await getAccount(
@@ -464,7 +464,7 @@ describe('e2e tests', () => {
 		};
 		const burnNftIx = await getBurnNftIx(setup.provider, args);
 		const blockhash = await setup.provider.connection
-			.getLatestBlockhash()
+			.getLatestBlockhash('confirmed')
 			.then(res => res.blockhash);
 		const messageV0 = new TransactionMessage({
 			payerKey: setup.payer.publicKey,
@@ -473,8 +473,8 @@ describe('e2e tests', () => {
 		}).compileToV0Message();
 		const txn = new VersionedTransaction(messageV0);
 		txn.sign([setup.payer, setup.user1]);
-		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize());
-		await setup.provider.connection.confirmTransaction(txnId);
+		const txnId = await setup.provider.connection.sendRawTransaction(txn.serialize(), {skipPreflight: true});
+		await setup.provider.connection.confirmTransaction(txnId, 'confirmed');
 		try {
 			await getAccount(setup.provider.connection, new PublicKey(args.mint), undefined, tokenProgramId);
 		} catch (e) {

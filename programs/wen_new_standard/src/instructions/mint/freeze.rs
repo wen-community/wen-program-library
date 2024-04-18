@@ -1,12 +1,11 @@
 use anchor_lang::prelude::*;
 
 use anchor_spl::token_interface::{
-    Mint, Token2022, TokenAccount,
-    FreezeAccount, freeze_account,
+    freeze_account, spl_pod::solana_program::program_option::COption, FreezeAccount, Mint,
+    Token2022, TokenAccount,
 };
-use spl_pod::solana_program::program_option::COption;
 
-use crate::{Manager, MANAGER_SEED, MintErrors};
+use crate::{Manager, MintErrors, MANAGER_SEED};
 
 #[derive(Accounts)]
 pub struct FreezeDelegatedAccount<'info> {
@@ -39,12 +38,8 @@ pub struct FreezeDelegatedAccount<'info> {
 }
 
 impl<'info> FreezeDelegatedAccount<'info> {
-
     fn freeze(&self, bumps: FreezeDelegatedAccountBumps) -> Result<()> {
-        let seeds: &[&[u8]; 2] = &[
-            MANAGER_SEED,
-            &[bumps.manager],
-        ];
+        let seeds: &[&[u8]; 2] = &[MANAGER_SEED, &[bumps.manager]];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = FreezeAccount {
@@ -52,7 +47,11 @@ impl<'info> FreezeDelegatedAccount<'info> {
             mint: self.mint.to_account_info(),
             authority: self.manager.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
         freeze_account(cpi_ctx)?;
 
         Ok(())
@@ -60,7 +59,6 @@ impl<'info> FreezeDelegatedAccount<'info> {
 }
 
 pub fn handler(ctx: Context<FreezeDelegatedAccount>) -> Result<()> {
-
     // freeze the token account
     ctx.accounts.freeze(ctx.bumps)?;
 

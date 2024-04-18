@@ -1,133 +1,179 @@
 {
-  "version": "0.0.2-alpha",
-  "name": "wen_royalty_distribution",
+  "address": "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay",
+  "metadata": {
+    "name": "wen_royalty_distribution",
+    "version": "0.2.0-alpha",
+    "spec": "0.1.0",
+    "description": "Distribution program for WNS royalties"
+  },
   "instructions": [
     {
-      "name": "initializeDistribution",
+      "name": "claim_distribution",
       "docs": [
-        "Initializes a new distribution account."
+        "Claim royalties from a distribution account."
+      ],
+      "discriminator": [
+        204,
+        156,
+        94,
+        85,
+        2,
+        125,
+        232,
+        180
       ],
       "accounts": [
         {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
+          "name": "creator",
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "groupMint",
-          "isMut": false,
-          "isSigner": false
+          "name": "distribution",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "distribution.group_mint",
+                "account": "DistributionAccount"
+              },
+              {
+                "kind": "arg",
+                "path": "payment_mint"
+              }
+            ]
+          }
         },
         {
-          "name": "distributionAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "distribution_token_account",
+          "writable": true
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "creator_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
-          "name": "paymentMint",
-          "type": "publicKey"
+          "name": "payment_mint",
+          "type": "pubkey"
         }
       ]
     },
     {
-      "name": "updateDistribution",
+      "name": "initialize_distribution",
+      "docs": [
+        "Initializes a new distribution account."
+      ],
+      "discriminator": [
+        146,
+        158,
+        129,
+        53,
+        22,
+        89,
+        86,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "group_mint"
+        },
+        {
+          "name": "distribution_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "group_mint"
+              },
+              {
+                "kind": "arg",
+                "path": "payment_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "payment_mint",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_distribution",
       "docs": [
         "Update royalty amount for creators a distribution account."
+      ],
+      "discriminator": [
+        128,
+        196,
+        209,
+        174,
+        42,
+        209,
+        164,
+        222
       ],
       "accounts": [
         {
           "name": "authority",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "mint",
-          "isMut": false,
-          "isSigner": false
+          "name": "mint"
         },
         {
-          "name": "distributionAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "distribution_account",
+          "writable": true
         },
         {
-          "name": "authorityTokenAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "authority_token_account",
+          "writable": true
         },
         {
-          "name": "distributionTokenAccount",
-          "isMut": true,
-          "isSigner": false
+          "name": "distribution_token_account",
+          "writable": true
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         }
       ],
       "args": [
         {
           "name": "args",
           "type": {
-            "defined": "UpdateDistributionArgs"
+            "defined": {
+              "name": "UpdateDistributionArgs"
+            }
           }
-        }
-      ]
-    },
-    {
-      "name": "claimDistribution",
-      "docs": [
-        "Claim royalties from a distribution account."
-      ],
-      "accounts": [
-        {
-          "name": "creator",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "distribution",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "distributionTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorTokenAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "paymentMint",
-          "type": "publicKey"
         }
       ]
     }
@@ -135,102 +181,16 @@
   "accounts": [
     {
       "name": "DistributionAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "version",
-            "docs": [
-              "distribution version"
-            ],
-            "type": "u8"
-          },
-          {
-            "name": "groupMint",
-            "docs": [
-              "group to which the distribution account belongs to"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "paymentMint",
-            "docs": [
-              "payment mint for the distribution account"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "claimData",
-            "type": {
-              "vec": {
-                "defined": "Creator"
-              }
-            }
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "CreatorShare",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "address",
-            "docs": [
-              "creator address"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "pct",
-            "docs": [
-              "creator share percentage"
-            ],
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UpdateDistributionArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "paymentMint",
-            "type": "publicKey"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Creator",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "address",
-            "docs": [
-              "creator address"
-            ],
-            "type": "publicKey"
-          },
-          {
-            "name": "claimAmount",
-            "docs": [
-              "token amount that creator can claim"
-            ],
-            "type": "u64"
-          }
-        ]
-      }
+      "discriminator": [
+        98,
+        90,
+        112,
+        65,
+        49,
+        161,
+        198,
+        154
+      ]
     }
   ],
   "errors": [
@@ -248,6 +208,85 @@
       "code": 6002,
       "name": "ArithmeticOverflow",
       "msg": "Arithmetic overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Creator",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "docs": [
+              "creator address"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "claim_amount",
+            "docs": [
+              "token amount that creator can claim"
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DistributionAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "distribution version"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "group_mint",
+            "docs": [
+              "group to which the distribution account belongs to"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "payment_mint",
+            "docs": [
+              "payment mint for the distribution account"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "claim_data",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Creator"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateDistributionArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "payment_mint",
+            "type": "pubkey"
+          }
+        ]
+      }
     }
   ]
 }
