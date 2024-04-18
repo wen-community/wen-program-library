@@ -7,7 +7,7 @@ export type DistributionAccount = IdlAccounts<WenRoyaltyDistribution>['distribut
 export async function getDistributionAccount(provider: Provider, groupMint: string, paymentMint: string): Promise<DistributionAccount | undefined> {
 	const distributionProgram = getDistributionProgram(provider);
 	const distributionAccount = getDistributionAccountPda(groupMint, paymentMint);
-	return distributionProgram.account.distributionAccount.fetch(distributionAccount)
+	return distributionProgram.account.distributionAccount.fetch(distributionAccount, 'confirmed')
 		.then(account => account)
 		.catch(() => undefined);
 }

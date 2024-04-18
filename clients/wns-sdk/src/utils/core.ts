@@ -12,9 +12,9 @@ import {
 } from '../programs';
 
 export const getProvider = () => {
-	const connection = new Connection(process.env.RPC_URL ?? 'https://api.devnet.solana.com');
+	const connection = new Connection(process.env.RPC_URL ?? 'https://api.devnet.solana.com', 'confirmed');
 	const anchorProvider = AnchorProvider.local();
-	const provider = new AnchorProvider(connection, anchorProvider.wallet, {...AnchorProvider.defaultOptions(), commitment: 'processed'});
+	const provider = new AnchorProvider(connection, anchorProvider.wallet, {...AnchorProvider.defaultOptions(), commitment: 'confirmed'});
 	return provider;
 };
 

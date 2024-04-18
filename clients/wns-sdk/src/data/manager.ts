@@ -7,7 +7,7 @@ export type MangerAccount = IdlAccounts<WenNewStandard>['manager'];
 export async function getManagerAccount(provider: Provider): Promise<MangerAccount | undefined> {
 	const metadataProgram = getMetadataProgram(provider);
 	const managerAccount = getManagerAccountPda();
-	return metadataProgram.account.manager.fetch(managerAccount)
+	return metadataProgram.account.manager.fetch(managerAccount, 'confirmed')
 		.then(account => account)
 		.catch(() => undefined);
 }
