@@ -77,6 +77,23 @@ pub struct DistributionAccount {
 
 1. The `initialize` function is called after a group account is created in WNS program. This makes sure for every collection that's being created, a distribution vault is also created at a 1:1 account mapping.
 
-2. After member NFTs (mint accounts in WNS program), are minted, the mint accounts are added into the group account and royalty metadata fields are added to the individual member NFT. Now if a program has to first call the `approve_transfer` ix to set the `Clock`'s slot value for enforcing royalties. This `approve_transfer` makes sure to transfer the funds that was used for purchase of the NFT towards the `update` function of this program resulting in depositing under the `distribution_account` or `distribution_token_account` (for SOL and SPL transfers respectively).
+2. After member NFTs (mint accounts in WNS program), are minted, the mint accounts are added into the group account and royalty metadata fields are pushed to the individual member NFT mint address. The specific metadata fields are the following key value pairs.
+
+- royalty_basis_points (Similar to creator_basis_points in metaplex NFTs) <=> percentage from each sale
+- creator key <=> share percentage of the royalty fee.
+
+So for example, if the royalty is 10%, and we have 2 creators who takes equal splits, the additional metadata would be of the following
+
+```rust
+let additional_metadata = Vec<[String; 2]> = [
+  ["royalty_basis_points", "1000"],
+  [Pubkey::new_unique().to_string(), "50"],
+  [Pubkey::new_unique().to_string(), "50"],
+]
+```
+
+Since in token extensions, we can't update metadata fields in batch, each additional field requires a new CPI call to the token extensions program.
+
+Now if a program has to first call the `approve_transfer` ix to set the `Clock`'s slot value for enforcing royalties. This `approve_transfer` makes sure to transfer the funds that was used for purchase of the NFT towards the `update` function of this program resulting in depositing under the `distribution_account` or `distribution_token_account` (for SOL and SPL transfers respectively).
 
 3. Once the transfer is done (with transfer hook execute function verifying the royalty enforcement), creators can call the `claim` function anytime they wish to withdraw their share of the royalty fund pool.
