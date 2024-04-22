@@ -348,7 +348,7 @@ describe("wen_new_standard", () => {
         );
       });
 
-      it.skip("should be thawed", async () => {
+      it("should be thawed", async () => {
         expect(mintTokenAccountData.isFrozen).to.be.false;
       });
 
