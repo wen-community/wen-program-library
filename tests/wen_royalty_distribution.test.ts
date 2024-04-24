@@ -24,11 +24,11 @@ describe("wen_royalty_distribution", () => {
           it.skip("should be sent to the distribution vault");
         });
         describe("the seller", () => {
-          it.should("receive the payment minus royalties");
-          it.should("should not be the owner anymore");
+          it.skip("receive the payment minus royalties");
+          it.skip("should not be the owner anymore");
         });
         describe("the buyer", () => {
-          it.should("should be the owner");
+          it.skip("should be the owner");
         });
       });
     });
