@@ -1,11 +1,13 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+
 import { expect } from "chai";
 import { faker } from "@faker-js/faker";
 import { WenNewStandard } from "../target/types/wen_new_standard";
 
 import {
   Keypair,
+  Connection,
   AccountInfo,
   PublicKey,
   SystemProgram,
@@ -13,6 +15,8 @@ import {
   TransactionMessage,
   LAMPORTS_PER_SOL,
   SYSVAR_RENT_PUBKEY,
+  TransactionInstruction,
+  Signer,
 } from "@solana/web3.js";
 import {
   TOKEN_2022_PROGRAM_ID,
@@ -28,27 +32,116 @@ import {
   createApproveCheckedInstruction,
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
+  TYPE_SIZE,
+  LENGTH_SIZE,
+  getMintLen,
+  ExtensionType,
 } from "@solana/spl-token";
 import {
+  Field,
   TokenMetadata,
   createUpdateFieldInstruction,
+  pack,
 } from "@solana/spl-token-metadata";
-import {
-  getApproveAccountPda,
-  getExtraMetasAccountPda,
-  wnsProgramId,
-} from "../clients/wns-sdk/src";
 
 const MANAGER_SEED = Buffer.from("manager");
 const GROUP_ACCOUNT_SEED = Buffer.from("group");
 const MEMBER_ACCOUNT_SEED = Buffer.from("member");
 
+export const getExtraMetasAccountPda = (mint: string, programId: PublicKey) => {
+  const [extraMetasAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from("extra-account-metas"), new PublicKey(mint).toBuffer()],
+    programId
+  );
+  return extraMetasAccount;
+};
+
+export const getApproveAccountPda = (mint: string, programId: PublicKey) => {
+  const [approveAccount] = PublicKey.findProgramAddressSync(
+    [Buffer.from("approve-account"), new PublicKey(mint).toBuffer()],
+    programId
+  );
+
+  return approveAccount;
+};
+
+export async function getMinRentForWNSMint(
+  connection: Connection,
+  metaData: TokenMetadata,
+  type: string
+) {
+  // Size of MetadataExtension 2 bytes for type, 2 bytes for length
+  const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
+  // Size of metadata
+  const metadataLen = pack(metaData).length;
+
+  // Size of Mint Account with extensions
+  const mintLen = getMintLen(
+    [
+      ExtensionType.MintCloseAuthority,
+      ExtensionType.MetadataPointer,
+      ExtensionType.TransferHook,
+      ExtensionType.PermanentDelegate,
+    ].concat(
+      type === "member"
+        ? [ExtensionType.GroupMemberPointer]
+        : [ExtensionType.GroupPointer]
+    )
+  );
+
+  // Minimum lamports required for Mint Account
+  return connection.getMinimumBalanceForRentExemption(
+    mintLen + metadataExtension + metadataLen
+  );
+}
+
+export async function sendAndConfirmWNSTransaction(
+  connection: Connection,
+  instructions: TransactionInstruction[],
+  provider: AnchorProvider,
+  skipPreflight = true,
+  additionalSigners: Signer[] = []
+): Promise<{ signature: string; feeEstimate: number }> {
+  const transaction = new VersionedTransaction(
+    new TransactionMessage({
+      instructions,
+      payerKey: provider.wallet.publicKey,
+      recentBlockhash: (await connection.getLatestBlockhash("confirmed"))
+        .blockhash,
+    }).compileToV0Message()
+  );
+  const signedTx = await provider.wallet.signTransaction(transaction);
+  signedTx.sign(additionalSigners);
+
+  try {
+    const signature = await connection.sendTransaction(signedTx, {
+      preflightCommitment: "confirmed",
+      skipPreflight,
+    });
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash("confirmed");
+    await connection.confirmTransaction(
+      {
+        signature,
+        lastValidBlockHeight,
+        blockhash,
+      },
+      "confirmed"
+    );
+    return { signature, feeEstimate: 0 };
+  } catch (err) {
+    throw err;
+  }
+}
+
 describe("wen_new_standard", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
+  const { connection, wallet } = provider;
 
   const program = anchor.workspace.WenNewStandard as Program<WenNewStandard>;
-  const payer = provider.wallet.publicKey;
+  const wnsProgramId = program.programId;
+  const payer = wallet.publicKey;
 
   const [manager] = anchor.web3.PublicKey.findProgramAddressSync(
     [MANAGER_SEED],
@@ -83,7 +176,7 @@ describe("wen_new_standard", () => {
     const mintKeyPair = Keypair.generate();
     const receiver = Keypair.generate();
 
-    const mintAuthPublicKey = provider.wallet.publicKey;
+    const mintAuthPublicKey = wallet.publicKey;
     const mintPublicKey = mintKeyPair.publicKey;
     const mintTokenAccount = getAssociatedTokenAddressSync(
       mintPublicKey,
@@ -103,21 +196,31 @@ describe("wen_new_standard", () => {
       let mintAccount: Mint;
       let mintAccountInfo: AccountInfo<Buffer>;
       let metadataPointer: Partial<MetadataPointer> | null;
+      let metadata: TokenMetadata;
+
+      const name = faker.lorem.words({ max: 3, min: 2 });
+      const symbol = faker.lorem.word();
+      const uri = faker.internet.url();
 
       before(async () => {
         await program.methods
           .createMintAccount({
             permanentDelegate: null,
-            name: faker.lorem.text(),
-            symbol: faker.lorem.word(),
-            uri: faker.internet.url(),
+            name,
+            symbol,
+            uri,
           })
-          .accounts({
+          .accountsStrict({
             authority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
             payer: mintAuthPublicKey,
             receiver: mintAuthPublicKey,
+            manager,
+            rent: SYSVAR_RENT_PUBKEY,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([mintKeyPair])
           .rpc({
@@ -127,16 +230,20 @@ describe("wen_new_standard", () => {
           });
 
         // getAccountInfo
-        mintAccountInfo = await provider.connection.getAccountInfo(
-          mintPublicKey
-        );
+        mintAccountInfo = await connection.getAccountInfo(mintPublicKey);
         mintAccount = await getMint(
-          provider.connection,
+          connection,
           mintPublicKey,
           "confirmed",
           TOKEN_2022_PROGRAM_ID
         );
         metadataPointer = getMetadataPointerState(mintAccount);
+        metadata = await getTokenMetadata(
+          connection,
+          mintPublicKey,
+          "confirmed",
+          TOKEN_2022_PROGRAM_ID
+        );
       });
 
       it("should be owned by the token extensions program", async () => {
@@ -146,11 +253,73 @@ describe("wen_new_standard", () => {
       it("should have metadata pointer", async () => {
         expect(metadataPointer.metadataAddress).to.eql(mintPublicKey);
       });
+
+      it("should have right name set", async () => {
+        expect(metadata.name).to.eql(name);
+      });
+
+      it("should have right symbol set", async () => {
+        expect(metadata.symbol).to.eql(symbol);
+      });
+
+      it("should have right uri set", async () => {
+        expect(metadata.uri).to.eql(uri);
+      });
     });
 
     describe("after updating", () => {
-      before(async () => {});
-      it.skip("should have updated title", async () => {});
+      const newName = faker.lorem.words({ max: 5, min: 5 });
+      let metadata: TokenMetadata;
+
+      before(async () => {
+        metadata = await getTokenMetadata(
+          connection,
+          mintPublicKey,
+          "confirmed",
+          TOKEN_2022_PROGRAM_ID
+        );
+        metadata.name = newName;
+
+        const instructions: TransactionInstruction[] = [];
+        const rent = await getMinRentForWNSMint(connection, metadata, "member");
+        const currentRent = await connection.getBalance(
+          mintPublicKey,
+          "confirmed"
+        );
+
+        if (currentRent < rent) {
+          const lamportsDiff = rent - currentRent;
+          instructions.push(
+            SystemProgram.transfer({
+              fromPubkey: mintAuthPublicKey,
+              toPubkey: mintPublicKey,
+              lamports: lamportsDiff,
+            })
+          );
+        }
+
+        instructions.push(
+          createUpdateFieldInstruction({
+            field: Field.Name,
+            metadata: mintPublicKey,
+            programId: TOKEN_2022_PROGRAM_ID,
+            updateAuthority: mintAuthPublicKey,
+            value: newName,
+          })
+        );
+
+        await sendAndConfirmWNSTransaction(connection, instructions, provider);
+
+        metadata = await getTokenMetadata(
+          connection,
+          mintPublicKey,
+          "confirmed",
+          TOKEN_2022_PROGRAM_ID
+        );
+      });
+      it("should have updated name", async () => {
+        expect(metadata.name).to.eql(newName);
+      });
     });
 
     describe("after adding royalties", () => {
@@ -158,7 +327,8 @@ describe("wen_new_standard", () => {
       const creator2 = Keypair.generate();
 
       const extraMetasAccount = getExtraMetasAccountPda(
-        mintPublicKey.toString()
+        mintPublicKey.toString(),
+        wnsProgramId
       );
 
       let metadata: TokenMetadata | null;
@@ -171,8 +341,8 @@ describe("wen_new_standard", () => {
         await program.methods
           .addRoyalties({
             creators: [
-              { address: creator1.publicKey, share: 50 },
-              { address: creator2.publicKey, share: 50 },
+              { address: creator1.publicKey, share: 20 },
+              { address: creator2.publicKey, share: 80 },
             ],
             royaltyBasisPoints: 500,
           })
@@ -191,7 +361,7 @@ describe("wen_new_standard", () => {
           });
 
         metadata = await getTokenMetadata(
-          provider.connection,
+          connection,
           mintPublicKey,
           "confirmed",
           TOKEN_2022_PROGRAM_ID
@@ -217,11 +387,10 @@ describe("wen_new_standard", () => {
 
       it("should contain creators and their shares", async () => {
         expect(creator1Data).not.to.undefined;
-        expect(creator1Data[1]).to.eql("50");
+        expect(creator1Data[1]).to.eql("20");
         expect(creator2Data).not.to.undefined;
-        expect(creator2Data[1]).to.eql("50");
+        expect(creator2Data[1]).to.eql("80");
       });
-      // it.skip("should have wen_royalty_distribution extension registered", async () => {});
     });
 
     describe("after freezing", () => {
@@ -230,12 +399,14 @@ describe("wen_new_standard", () => {
       before(async () => {
         await program.methods
           .freezeMintAccount()
-          .accounts({
+          .accountsStrict({
             delegateAuthority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
             payer: mintAuthPublicKey,
             user: mintAuthPublicKey,
+            manager,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .preInstructions([
             createApproveCheckedInstruction(
@@ -256,7 +427,7 @@ describe("wen_new_standard", () => {
           });
 
         mintTokenAccountData = await getAccount(
-          provider.connection,
+          connection,
           mintTokenAccount,
           "confirmed",
           TOKEN_2022_PROGRAM_ID
@@ -271,52 +442,62 @@ describe("wen_new_standard", () => {
         let logs: string[];
 
         before(async () => {
-          const transaction = new VersionedTransaction(
-            new TransactionMessage({
-              instructions: [
-                createAssociatedTokenAccountInstruction(
-                  mintAuthPublicKey,
-                  receiverTokenAccount,
-                  receiver.publicKey,
-                  mintPublicKey,
-                  TOKEN_2022_PROGRAM_ID
-                ),
-                createTransferCheckedInstruction(
-                  mintTokenAccount,
-                  mintPublicKey,
-                  receiverTokenAccount,
-                  mintAuthPublicKey,
-                  1,
-                  0,
-                  [],
-                  TOKEN_2022_PROGRAM_ID
-                ),
-              ],
-              payerKey: mintAuthPublicKey,
-              recentBlockhash: (
-                await provider.connection.getLatestBlockhash("confirmed")
-              ).blockhash,
-            }).compileToV0Message()
+          const transferIx = createTransferCheckedInstruction(
+            mintTokenAccount,
+            mintPublicKey,
+            receiverTokenAccount,
+            mintAuthPublicKey,
+            1,
+            0,
+            [],
+            TOKEN_2022_PROGRAM_ID
           );
 
-          const signedTx = await provider.wallet.signTransaction(transaction);
-          try {
-            await provider.connection.confirmTransaction({
-              ...(await provider.connection.getLatestBlockhash("confirmed")),
-              signature: await provider.connection.sendTransaction(signedTx),
-            });
-          } catch (err) {
-            logs = [
-              err.logs.find(
-                (log: string) => log === "Program log: Error: Account is frozen"
+          transferIx.keys.push(
+            {
+              pubkey: getApproveAccountPda(
+                mintPublicKey.toString(),
+                wnsProgramId
               ),
-            ];
+              isSigner: false,
+              isWritable: true,
+            },
+            { pubkey: wnsProgramId, isSigner: false, isWritable: false },
+            {
+              pubkey: getExtraMetasAccountPda(
+                mintPublicKey.toString(),
+                wnsProgramId
+              ),
+              isSigner: false,
+              isWritable: false,
+            }
+          );
+
+          const instructions = [
+            createAssociatedTokenAccountInstruction(
+              mintAuthPublicKey,
+              receiverTokenAccount,
+              receiver.publicKey,
+              mintPublicKey,
+              TOKEN_2022_PROGRAM_ID
+            ),
+            transferIx,
+          ];
+
+          try {
+            await sendAndConfirmWNSTransaction(
+              connection,
+              instructions,
+              provider,
+              false
+            );
+          } catch (err) {
+            logs = err.logs;
           }
         });
 
         it("should be blocked", async () => {
           expect(logs).not.to.be.undefined;
-          expect(logs).to.eql(["Program log: Error: Account is frozen"]);
         });
       });
     });
@@ -327,12 +508,14 @@ describe("wen_new_standard", () => {
       before(async () => {
         await program.methods
           .thawMintAccount()
-          .accounts({
+          .accountsStrict({
             delegateAuthority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
             payer: mintAuthPublicKey,
             user: mintAuthPublicKey,
+            manager,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .rpc({
             skipPreflight: true,
@@ -341,7 +524,7 @@ describe("wen_new_standard", () => {
           });
 
         mintTokenAccountData = await getAccount(
-          provider.connection,
+          connection,
           mintTokenAccount,
           "confirmed",
           TOKEN_2022_PROGRAM_ID
@@ -355,12 +538,18 @@ describe("wen_new_standard", () => {
       describe("trying to transfer", () => {
         let receiverTokenAccountData: Account;
         before(async () => {
-          await provider.connection.confirmTransaction({
-            ...(await provider.connection.getLatestBlockhash("confirmed")),
-            signature: await provider.connection.requestAirdrop(
-              receiver.publicKey,
-              1 * LAMPORTS_PER_SOL
-            ),
+          const signature = await connection.requestAirdrop(
+            receiver.publicKey,
+            1 * LAMPORTS_PER_SOL
+          );
+
+          const { blockhash, lastValidBlockHeight } =
+            await connection.getLatestBlockhash("confirmed");
+
+          await connection.confirmTransaction({
+            blockhash,
+            lastValidBlockHeight,
+            signature,
           });
 
           const transferIx = createTransferCheckedInstruction(
@@ -376,51 +565,43 @@ describe("wen_new_standard", () => {
 
           transferIx.keys.push(
             {
-              pubkey: getApproveAccountPda(mintPublicKey.toString()),
+              pubkey: getApproveAccountPda(
+                mintPublicKey.toString(),
+                wnsProgramId
+              ),
               isSigner: false,
               isWritable: true,
             },
             { pubkey: wnsProgramId, isSigner: false, isWritable: false },
             {
-              pubkey: getExtraMetasAccountPda(mintPublicKey.toString()),
+              pubkey: getExtraMetasAccountPda(
+                mintPublicKey.toString(),
+                wnsProgramId
+              ),
               isSigner: false,
               isWritable: false,
             }
           );
 
-          const transaction = new VersionedTransaction(
-            new TransactionMessage({
-              instructions: [
-                createAssociatedTokenAccountInstruction(
-                  mintAuthPublicKey,
-                  receiverTokenAccount,
-                  receiver.publicKey,
-                  mintPublicKey,
-                  TOKEN_2022_PROGRAM_ID
-                ),
-                transferIx,
-              ],
-              payerKey: mintAuthPublicKey,
-              recentBlockhash: (
-                await provider.connection.getLatestBlockhash("confirmed")
-              ).blockhash,
-            }).compileToV0Message()
-          );
+          const instructions = [
+            createAssociatedTokenAccountInstruction(
+              mintAuthPublicKey,
+              receiverTokenAccount,
+              receiver.publicKey,
+              mintPublicKey,
+              TOKEN_2022_PROGRAM_ID
+            ),
+            transferIx,
+          ];
 
-          const signedTx = await provider.wallet.signTransaction(transaction);
-          await provider.connection.confirmTransaction(
-            {
-              ...(await provider.connection.getLatestBlockhash("confirmed")),
-              signature: await provider.connection.sendTransaction(signedTx, {
-                preflightCommitment: "confirmed",
-                skipPreflight: true,
-              }),
-            },
-            "confirmed"
+          await sendAndConfirmWNSTransaction(
+            connection,
+            instructions,
+            provider
           );
 
           receiverTokenAccountData = await getAccount(
-            provider.connection,
+            connection,
             receiverTokenAccount,
             "confirmed",
             TOKEN_2022_PROGRAM_ID
@@ -441,63 +622,80 @@ describe("wen_new_standard", () => {
       let tokenAccountInfo: AccountInfo<Buffer>;
       let tokenAccountLamports: number;
 
+      let mintAccountInfo: AccountInfo<Buffer>;
+      let mintAccountLamports: number;
+
+      let totalBurnRent: number;
+      let payerPreBurnBalance: number;
+      let payerPostBurnBalance: number;
+
       before(async () => {
-        const transferIx = createTransferCheckedInstruction(
-          receiverTokenAccount,
-          mintPublicKey,
-          mintTokenAccount,
+        payerPreBurnBalance = await connection.getBalance(
           receiver.publicKey,
-          1,
-          0,
-          [],
-          TOKEN_2022_PROGRAM_ID
-        );
-
-        transferIx.keys.push(
-          {
-            pubkey: getApproveAccountPda(mintPublicKey.toString()),
-            isSigner: false,
-            isWritable: true,
-          },
-          { pubkey: wnsProgramId, isSigner: false, isWritable: false },
-          {
-            pubkey: getExtraMetasAccountPda(mintPublicKey.toString()),
-            isSigner: false,
-            isWritable: false,
-          }
-        );
-
-        await program.methods
-          .burnMintAccount()
-          .accounts({
-            mint: mintPublicKey,
-            mintTokenAccount,
-            payer: mintAuthPublicKey,
-            user: mintAuthPublicKey,
-          })
-          .preInstructions([transferIx])
-          .signers([receiver])
-          .rpc({
-            commitment: "confirmed",
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-          });
-        tokenAccountInfo = await provider.connection.getAccountInfo(
-          mintTokenAccount,
           "confirmed"
         );
 
-        tokenAccountLamports = await provider.connection.getBalance(
-          mintTokenAccount
+        totalBurnRent =
+          (await connection.getBalance(receiverTokenAccount, "confirmed")) +
+          (await connection.getBalance(mintPublicKey, "confirmed"));
+
+        const burnIx = await program.methods
+          .burnMintAccount()
+          .accountsStrict({
+            mint: mintPublicKey,
+            mintTokenAccount: receiverTokenAccount,
+            payer: receiver.publicKey,
+            user: receiver.publicKey,
+            manager,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+          })
+          .instruction();
+
+        const instructions = [burnIx];
+        await sendAndConfirmWNSTransaction(
+          connection,
+          instructions,
+          provider,
+          true,
+          [receiver]
+        );
+
+        tokenAccountInfo = await connection.getAccountInfo(
+          receiverTokenAccount,
+          "confirmed"
+        );
+        mintAccountInfo = await connection.getAccountInfo(
+          mintPublicKey,
+          "confirmed"
+        );
+
+        tokenAccountLamports = await connection.getBalance(
+          receiverTokenAccount,
+          "confirmed"
+        );
+        mintAccountLamports = await connection.getBalance(
+          mintPublicKey,
+          "confirmed"
+        );
+
+        payerPostBurnBalance = await connection.getBalance(
+          receiver.publicKey,
+          "confirmed"
         );
       });
-      it.skip("should be burnt", async () => {});
-      it.skip("should be owned by the system program", async () => {});
+
       it("should have no rent", async () => {
         expect(tokenAccountLamports).to.eql(0);
+        expect(mintAccountLamports).to.eql(0);
       });
       it("should have no data", async () => {
         expect(tokenAccountInfo).to.be.null;
+        expect(mintAccountInfo).to.be.null;
+      });
+      it("should credit rent to payer", async () => {
+        expect(payerPostBurnBalance).to.eql(
+          payerPreBurnBalance + totalBurnRent
+        );
       });
     });
   });
@@ -523,7 +721,7 @@ describe("wen_new_standard", () => {
         name: faker.lorem.text(),
         symbol: faker.lorem.word(),
         uri: faker.internet.url(),
-        maxSize: faker.number.int({ min: 1, max: 1_000_000 }),
+        maxSize: 1,
       };
 
       const mintTokenAccount = getAssociatedTokenAddressSync(
@@ -584,12 +782,71 @@ describe("wen_new_standard", () => {
       });
     });
 
-    describe("after updating", () => {});
+    describe("after updating", () => {
+      const newName = faker.lorem.words({ max: 5, min: 5 });
+      let metadata: TokenMetadata;
+
+      before(async () => {
+        metadata = await getTokenMetadata(
+          connection,
+          groupMintPublicKey,
+          "confirmed",
+          TOKEN_2022_PROGRAM_ID
+        );
+        metadata.name = newName;
+
+        const instructions: TransactionInstruction[] = [];
+        const rent = await getMinRentForWNSMint(connection, metadata, "member");
+        const currentRent = await connection.getBalance(
+          groupMintPublicKey,
+          "confirmed"
+        );
+
+        if (currentRent < rent) {
+          const lamportsDiff = rent - currentRent;
+          instructions.push(
+            SystemProgram.transfer({
+              fromPubkey: wallet.publicKey,
+              toPubkey: groupMintPublicKey,
+              lamports: lamportsDiff,
+            })
+          );
+        }
+
+        instructions.push(
+          createUpdateFieldInstruction({
+            field: Field.Name,
+            metadata: groupMintPublicKey,
+            programId: TOKEN_2022_PROGRAM_ID,
+            updateAuthority: groupAuthorityPublicKey,
+            value: newName,
+          })
+        );
+
+        await sendAndConfirmWNSTransaction(
+          connection,
+          instructions,
+          provider,
+          true,
+          [groupAuthorityKeyPair]
+        );
+
+        metadata = await getTokenMetadata(
+          connection,
+          groupMintPublicKey,
+          "confirmed",
+          TOKEN_2022_PROGRAM_ID
+        );
+      });
+      it("should have updated name", async () => {
+        expect(metadata.name).to.eql(newName);
+      });
+    });
 
     describe("after adding a mint as a member", () => {
       const mintKeyPair = Keypair.generate();
 
-      const mintAuthPublicKey = provider.wallet.publicKey;
+      const mintAuthPublicKey = wallet.publicKey;
       const mintPublicKey = mintKeyPair.publicKey;
       const mintTokenAccount = getAssociatedTokenAddressSync(
         mintPublicKey,
@@ -615,12 +872,17 @@ describe("wen_new_standard", () => {
               symbol: faker.lorem.word(),
               uri: faker.internet.url(),
             })
-            .accounts({
+            .accountsStrict({
               authority: mintAuthPublicKey,
               mint: mintPublicKey,
               mintTokenAccount,
               payer: mintAuthPublicKey,
               receiver: mintAuthPublicKey,
+              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              manager,
+              rent: SYSVAR_RENT_PUBKEY,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
             })
             .instruction();
 
@@ -658,6 +920,12 @@ describe("wen_new_standard", () => {
         it("should point back to the group", async () => {
           expect(memberAccount.group).to.eql(group);
         });
+        it("should have the right member number", async () => {
+          expect(memberAccount.memberNumber.toString()).to.eql("1");
+        });
+        it("should have the right member mint", async () => {
+          expect(memberAccount.mint).to.eql(mintPublicKey);
+        });
       });
 
       describe("the group", () => {
@@ -670,6 +938,86 @@ describe("wen_new_standard", () => {
         });
         it("should be a size of 1", async () => {
           expect(groupAccount.size).to.eql(1);
+        });
+      });
+    });
+
+    describe("after trying to add another mint as a member", () => {
+      const mintKeyPair = Keypair.generate();
+
+      const mintAuthPublicKey = wallet.publicKey;
+      const mintPublicKey = mintKeyPair.publicKey;
+      const mintTokenAccount = getAssociatedTokenAddressSync(
+        mintPublicKey,
+        mintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const [member] = PublicKey.findProgramAddressSync(
+        [MEMBER_ACCOUNT_SEED, mintPublicKey.toBuffer()],
+        program.programId
+      );
+      let logs: string[];
+      let errorCode: { code: string; number: number };
+
+      before(async () => {
+        const createMintAccountIx = await program.methods
+          .createMintAccount({
+            permanentDelegate: null,
+            name: faker.lorem.text(),
+            symbol: faker.lorem.word(),
+            uri: faker.internet.url(),
+          })
+          .accountsStrict({
+            authority: mintAuthPublicKey,
+            mint: mintPublicKey,
+            mintTokenAccount,
+            payer: mintAuthPublicKey,
+            receiver: mintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            manager,
+            rent: SYSVAR_RENT_PUBKEY,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+          })
+          .instruction();
+
+        try {
+          await program.methods
+            .addMintToGroup()
+            .accountsStrict({
+              authority: groupAuthorityPublicKey,
+              group,
+              mint: mintPublicKey,
+              payer: mintAuthPublicKey,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .preInstructions([createMintAccountIx])
+            .signers([mintKeyPair, groupAuthorityKeyPair])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+        } catch (err) {
+          logs = err.logs;
+          errorCode = err.error.errorCode;
+        }
+      });
+      describe("the mint", () => {
+        it("should be blocked", async () => {
+          expect(logs).not.to.be.undefined;
+        });
+      });
+
+      describe("the group", () => {
+        it("should have correct errorCode", async () => {
+          expect(errorCode.number).to.eql(6000);
+          expect(errorCode.code).to.eql("SizeExceedsMaxSize");
         });
       });
     });
