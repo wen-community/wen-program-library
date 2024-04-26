@@ -33,7 +33,6 @@ pub struct ExecuteTransferHook<'info> {
 pub fn handler(ctx: Context<ExecuteTransferHook>) -> Result<()> {
     // if transfer is a cpi, enforce royalties if applicable, else do nothing
     if hook_in_cpi() {
-        msg!("Transfer from a CPI");
         if ctx.remaining_accounts.is_empty() {
             return Err(MetadataErrors::MissingApproveAccount.into());
         }
@@ -52,7 +51,6 @@ pub fn handler(ctx: Context<ExecuteTransferHook>) -> Result<()> {
             Err(MetadataErrors::ExpiredApproveAccount.into())
         }
     } else {
-        msg!("Transfer not from a CPI");
         Ok(())
     }
 }
