@@ -1,11 +1,7 @@
 use anchor_lang::prelude::*;
 
-use anchor_spl::{
-    token_interface::{
-        Mint, Token2022, TokenAccount,
-        close_account, CloseAccount,
-        burn, Burn,
-    },
+use anchor_spl::token_interface::{
+    burn, close_account, Burn, CloseAccount, Mint, Token2022, TokenAccount,
 };
 
 use crate::{Manager, MANAGER_SEED};
@@ -47,10 +43,7 @@ impl<'info> BurnMintAccount<'info> {
     }
 
     fn close_mint_account(&self, bumps: BurnMintAccountBumps) -> Result<()> {
-        let seeds: &[&[u8]; 2] = &[
-            MANAGER_SEED,
-            &[bumps.manager],
-        ];
+        let seeds: &[&[u8]; 2] = &[MANAGER_SEED, &[bumps.manager]];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = CloseAccount {
@@ -58,7 +51,11 @@ impl<'info> BurnMintAccount<'info> {
             destination: self.payer.to_account_info(),
             authority: self.manager.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
         close_account(cpi_ctx)?;
 
         Ok(())
