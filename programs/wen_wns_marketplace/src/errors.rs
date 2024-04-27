@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum TestSaleError {
+pub enum WenWnsMarketplaceError {
     #[msg("Buy amount mismatch with listing amount")]
     ListingAmountMismatch,
     #[msg("SPL Payment token account required")]

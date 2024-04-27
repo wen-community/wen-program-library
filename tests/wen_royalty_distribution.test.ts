@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { faker } from "@faker-js/faker";
 import { WenNewStandard } from "../target/types/wen_new_standard";
-import { TestSale } from "./../target/types/test_sale";
+import { WenWnsMarketplace } from "./../target/types/wen_wns_marketplace";
 import { WenRoyaltyDistribution } from "./../clients/wns-sdk/src/programs/types/wen_royalty_distribution";
 import {
   Keypair,
@@ -24,7 +24,6 @@ import {
   getListingAccountPda,
   getManagerAccountPda,
   getMemberAccountPda,
-  getSaleAccountPda,
   mintToBuyerSellerIx,
   sendAndConfirmWNSTransaction,
 } from "./utils";
@@ -45,11 +44,12 @@ describe("wen_royalty_distribution", () => {
   const wnsProgram = anchor.workspace.WenNewStandard as anchor.Program<WenNewStandard>;
   const wenDistributionProgram = anchor.workspace
     .WenRoyaltyDistribution as anchor.Program<WenRoyaltyDistribution>;
-  const testSaleProgram = anchor.workspace.TestSale as anchor.Program<TestSale>;
+  const wenWnsMarketplace = anchor.workspace
+    .WenWnsMarketplace as anchor.Program<WenWnsMarketplace>;
 
   const wnsProgramId = wnsProgram.programId;
   const wenDistributionProgramId = wenDistributionProgram.programId;
-  const testSaleProgramId = testSaleProgram.programId;
+  const wenWnsMarketplaceId = wenWnsMarketplace.programId;
 
   const manager = getManagerAccountPda(wnsProgramId);
   const preflightConfig: {
@@ -129,7 +129,6 @@ describe("wen_royalty_distribution", () => {
         PublicKey.default,
         wenDistributionProgramId
       );
-      const sale = getSaleAccountPda(group, distribution, testSaleProgramId);
 
       const member = getMemberAccountPda(memberMintPublickey, wnsProgramId);
       const extraMetasAccount = getExtraMetasAccountPda(
@@ -181,19 +180,6 @@ describe("wen_royalty_distribution", () => {
             payer: groupMintAuthPublicKey,
             groupMint: groupMintPublicKey,
             distributionAccount: distribution,
-            systemProgram: SystemProgram.programId,
-          })
-          .rpc(preflightConfig);
-
-        // CREATE TEST SALE ACCOUNT
-        await testSaleProgram.methods
-          .initialize()
-          .accountsStrict({
-            payer: groupMintAuthPublicKey,
-            authority: groupMintAuthPublicKey,
-            distribution,
-            group,
-            sale,
             systemProgram: SystemProgram.programId,
           })
           .rpc(preflightConfig);
@@ -292,7 +278,7 @@ describe("wen_royalty_distribution", () => {
         const listing = getListingAccountPda(
           seller.publicKey,
           memberMintPublickey,
-          testSaleProgramId
+          wenWnsMarketplaceId
         );
 
         let listingAccountInfo: AccountInfo<Buffer>;
@@ -300,15 +286,14 @@ describe("wen_royalty_distribution", () => {
         let listingAccountData;
 
         before(async () => {
-          await testSaleProgram.methods
-            .listNft({
+          await wenWnsMarketplace.methods
+            .list({
               listingAmount,
               paymentMint: PublicKey.default,
             })
             .accountsStrict({
               listing,
               manager,
-              sale,
               payer: wallet.publicKey,
               seller: seller.publicKey,
               mint: memberMintPublickey,
@@ -325,7 +310,7 @@ describe("wen_royalty_distribution", () => {
             });
 
           listingAccountInfo = await connection.getAccountInfo(listing, "confirmed");
-          listingAccountData = testSaleProgram.coder.accounts.decode(
+          listingAccountData = wenWnsMarketplace.coder.accounts.decode(
             "listing",
             listingAccountInfo.data
           );
@@ -342,11 +327,11 @@ describe("wen_royalty_distribution", () => {
         });
 
         it("should be owned by sale program", () => {
-          expect(listingAccountInfo.owner).to.eql(testSaleProgramId);
+          expect(listingAccountInfo.owner).to.eql(wenWnsMarketplaceId);
         });
 
-        it("should point the sale account as delegate of NFT", () => {
-          expect(sellerTokenAccountData.delegate).to.eql(sale);
+        it("should point the listing account as delegate of NFT", () => {
+          expect(sellerTokenAccountData.delegate).to.eql(listing);
         });
 
         it("should freeze the NFT", () => {
@@ -377,7 +362,7 @@ describe("wen_royalty_distribution", () => {
         const listing = getListingAccountPda(
           seller.publicKey,
           memberMintPublickey,
-          testSaleProgramId
+          wenWnsMarketplaceId
         );
 
         const royalty = listingAmount
@@ -399,8 +384,8 @@ describe("wen_royalty_distribution", () => {
           buyerPreBalance = await connection.getBalance(buyer.publicKey, "confirmed");
           sellerPreBalance = await connection.getBalance(seller.publicKey, "confirmed");
 
-          await testSaleProgram.methods
-            .fulfillListing({
+          await wenWnsMarketplace.methods
+            .buy({
               buyAmount: listingAmount,
             })
             .accountsStrict({
@@ -409,7 +394,6 @@ describe("wen_royalty_distribution", () => {
               distribution,
               manager,
               listing,
-              sale,
               payer: wallet.publicKey,
               buyer: buyer.publicKey,
               seller: seller.publicKey,
@@ -511,7 +495,7 @@ describe("wen_royalty_distribution", () => {
               "confirmed"
             );
 
-            await testSaleProgram.methods
+            await wenWnsMarketplace.methods
               .claimRoyalty()
               .accountsStrict({
                 payer: wallet.publicKey,
@@ -562,7 +546,7 @@ describe("wen_royalty_distribution", () => {
               "confirmed"
             );
 
-            await testSaleProgram.methods
+            await wenWnsMarketplace.methods
               .claimRoyalty()
               .accountsStrict({
                 payer: wallet.publicKey,
@@ -653,11 +637,11 @@ describe("wen_royalty_distribution", () => {
         paymentMintPublickey,
         wenDistributionProgramId
       );
-      const sale = getSaleAccountPda(group, distribution, testSaleProgramId);
+
       const listing = getListingAccountPda(
         seller.publicKey,
         memberMintPublickey,
-        testSaleProgramId
+        wenWnsMarketplaceId
       );
       const member = getMemberAccountPda(memberMintPublickey, wnsProgramId);
       const extraMetasAccount = getExtraMetasAccountPda(
@@ -734,19 +718,6 @@ describe("wen_royalty_distribution", () => {
             payer: groupMintAuthPublicKey,
             groupMint: groupMintPublicKey,
             distributionAccount: distribution,
-            systemProgram: SystemProgram.programId,
-          })
-          .rpc(preflightConfig);
-
-        // CREATE TEST SALE ACCOUNT
-        await testSaleProgram.methods
-          .initialize()
-          .accountsStrict({
-            payer: groupMintAuthPublicKey,
-            authority: groupMintAuthPublicKey,
-            distribution,
-            group,
-            sale,
             systemProgram: SystemProgram.programId,
           })
           .rpc(preflightConfig);
@@ -847,15 +818,14 @@ describe("wen_royalty_distribution", () => {
         let listingAccountData;
 
         before(async () => {
-          await testSaleProgram.methods
-            .listNft({
+          await wenWnsMarketplace.methods
+            .list({
               listingAmount,
               paymentMint: paymentMintPublickey,
             })
             .accountsStrict({
               listing,
               manager,
-              sale,
               payer: wallet.publicKey,
               seller: seller.publicKey,
               mint: memberMintPublickey,
@@ -872,7 +842,7 @@ describe("wen_royalty_distribution", () => {
             });
 
           listingAccountInfo = await connection.getAccountInfo(listing, "confirmed");
-          listingAccountData = testSaleProgram.coder.accounts.decode(
+          listingAccountData = wenWnsMarketplace.coder.accounts.decode(
             "listing",
             listingAccountInfo.data
           );
@@ -889,11 +859,11 @@ describe("wen_royalty_distribution", () => {
         });
 
         it("should be owned by sale program", () => {
-          expect(listingAccountInfo.owner).to.eql(testSaleProgramId);
+          expect(listingAccountInfo.owner).to.eql(wenWnsMarketplaceId);
         });
 
-        it("should point the sale account as delegate of NFT", () => {
-          expect(sellerTokenAccountData.delegate).to.eql(sale);
+        it("should point the listing account as delegate of NFT", () => {
+          expect(sellerTokenAccountData.delegate).to.eql(listing);
         });
 
         it("should freeze the NFT", () => {
@@ -954,8 +924,8 @@ describe("wen_royalty_distribution", () => {
             ).amount.toString()
           );
 
-          await testSaleProgram.methods
-            .fulfillListing({
+          await wenWnsMarketplace.methods
+            .buy({
               buyAmount: listingAmount,
             })
             .accountsStrict({
@@ -964,7 +934,6 @@ describe("wen_royalty_distribution", () => {
               distribution,
               manager,
               listing,
-              sale,
               payer: wallet.publicKey,
               buyer: buyer.publicKey,
               seller: seller.publicKey,
@@ -1085,7 +1054,7 @@ describe("wen_royalty_distribution", () => {
             .div(new anchor.BN(100));
 
           before(async () => {
-            await testSaleProgram.methods
+            await wenWnsMarketplace.methods
               .claimRoyalty()
               .accountsStrict({
                 payer: wallet.publicKey,
@@ -1137,7 +1106,7 @@ describe("wen_royalty_distribution", () => {
             .div(new anchor.BN(100));
 
           before(async () => {
-            await testSaleProgram.methods
+            await wenWnsMarketplace.methods
               .claimRoyalty()
               .accountsStrict({
                 payer: wallet.publicKey,

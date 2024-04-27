@@ -1,12 +1,12 @@
 [package]
-name = "test_sale"
+name = "wen_wns_marketplace"
 version = "0.1.0"
 description = "A minimalistic sale program demonstrating WNS and Wen distribution royalty functionalities"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "test_sale"
+name = "wen_wns_marketplace"
 
 [features]
 default = []
@@ -22,15 +22,8 @@ idl-build = [
 ]
 
 [dependencies]
-anchor-lang = { version = "0.30.0", features = [
-  "init-if-needed",
-  "interface-instructions",
-] }
-anchor-spl = { version = "0.30.0"}
+anchor-lang.workspace = true
+anchor-spl.workspace = true
+wen_new_standard.workspace = true
+wen_royalty_distribution.workspace = true
 spl-transfer-hook-interface = "^0.5.1"
-wen_new_standard = { path = "../wen_new_standard", features = [
-  "cpi",
-] }
-wen_royalty_distribution = { path = "../wen_royalty_distribution", features = [
-  "cpi",
-] }

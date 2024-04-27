@@ -20,30 +20,17 @@ pub struct UnlistNFT<'info> {
     #[account(
         mut,
         seeds = [
-            TEST_SALE,
+            MARKETPLACE,
             LISTING,
             listing.seller.key().as_ref(),
             listing.mint.key().as_ref()
         ],
         bump = listing.bump,
-        has_one = sale,
         has_one = mint,
         has_one = seller,
         has_one = seller_token_account,
     )]
     pub listing: Account<'info, Listing>,
-
-    #[account(
-        mut,
-        seeds = [
-            TEST_SALE,
-            SALE,
-            sale.group.key().as_ref(),
-            sale.distribution.key().as_ref()
-        ],
-        bump = sale.bump,
-    )]
-    pub sale: Account<'info, Sale>,
 
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
@@ -65,22 +52,21 @@ pub struct UnlistNFT<'info> {
 
 pub fn handler(ctx: Context<UnlistNFT>) -> Result<()> {
     let listing = &mut ctx.accounts.listing;
-    let sale = &ctx.accounts.sale;
 
-    // Thawing NFT via Sale PDA
+    // Thawing NFT via Listing PDA
     let signer_seeds: &[&[&[u8]]] = &[&[
-        TEST_SALE,
-        SALE,
-        sale.group.as_ref(),
-        sale.distribution.as_ref(),
-        &[sale.bump],
+        MARKETPLACE,
+        LISTING,
+        listing.seller.as_ref(),
+        listing.mint.as_ref(),
+        &[listing.bump],
     ]];
 
     thaw_mint_account(CpiContext::new_with_signer(
         ctx.accounts.wns_program.to_account_info(),
         ThawDelegatedAccount {
             payer: ctx.accounts.payer.to_account_info(),
-            delegate_authority: ctx.accounts.sale.to_account_info(),
+            delegate_authority: listing.to_account_info(),
             manager: ctx.accounts.manager.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
             mint_token_account: ctx.accounts.seller_token_account.to_account_info(),

@@ -5,11 +5,12 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-test_sale = "saLeHtY1jcSpuy5NKGX4pryocQ51WGUYqSSCKJNsgrP"
+wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
 wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
 wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
 
 [programs.devnet]
+wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
 wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
 wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
 

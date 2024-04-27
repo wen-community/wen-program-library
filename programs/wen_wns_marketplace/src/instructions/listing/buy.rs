@@ -35,32 +35,18 @@ pub struct FulfillListing<'info> {
     #[account(
         mut,
         seeds = [
-            TEST_SALE,
+            MARKETPLACE,
             LISTING,
             listing.seller.as_ref(),
             listing.mint.as_ref(),
         ],
         bump = listing.bump,
-        has_one = sale,
         has_one = mint,
         has_one = seller,
         has_one = seller_token_account,
-        constraint = args.buy_amount.eq(&args.buy_amount) @ TestSaleError::ListingAmountMismatch
+        constraint = args.buy_amount.eq(&args.buy_amount) @ WenWnsMarketplaceError::ListingAmountMismatch
     )]
     pub listing: Account<'info, Listing>,
-
-    #[account(
-        mut,
-        seeds = [
-            TEST_SALE,
-            SALE,
-            sale.group.key().as_ref(),
-            sale.distribution.key().as_ref()
-        ],
-        bump = sale.bump,
-        // has_one = distribution,
-    )]
-    pub sale: Account<'info, Sale>,
 
     /// CHECK: Could be SOL or SPL, checked in distribution program
     pub payment_mint: UncheckedAccount<'info>,
@@ -126,16 +112,15 @@ pub struct FulfillListing<'info> {
 
 pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result<()> {
     let listing = &mut ctx.accounts.listing;
-    let sale = &ctx.accounts.sale;
 
     let is_payment_mint_spl = ctx.accounts.payment_mint.key.ne(&Pubkey::default());
 
     let signer_seeds: &[&[&[u8]]] = &[&[
-        TEST_SALE,
-        SALE,
-        sale.group.as_ref(),
-        sale.distribution.as_ref(),
-        &[sale.bump],
+        MARKETPLACE,
+        LISTING,
+        listing.seller.as_ref(),
+        listing.mint.as_ref(),
+        &[listing.bump],
     ]];
 
     // Thaw NFT
@@ -143,7 +128,7 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
         ctx.accounts.wns_program.to_account_info(),
         ThawDelegatedAccount {
             payer: ctx.accounts.payer.to_account_info(),
-            delegate_authority: ctx.accounts.sale.to_account_info(),
+            delegate_authority: listing.to_account_info(),
             manager: ctx.accounts.manager.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
             mint_token_account: ctx.accounts.seller_token_account.to_account_info(),
@@ -160,7 +145,7 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
     let funds_to_send = listing
         .listing_amount
         .checked_sub(royalty_funds)
-        .ok_or(TestSaleError::ArithmeticError)?;
+        .ok_or(WenWnsMarketplaceError::ArithmeticError)?;
 
     if is_payment_mint_spl {
         let payment_mint = &ctx.accounts.payment_mint.try_borrow_data()?;
@@ -169,13 +154,13 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
         require_neq!(
             ctx.accounts.buyer_payment_token_account.key,
             &Pubkey::default(),
-            TestSaleError::PaymentTokenAccountNotExistant
+            WenWnsMarketplaceError::PaymentTokenAccountNotExistant
         );
 
         require_neq!(
             ctx.accounts.buyer_payment_token_account.key,
             &Pubkey::default(),
-            TestSaleError::PaymentTokenAccountNotExistant
+            WenWnsMarketplaceError::PaymentTokenAccountNotExistant
         );
 
         assert_right_associated_token_account(
@@ -266,12 +251,12 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
         args.buy_amount,
     )?;
 
-    // // Transfer NFT to buyer
+    // Transfer NFT to buyer
     transfer_checked_with_hook(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
             TransferCheckedWithHook {
-                authority: ctx.accounts.sale.to_account_info(),
+                authority: listing.to_account_info(),
                 mint: ctx.accounts.mint.to_account_info(),
                 from: ctx.accounts.seller_token_account.to_account_info(),
                 to: ctx.accounts.buyer_token_account.to_account_info(),

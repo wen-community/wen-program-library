@@ -48,13 +48,13 @@ pub fn handler(ctx: Context<ClaimRoyalty>) -> Result<()> {
         require_neq!(
             ctx.accounts.creator_payment_token_account.key,
             &Pubkey::default(),
-            TestSaleError::PaymentTokenAccountNotExistant
+            WenWnsMarketplaceError::PaymentTokenAccountNotExistant
         );
 
         require_neq!(
             ctx.accounts.distribution_payment_token_account.key,
             &Pubkey::default(),
-            TestSaleError::PaymentTokenAccountNotExistant
+            WenWnsMarketplaceError::PaymentTokenAccountNotExistant
         );
 
         assert_right_associated_token_account(

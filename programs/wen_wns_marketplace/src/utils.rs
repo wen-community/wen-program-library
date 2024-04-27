@@ -47,7 +47,7 @@ pub fn assert_right_associated_token_account(
     require_eq!(
         associated_token_account,
         &expected_associated_token_account,
-        TestSaleError::InvalidPaymentTokenAccount
+        WenWnsMarketplaceError::InvalidPaymentTokenAccount
     );
 
     Ok(())

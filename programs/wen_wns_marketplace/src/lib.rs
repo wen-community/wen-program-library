@@ -10,27 +10,23 @@ pub mod utils;
 
 pub use instructions::*;
 
-declare_id!("saLeHtY1jcSpuy5NKGX4pryocQ51WGUYqSSCKJNsgrP");
+declare_id!("sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod");
 
 #[program]
-pub mod test_sale {
+pub mod wen_wns_marketplace {
     use super::*;
 
     /* region LISTING INSTRUCTIONS (CORE LOGIC) */
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        prep::init::handler(ctx)
-    }
-
-    pub fn list_nft(ctx: Context<ListNFT>, args: ListNFTArgs) -> Result<()> {
+    pub fn list(ctx: Context<ListNFT>, args: ListNFTArgs) -> Result<()> {
         listing::list::handler(ctx, args)
     }
 
-    pub fn unlist_nft(ctx: Context<UnlistNFT>) -> Result<()> {
+    pub fn unlist(ctx: Context<UnlistNFT>) -> Result<()> {
         listing::unlist::handler(ctx)
     }
 
-    pub fn fulfill_listing(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result<()> {
-        listing::fulfill::handler(ctx, args)
+    pub fn buy(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result<()> {
+        listing::buy::handler(ctx, args)
     }
     /* endregion */
 

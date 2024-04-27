@@ -22,7 +22,7 @@ pub struct ListNFT<'info> {
         payer = payer,
         space = Listing::size(),
         seeds = [
-            TEST_SALE,
+            MARKETPLACE,
             LISTING,
             seller.key().as_ref(),
             mint.key().as_ref()
@@ -30,18 +30,6 @@ pub struct ListNFT<'info> {
         bump
     )]
     pub listing: Account<'info, Listing>,
-
-    #[account(
-        mut,
-        seeds = [
-            TEST_SALE,
-            SALE,
-            sale.group.key().as_ref(),
-            sale.distribution.key().as_ref()
-        ],
-        bump = sale.bump,
-    )]
-    pub sale: Account<'info, Sale>,
 
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
@@ -63,35 +51,37 @@ pub struct ListNFT<'info> {
 
 pub fn handler(ctx: Context<ListNFT>, args: ListNFTArgs) -> Result<()> {
     let listing = &mut ctx.accounts.listing;
-    let sale = &ctx.accounts.sale;
 
-    // Approving NFT to Sale PDA
+    // Approving NFT to Listing PDA
     approve(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
             Approve {
                 to: ctx.accounts.seller_token_account.to_account_info(),
                 authority: ctx.accounts.seller.to_account_info(),
-                delegate: ctx.accounts.sale.to_account_info(),
+                delegate: listing.to_account_info(),
             },
         ),
         1,
     )?;
 
-    // Freezing NFT via Sale PDA
+    // Freezing NFT via Listing PDA
+    let seller_key = ctx.accounts.seller.key();
+    let mint_key = ctx.accounts.mint.key();
+
     let signer_seeds: &[&[&[u8]]] = &[&[
-        TEST_SALE,
-        SALE,
-        sale.group.as_ref(),
-        sale.distribution.as_ref(),
-        &[sale.bump],
+        MARKETPLACE,
+        LISTING,
+        seller_key.as_ref(),
+        mint_key.as_ref(),
+        &[ctx.bumps.listing],
     ]];
 
     freeze_mint_account(CpiContext::new_with_signer(
         ctx.accounts.wns_program.to_account_info(),
         FreezeDelegatedAccount {
             payer: ctx.accounts.payer.to_account_info(),
-            delegate_authority: ctx.accounts.sale.to_account_info(),
+            delegate_authority: listing.to_account_info(),
             manager: ctx.accounts.manager.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),
             mint_token_account: ctx.accounts.seller_token_account.to_account_info(),
@@ -107,7 +97,6 @@ pub fn handler(ctx: Context<ListNFT>, args: ListNFTArgs) -> Result<()> {
         listing_amount: args.listing_amount,
         payment_mint: args.payment_mint,
         mint: ctx.accounts.mint.key(),
-        sale: ctx.accounts.sale.key(),
         seller: ctx.accounts.seller.key(),
         seller_token_account: ctx.accounts.seller_token_account.key(),
     });

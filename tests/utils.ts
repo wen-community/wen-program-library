@@ -1,6 +1,5 @@
 import { AnchorProvider } from "@coral-xyz/anchor";
 import {
-  Keypair,
   Connection,
   PublicKey,
   VersionedTransaction,
@@ -19,7 +18,6 @@ import {
   TOKEN_2022_PROGRAM_ID,
   createInitializeMint2Instruction,
   createMintToCheckedInstruction,
-  getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 import {
@@ -27,13 +25,13 @@ import {
   pack,
   createInitializeInstruction,
 } from "@solana/spl-token-metadata";
-import { min } from "bn.js";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { faker } from "@faker-js/faker";
 
 export const MANAGER_SEED = Buffer.from("manager");
 export const GROUP_ACCOUNT_SEED = Buffer.from("group");
 export const MEMBER_ACCOUNT_SEED = Buffer.from("member");
-export const TEST_SALE = Buffer.from("test_sale");
+export const MARKETPLACE = Buffer.from("marketplace");
 export const SALE = Buffer.from("sale");
 export const LISTING = Buffer.from("listing");
 
@@ -90,25 +88,13 @@ export const getDistributionAccountPda = (
   return distributionAccount;
 };
 
-export const getSaleAccountPda = (
-  group: PublicKey,
-  distribution: PublicKey,
-  programId: PublicKey
-) => {
-  const [saleAccount] = PublicKey.findProgramAddressSync(
-    [TEST_SALE, SALE, group.toBuffer(), distribution.toBuffer()],
-    programId
-  );
-  return saleAccount;
-};
-
 export const getListingAccountPda = (
   seller: PublicKey,
   mint: PublicKey,
   programId: PublicKey
 ) => {
   const [listingAccount] = PublicKey.findProgramAddressSync(
-    [TEST_SALE, LISTING, seller.toBuffer(), mint.toBuffer()],
+    [MARKETPLACE, LISTING, seller.toBuffer(), mint.toBuffer()],
     programId
   );
   return listingAccount;
@@ -176,9 +162,9 @@ export async function createMint2022Ix(
 
   const metadata: TokenMetadata = {
     mint,
-    name: "USD Coin",
-    symbol: "USDC",
-    uri: "https://statics.solscan.io/cdn/imgs/s60?ref=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f736f6c616e612d6c6162732f746f6b656e2d6c6973742f6d61696e2f6173736574732f6d61696e6e65742f45506a465764643541756671535371654d32714e31787a7962617043384734774547476b5a777954447431762f6c6f676f2e706e67",
+    name: faker.finance.currencyName(),
+    symbol: faker.finance.currencyCode(),
+    uri: faker.image.urlPicsumPhotos(),
     additionalMetadata: [],
     updateAuthority: authority,
   };
