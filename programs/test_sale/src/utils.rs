@@ -29,8 +29,7 @@ pub fn calculate_royalties(mint: &AccountInfo, amount: u64) -> Result<u64> {
         .additional_metadata
         .iter()
         .find(|(key, _)| key == ROYALTY_BASIS_POINTS_FIELD)
-        .map(|(_, value)| value)
-        .map(|value| u64::from_str(value)?)
+        .map(|(_, value)| u64::from_str(value)?)
         .collect::<Result<u64, _>>()?
         .unwrap_or(0);
 
