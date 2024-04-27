@@ -94,7 +94,6 @@ pub fn handler(ctx: Context<ClaimRoyalty>) -> Result<()> {
         ctx.accounts.payment_mint.key(),
     )?;
 
-    msg!("Creator claim success!");
 
     Ok(())
 }
