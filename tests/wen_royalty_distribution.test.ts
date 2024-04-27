@@ -11,10 +11,12 @@ import {
   SYSVAR_RENT_PUBKEY,
   AccountInfo,
   ComputeBudgetProgram,
+  Commitment,
 } from "@solana/web3.js";
 
 import {
   airdrop,
+  createMint2022Ix,
   getApproveAccountPda,
   getDistributionAccountPda,
   getExtraMetasAccountPda,
@@ -23,6 +25,8 @@ import {
   getManagerAccountPda,
   getMemberAccountPda,
   getSaleAccountPda,
+  mintToBuyerSellerIx,
+  sendAndConfirmWNSTransaction,
 } from "./utils";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -48,6 +52,28 @@ describe("wen_royalty_distribution", () => {
   const testSaleProgramId = testSaleProgram.programId;
 
   const manager = getManagerAccountPda(wnsProgramId);
+  const preflightConfig: {
+    skipPreflight: boolean;
+    preflightCommitment: Commitment;
+    commitment: Commitment;
+  } = {
+    skipPreflight: true,
+    preflightCommitment: "confirmed",
+    commitment: "confirmed",
+  };
+
+  before(async () => {
+    if (!(await connection.getAccountInfo(manager))) {
+      await wnsProgram.methods
+        .initManagerAccount()
+        .accountsStrict({
+          payer: wallet.publicKey,
+          manager,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc(preflightConfig);
+    }
+  });
 
   describe("a sale", () => {
     const seller = Keypair.generate();
@@ -124,39 +150,53 @@ describe("wen_royalty_distribution", () => {
       let distributionAccountData;
 
       before(async () => {
-        await testSaleProgram.methods
-          .initalizePrepGroup({
-            distributionPaymentMint: PublicKey.default,
-            group: {
-              maxSize: 1,
-              name,
-              symbol,
-              uri,
-            },
+        // CREATE GROUP ACCOUNT
+        await wnsProgram.methods
+          .createGroupAccount({
+            maxSize: 1,
+            name,
+            symbol,
+            uri,
           })
           .accountsStrict({
             authority: groupMintAuthPublicKey,
-            distribution,
             group,
             manager,
-            sale,
             mint: groupMintPublicKey,
             mintTokenAccount: groupMintTokenAccount,
             payer: groupMintAuthPublicKey,
             receiver: groupMintAuthPublicKey,
             rent: SYSVAR_RENT_PUBKEY,
-            wnsProgram: wnsProgramId,
-            distributionProgram: wenDistributionProgramId,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           })
           .signers([groupMintKeypair])
-          .rpc({
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-            commitment: "confirmed",
-          });
+          .rpc(preflightConfig);
+
+        // CREATE DISTRIBUTION ACCOUNT
+        await wenDistributionProgram.methods
+          .initializeDistribution(PublicKey.default)
+          .accountsStrict({
+            payer: groupMintAuthPublicKey,
+            groupMint: groupMintPublicKey,
+            distributionAccount: distribution,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(preflightConfig);
+
+        // CREATE TEST SALE ACCOUNT
+        await testSaleProgram.methods
+          .initialize()
+          .accountsStrict({
+            payer: groupMintAuthPublicKey,
+            authority: groupMintAuthPublicKey,
+            distribution,
+            group,
+            sale,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(preflightConfig);
 
         distributionAccountInfo = await connection.getAccountInfo(
           distribution,
@@ -172,50 +212,62 @@ describe("wen_royalty_distribution", () => {
         const name = faker.lorem.words({ max: 3, min: 2 });
         const symbol = faker.lorem.word();
         const uri = faker.internet.url();
-        await testSaleProgram.methods
-          .initalizePrepMint({
-            mint: {
-              name,
-              symbol,
-              permanentDelegate: null,
-              uri,
-            },
-            royalties: {
+
+        // CREATE MINT ACCOUNT, ADD MINT TO GROUP, ADD ROYALTIES
+        const ixs = await Promise.all([
+          wnsProgram.methods
+            .addMintToGroup()
+            .accountsStrict({
+              authority: groupMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: groupMintAuthPublicKey,
+              group,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .instruction(),
+          wnsProgram.methods
+            .addRoyalties({
               creators: [
                 {
                   address: creator1.publicKey,
-                  share: 60,
+                  share: creator1SharePct,
                 },
-                { address: creator2.publicKey, share: 40 },
+                { address: creator2.publicKey, share: creator2SharePct },
               ],
               royaltyBasisPoints,
-            },
-          })
+            })
+            .accountsStrict({
+              extraMetasAccount,
+              authority: memberMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: groupMintAuthPublicKey,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .instruction(),
+        ]);
+
+        await wnsProgram.methods
+          .createMintAccount({ name, symbol, permanentDelegate: null, uri })
           .accountsStrict({
-            extraMetasAccount,
-            distribution,
-            group,
+            payer: groupMintAuthPublicKey,
             manager,
-            member,
             mintTokenAccount: sellerMemberMintTokenAccount,
-            groupUpdateAuthority: groupMintAuthPublicKey,
             authority: memberMintAuthPublicKey,
             mint: memberMintPublickey,
-            payer: groupMintAuthPublicKey,
             receiver: memberMintAuthPublicKey,
             rent: SYSVAR_RENT_PUBKEY,
-            wnsProgram: wnsProgramId,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
           })
           .preInstructions([ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 })])
+          .postInstructions(ixs)
           .signers([memberMintKeypair, seller])
-          .rpc({
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-            commitment: "confirmed",
-          });
+          .rpc(preflightConfig);
       });
 
       describe("after initializing distribution", () => {
@@ -627,59 +679,78 @@ describe("wen_royalty_distribution", () => {
       let distributionAccountData;
 
       before(async () => {
-        await testSaleProgram.methods
-          .initalizePrepSpl()
-          .accounts({
-            authority: paymentMintAuthPublicKey,
-            payer: paymentMintAuthPublicKey,
-            buyer: buyer.publicKey,
-            seller: seller.publicKey,
-            mint: paymentMintPublickey,
-            buyerTokenAccount: buyerPaymentMintTokenAccount,
-            sellerTokenAccount: sellerPaymentMintTokenAccount,
-          })
-          .signers([paymentMintKeypair])
-          .rpc({
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-            commitment: "confirmed",
-          });
+        const { ixs: createMintIxs } = await createMint2022Ix(
+          connection,
+          paymentMintPublickey,
+          paymentMintAuthPublicKey,
+          paymentMintAuthPublicKey
+        );
+
+        await sendAndConfirmWNSTransaction(connection, createMintIxs, provider, true, [
+          paymentMintKeypair,
+        ]);
+
+        const { ixs: mintToIxs } = mintToBuyerSellerIx(
+          paymentMintPublickey,
+          paymentMintAuthPublicKey,
+          paymentMintAuthPublicKey,
+          buyer.publicKey,
+          buyerPaymentMintTokenAccount,
+          seller.publicKey,
+          sellerPaymentMintTokenAccount
+        );
+
+        await sendAndConfirmWNSTransaction(connection, mintToIxs, provider, true, []);
       });
 
       before(async () => {
-        await testSaleProgram.methods
-          .initalizePrepGroup({
-            distributionPaymentMint: paymentMintPublickey,
-            group: {
-              maxSize: 1,
-              name,
-              symbol,
-              uri,
-            },
+        // CREATE GROUP ACCOUNT
+        await wnsProgram.methods
+          .createGroupAccount({
+            maxSize: 1,
+            name,
+            symbol,
+            uri,
           })
           .accountsStrict({
             authority: groupMintAuthPublicKey,
-            distribution,
             group,
             manager,
-            sale,
             mint: groupMintPublicKey,
             mintTokenAccount: groupMintTokenAccount,
             payer: groupMintAuthPublicKey,
             receiver: groupMintAuthPublicKey,
             rent: SYSVAR_RENT_PUBKEY,
-            wnsProgram: wnsProgramId,
-            distributionProgram: wenDistributionProgramId,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
           })
           .signers([groupMintKeypair])
-          .rpc({
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-            commitment: "confirmed",
-          });
+          .rpc(preflightConfig);
+
+        // CREATE DISTRIBUTION ACCOUNT
+        await wenDistributionProgram.methods
+          .initializeDistribution(paymentMintPublickey)
+          .accountsStrict({
+            payer: groupMintAuthPublicKey,
+            groupMint: groupMintPublicKey,
+            distributionAccount: distribution,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(preflightConfig);
+
+        // CREATE TEST SALE ACCOUNT
+        await testSaleProgram.methods
+          .initialize()
+          .accountsStrict({
+            payer: groupMintAuthPublicKey,
+            authority: groupMintAuthPublicKey,
+            distribution,
+            group,
+            sale,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc(preflightConfig);
 
         distributionAccountInfo = await connection.getAccountInfo(
           distribution,
@@ -695,50 +766,62 @@ describe("wen_royalty_distribution", () => {
         const name = faker.lorem.words({ max: 3, min: 2 });
         const symbol = faker.lorem.word();
         const uri = faker.internet.url();
-        await testSaleProgram.methods
-          .initalizePrepMint({
-            mint: {
-              name,
-              symbol,
-              permanentDelegate: null,
-              uri,
-            },
-            royalties: {
+
+        // CREATE MINT ACCOUNT, ADD MINT TO GROUP, ADD ROYALTIES
+        const ixs = await Promise.all([
+          wnsProgram.methods
+            .addMintToGroup()
+            .accountsStrict({
+              authority: groupMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: groupMintAuthPublicKey,
+              group,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .instruction(),
+          wnsProgram.methods
+            .addRoyalties({
               creators: [
                 {
                   address: creator1.publicKey,
-                  share: 60,
+                  share: creator1SharePct,
                 },
-                { address: creator2.publicKey, share: 40 },
+                { address: creator2.publicKey, share: creator2SharePct },
               ],
               royaltyBasisPoints,
-            },
-          })
+            })
+            .accountsStrict({
+              extraMetasAccount,
+              authority: memberMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: groupMintAuthPublicKey,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .instruction(),
+        ]);
+
+        await wnsProgram.methods
+          .createMintAccount({ name, symbol, permanentDelegate: null, uri })
           .accountsStrict({
-            extraMetasAccount,
-            distribution,
-            group,
+            payer: groupMintAuthPublicKey,
             manager,
-            member,
             mintTokenAccount: sellerMemberMintTokenAccount,
-            groupUpdateAuthority: groupMintAuthPublicKey,
             authority: memberMintAuthPublicKey,
             mint: memberMintPublickey,
-            payer: groupMintAuthPublicKey,
             receiver: memberMintAuthPublicKey,
             rent: SYSVAR_RENT_PUBKEY,
-            wnsProgram: wnsProgramId,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
           })
           .preInstructions([ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 })])
+          .postInstructions(ixs)
           .signers([memberMintKeypair, seller])
-          .rpc({
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-            commitment: "confirmed",
-          });
+          .rpc(preflightConfig);
       });
 
       describe("after initializing distribution", () => {

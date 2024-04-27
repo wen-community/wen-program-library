@@ -16,27 +16,11 @@ declare_id!("saLeHtY1jcSpuy5NKGX4pryocQ51WGUYqSSCKJNsgrP");
 pub mod test_sale {
     use super::*;
 
-    /* region TEST PREP INSTRUCTIONS (NO CORE LOGIC) */
-    pub fn initalize_prep_group(
-        ctx: Context<InitializePrepGroup>,
-        args: InitializePrepGroupArgs,
-    ) -> Result<()> {
-        prep::group::handler(ctx, args)
-    }
-
-    pub fn initalize_prep_mint(
-        ctx: Context<InitializePrepMint>,
-        args: InitializePrepMintArgs,
-    ) -> Result<()> {
-        prep::mint::handler(ctx, args)
-    }
-
-    pub fn initalize_prep_spl(ctx: Context<InitializePrepSPL>) -> Result<()> {
-        prep::spl::handler(ctx)
-    }
-    /* endregion */
-
     /* region LISTING INSTRUCTIONS (CORE LOGIC) */
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        prep::init::handler(ctx)
+    }
+
     pub fn list_nft(ctx: Context<ListNFT>, args: ListNFTArgs) -> Result<()> {
         listing::list::handler(ctx, args)
     }
@@ -56,6 +40,3 @@ pub mod test_sale {
     }
     /* endregion */
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
