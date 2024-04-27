@@ -30,7 +30,8 @@ pub fn calculate_royalties(mint: &AccountInfo, amount: u64) -> Result<u64> {
         .iter()
         .find(|(key, _)| key == ROYALTY_BASIS_POINTS_FIELD)
         .map(|(_, value)| value)
-        .map(|value| u64::from_str(value).unwrap())
+        .map(|value| u64::from_str(value)?)
+        .collect::<Result<u64, _>>()?
         .unwrap_or(0);
 
     Ok((amount * royalty_basis_points) / 10000)
