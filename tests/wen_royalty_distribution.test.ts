@@ -475,7 +475,6 @@ describe("wen_royalty_distribution", () => {
 
         describe("the buyer", () => {
           it("sent the payment", () => {
-            console.log;
             expect(buyerPostBalance).to.eql(buyerPreBalance - listingAmount.toNumber());
           });
           it("should be the owner", () => {
