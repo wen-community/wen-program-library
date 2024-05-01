@@ -7,16 +7,12 @@ import { WenNewStandard } from "../target/types/wen_new_standard";
 
 import {
   Keypair,
-  Connection,
   AccountInfo,
   PublicKey,
   SystemProgram,
-  VersionedTransaction,
-  TransactionMessage,
   LAMPORTS_PER_SOL,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
-  Signer,
 } from "@solana/web3.js";
 import {
   TOKEN_2022_PROGRAM_ID,
@@ -32,16 +28,11 @@ import {
   createApproveCheckedInstruction,
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
-  TYPE_SIZE,
-  LENGTH_SIZE,
-  getMintLen,
-  ExtensionType,
 } from "@solana/spl-token";
 import {
   Field,
   TokenMetadata,
   createUpdateFieldInstruction,
-  pack,
 } from "@solana/spl-token-metadata";
 import {
   MANAGER_SEED,
