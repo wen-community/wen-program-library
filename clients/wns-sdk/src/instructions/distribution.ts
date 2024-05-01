@@ -45,9 +45,10 @@ export const getClaimDistributionIx = async (provider: Provider, args: ClaimDist
 	}
 
 	const ix = await distributionProgram.methods
-		.claimDistribution(new PublicKey(args.mintToClaim))
+		.claimDistribution()
 		.accountsStrict({
 			creator: args.creator,
+			paymentMint: new PublicKey(args.mintToClaim),
 			distribution: distributionAccount,
 			creatorTokenAccount,
 			distributionTokenAccount,

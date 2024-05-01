@@ -77,23 +77,20 @@ pub fn handler(ctx: Context<ClaimRoyalty>) -> Result<()> {
     }
 
     // CPI Claim distribution
-    claim_distribution(
-        CpiContext::new(
-            ctx.accounts.wen_distribution_program.to_account_info(),
-            ClaimDistribution {
-                creator: ctx.accounts.creator.to_account_info(),
-                creator_token_account: ctx.accounts.creator_payment_token_account.to_account_info(),
-                distribution: ctx.accounts.distribution.to_account_info(),
-                distribution_token_account: ctx
-                    .accounts
-                    .distribution_payment_token_account
-                    .to_account_info(),
-                token_program: ctx.accounts.token_program.to_account_info(),
-            },
-        ),
-        ctx.accounts.payment_mint.key(),
-    )?;
-
+    claim_distribution(CpiContext::new(
+        ctx.accounts.wen_distribution_program.to_account_info(),
+        ClaimDistribution {
+            creator: ctx.accounts.creator.to_account_info(),
+            payment_mint: ctx.accounts.payment_mint.to_account_info(),
+            creator_token_account: ctx.accounts.creator_payment_token_account.to_account_info(),
+            distribution: ctx.accounts.distribution.to_account_info(),
+            distribution_token_account: ctx
+                .accounts
+                .distribution_payment_token_account
+                .to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
+        },
+    ))?;
 
     Ok(())
 }

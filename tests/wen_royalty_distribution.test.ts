@@ -8,7 +8,6 @@ import {
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
-  SYSVAR_RENT_PUBKEY,
   AccountInfo,
   ComputeBudgetProgram,
   Commitment,

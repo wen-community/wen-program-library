@@ -2,18 +2,22 @@ use std::str::FromStr;
 
 use anchor_lang::{
     prelude::*,
-    solana_program::{entrypoint::ProgramResult, program::invoke, system_instruction::transfer},
+    solana_program::{
+        entrypoint::ProgramResult, program::invoke, program_pack::Pack,
+        system_instruction::transfer,
+    },
 };
 
 use anchor_spl::{
     associated_token::AssociatedToken,
+    token::{spl_token::state::Mint as TokenMint, ID as token_keg_program_id},
     token_interface::{
         spl_token_2022::{
             extension::{BaseStateWithExtensions, StateWithExtensions},
-            state::Mint as BaseStateMint,
+            state::Mint as Token2022Mint,
         },
         spl_token_metadata_interface::state::TokenMetadata,
-        transfer as token_transfer, Mint, TokenInterface, Transfer as TokenTransfer,
+        transfer_checked, Mint, TokenInterface, TransferChecked,
     },
 };
 
@@ -30,7 +34,6 @@ pub struct CreatorShare {
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct UpdateDistributionArgs {
     pub amount: u64,
-    pub payment_mint: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -42,6 +45,9 @@ pub struct UpdateDistribution<'info> {
         mint::token_program = anchor_spl::token_interface::spl_token_2022::id(),
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
+    /// CHECK: can be Pubkey::default() or mint address
+    #[account()]
+    pub payment_mint: UncheckedAccount<'info>,
     #[account(mut)]
     pub distribution_account: Account<'info, DistributionAccount>,
     /// CHECK: can be an initialized token account or an uninitialized token account, checks in cpi
@@ -57,14 +63,24 @@ pub struct UpdateDistribution<'info> {
 
 impl UpdateDistribution<'_> {
     pub fn transfer_royalty_amount(&self, amount: u64) -> ProgramResult {
-        let cpi_accounts = TokenTransfer {
+        let mint_data = self.payment_mint.try_borrow_data()?;
+        let mint_decimals = if self.token_program.key.eq(&token_keg_program_id) {
+            TokenMint::unpack(&mint_data)?.decimals
+        } else {
+            StateWithExtensions::<Token2022Mint>::unpack(&mint_data)?
+                .base
+                .decimals
+        };
+
+        let cpi_accounts = TransferChecked {
+            mint: self.payment_mint.to_account_info(),
             from: self.authority_token_account.to_account_info(),
             to: self.distribution_token_account.to_account_info(),
             authority: self.authority.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token_transfer(cpi_ctx, amount)?;
+        transfer_checked(cpi_ctx, amount, mint_decimals)?;
         Ok(())
     }
 
@@ -84,7 +100,7 @@ impl UpdateDistribution<'_> {
 pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -> Result<()> {
     let mint_account = ctx.accounts.mint.to_account_info();
     let mint_account_data = mint_account.try_borrow_data()?;
-    let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
+    let mint_data = StateWithExtensions::<Token2022Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
     // get all creators from metadata Vec(String, String), only royalty_basis_points needs to be removed
@@ -158,7 +174,10 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
 
     ctx.accounts.distribution_account.claim_data = new_data;
 
-    if args.payment_mint == Pubkey::default() {
+    let payment_mint = &ctx.accounts.payment_mint;
+    let payment_mint_pubkey = payment_mint.key();
+
+    if payment_mint_pubkey == Pubkey::default() {
         ctx.accounts.transfer_sol(args.amount)?;
     } else {
         ctx.accounts.transfer_royalty_amount(args.amount)?;

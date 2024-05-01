@@ -39,11 +39,17 @@
                 "account": "DistributionAccount"
               },
               {
-                "kind": "arg",
+                "kind": "account",
                 "path": "payment_mint"
               }
             ]
           }
+        },
+        {
+          "name": "payment_mint",
+          "relations": [
+            "distribution"
+          ]
         },
         {
           "name": "distribution_token_account",
@@ -57,12 +63,7 @@
           "name": "token_program"
         }
       ],
-      "args": [
-        {
-          "name": "payment_mint",
-          "type": "pubkey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "initialize_distribution",
@@ -139,6 +140,9 @@
         },
         {
           "name": "mint"
+        },
+        {
+          "name": "payment_mint"
         },
         {
           "name": "distribution_account",
@@ -278,10 +282,6 @@
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "payment_mint",
-            "type": "pubkey"
           }
         ]
       }

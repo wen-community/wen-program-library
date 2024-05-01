@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 import { expect } from "chai";
 import { faker } from "@faker-js/faker";
@@ -11,7 +11,6 @@ import {
   PublicKey,
   SystemProgram,
   LAMPORTS_PER_SOL,
-  SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
 import {

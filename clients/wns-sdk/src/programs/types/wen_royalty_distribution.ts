@@ -45,11 +45,17 @@ export type WenRoyaltyDistribution = {
                 "account": "distributionAccount"
               },
               {
-                "kind": "arg",
+                "kind": "account",
                 "path": "paymentMint"
               }
             ]
           }
+        },
+        {
+          "name": "paymentMint",
+          "relations": [
+            "distribution"
+          ]
         },
         {
           "name": "distributionTokenAccount",
@@ -63,12 +69,7 @@ export type WenRoyaltyDistribution = {
           "name": "tokenProgram"
         }
       ],
-      "args": [
-        {
-          "name": "paymentMint",
-          "type": "pubkey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "initializeDistribution",
@@ -145,6 +146,9 @@ export type WenRoyaltyDistribution = {
         },
         {
           "name": "mint"
+        },
+        {
+          "name": "paymentMint"
         },
         {
           "name": "distributionAccount",
@@ -284,10 +288,6 @@ export type WenRoyaltyDistribution = {
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "paymentMint",
-            "type": "pubkey"
           }
         ]
       }
