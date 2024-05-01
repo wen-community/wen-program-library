@@ -125,7 +125,7 @@ describe("wen_new_standard", () => {
             payer: mintAuthPublicKey,
             receiver: mintAuthPublicKey,
             manager,
-            rent: SYSVAR_RENT_PUBKEY,
+
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -611,7 +611,6 @@ describe("wen_new_standard", () => {
           tokenProgram: TOKEN_2022_PROGRAM_ID,
           payer,
           manager,
-          rent: SYSVAR_RENT_PUBKEY,
           systemProgram: SystemProgram.programId,
         })
         .signers([groupMintKeyPair, groupAuthorityKeyPair])
@@ -738,7 +737,7 @@ describe("wen_new_standard", () => {
               receiver: mintAuthPublicKey,
               associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
               manager,
-              rent: SYSVAR_RENT_PUBKEY,
+  
               systemProgram: SystemProgram.programId,
               tokenProgram: TOKEN_2022_PROGRAM_ID,
             })
@@ -833,7 +832,7 @@ describe("wen_new_standard", () => {
             receiver: mintAuthPublicKey,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             manager,
-            rent: SYSVAR_RENT_PUBKEY,
+
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })

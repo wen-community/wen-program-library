@@ -61,7 +61,6 @@ pub struct CreateMintAccount<'info> {
     )]
     pub manager: Account<'info, Manager>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
 }

@@ -35,7 +35,6 @@ export const getCreateGroupIx = async (provider: Provider, args: CreateGroupArgs
 			mint: args.groupMint,
 			mintTokenAccount: getAtaAddress(args.groupMint, args.receiver),
 			systemProgram: SystemProgram.programId,
-			rent: SYSVAR_RENT_PUBKEY,
 			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
 			tokenProgram: tokenProgramId,
 			group: groupAccount,
