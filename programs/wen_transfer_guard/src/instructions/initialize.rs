@@ -19,9 +19,7 @@ pub struct Initialize<'info> {
     )]
     pub extra_metas_account: UncheckedAccount<'info>,
 
-    #[account(
-        mint::token_program = TOKEN_2022_PROGRAM_ID,
-    )]
+    #[account(mint::token_program = TOKEN_2022_PROGRAM_ID)]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(mut)]
