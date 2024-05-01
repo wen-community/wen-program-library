@@ -2684,6 +2684,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "wen_transfer_guard"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+]
+
+[[package]]
 name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
