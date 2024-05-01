@@ -9,8 +9,6 @@ use crate::{Manager, MintErrors, MANAGER_SEED};
 
 #[derive(Accounts)]
 pub struct ThawDelegatedAccount<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
     #[account()]
     /// CHECK: can be any account
     pub user: UncheckedAccount<'info>,

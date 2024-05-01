@@ -60,8 +60,7 @@ export type WenRoyaltyDistribution = {
           "writable": true
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "name": "tokenProgram"
         }
       ],
       "args": [
@@ -168,8 +167,7 @@ export type WenRoyaltyDistribution = {
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "name": "tokenProgram"
         }
       ],
       "args": [

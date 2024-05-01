@@ -133,7 +133,6 @@ export const getThawNftIx = async (provider: Provider, args: ThawNftArgs) => {
 	const ix = await metadataProgram.methods
 		.thawMintAccount()
 		.accountsStrict({
-			payer: args.payer,
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
 			mint: args.mint,
@@ -157,7 +156,6 @@ export const getFreezeNftIx = async (provider: Provider, args: FreezeNftArgs) =>
 	const ix = await metadataProgram.methods
 		.freezeMintAccount()
 		.accountsStrict({
-			payer: args.payer,
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
 			mint: args.mint,

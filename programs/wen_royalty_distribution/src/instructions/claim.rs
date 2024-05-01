@@ -1,6 +1,6 @@
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::token_interface::{
-    transfer as token_transfer, Token2022, TokenInterface, Transfer as TokenTransfer,
+    transfer as token_transfer, TokenInterface, Transfer as TokenTransfer,
 };
 
 use crate::{get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount};

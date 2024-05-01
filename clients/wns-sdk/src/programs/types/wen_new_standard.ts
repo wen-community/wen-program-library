@@ -678,11 +678,6 @@ export type WenNewStandard = {
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "user"
         },
         {
@@ -890,11 +885,6 @@ export type WenNewStandard = {
         72
       ],
       "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
         {
           "name": "user"
         },

@@ -127,7 +127,6 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
     thaw_mint_account(CpiContext::new_with_signer(
         ctx.accounts.wns_program.to_account_info(),
         ThawDelegatedAccount {
-            payer: ctx.accounts.payer.to_account_info(),
             delegate_authority: listing.to_account_info(),
             manager: ctx.accounts.manager.to_account_info(),
             mint: ctx.accounts.mint.to_account_info(),

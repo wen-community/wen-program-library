@@ -672,11 +672,6 @@
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "user"
         },
         {
@@ -884,11 +879,6 @@
         72
       ],
       "accounts": [
-        {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
         {
           "name": "user"
         },
