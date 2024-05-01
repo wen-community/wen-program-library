@@ -36,7 +36,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -88,7 +87,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -119,8 +117,7 @@ export type WenNewStandard = {
           }
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "manager",
@@ -175,7 +172,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -523,7 +519,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -678,8 +673,7 @@ export type WenNewStandard = {
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mintTokenAccount",
@@ -782,7 +776,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -832,7 +825,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -886,8 +878,7 @@ export type WenNewStandard = {
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mintTokenAccount",

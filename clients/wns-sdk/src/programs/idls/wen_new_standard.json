@@ -30,7 +30,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -82,7 +81,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -113,8 +111,7 @@
           }
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "manager",
@@ -169,7 +166,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -517,7 +513,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -672,8 +667,7 @@
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mint_token_account",
@@ -776,7 +770,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -826,7 +819,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -880,8 +872,7 @@
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mint_token_account",

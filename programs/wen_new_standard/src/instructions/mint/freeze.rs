@@ -15,7 +15,6 @@ pub struct FreezeDelegatedAccount<'info> {
     #[account(mut)]
     pub delegate_authority: Signer<'info>,
     #[account(
-        mut,
         constraint = mint.freeze_authority == COption::Some(manager.key()) @MintErrors::InvalidFreezeAuthority
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
