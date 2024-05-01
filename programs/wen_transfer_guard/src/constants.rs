@@ -1,4 +1,4 @@
 use anchor_lang::prelude::*;
 
 #[constant]
-pub const SEED: &str = "anchor";
+pub const EXTRA_ACCOUNT_METAS: [u8; 19] = *b"extra_account_metas";

@@ -2688,6 +2688,9 @@ name = "wen_transfer_guard"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "anchor-spl",
+ "spl-tlv-account-resolution 0.6.3",
+ "spl-transfer-hook-interface 0.6.3",
 ]
 
 [[package]]
