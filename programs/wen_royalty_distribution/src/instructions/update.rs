@@ -7,14 +7,13 @@ use anchor_lang::{
 
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{self, Transfer},
     token_interface::{
         spl_token_2022::{
             extension::{BaseStateWithExtensions, StateWithExtensions},
             state::Mint as BaseStateMint,
         },
         spl_token_metadata_interface::state::TokenMetadata,
-        Mint, Token2022,
+        transfer as token_transfer, Mint, TokenInterface, Transfer as TokenTransfer,
     },
 };
 
@@ -53,19 +52,19 @@ pub struct UpdateDistribution<'info> {
     pub distribution_token_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub associated_token_program: Program<'info, AssociatedToken>,
-    pub token_program: Program<'info, Token2022>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 impl UpdateDistribution<'_> {
     pub fn transfer_royalty_amount(&self, amount: u64) -> ProgramResult {
-        let cpi_accounts = Transfer {
+        let cpi_accounts = TokenTransfer {
             from: self.authority_token_account.to_account_info(),
             to: self.distribution_token_account.to_account_info(),
             authority: self.authority.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        token::transfer(cpi_ctx, amount)?;
+        token_transfer(cpi_ctx, amount)?;
         Ok(())
     }
 

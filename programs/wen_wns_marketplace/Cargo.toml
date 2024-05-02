@@ -1,0 +1,29 @@
+[package]
+name = "wen_wns_marketplace"
+version = "0.1.0"
+description = "A minimalistic sale program demonstrating WNS and Wen distribution royalty functionalities"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "wen_wns_marketplace"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = [
+  "anchor-lang/idl-build", 
+  "anchor-spl/idl-build", 
+  "wen_new_standard/idl-build", 
+  "wen_royalty_distribution/idl-build"
+]
+
+[dependencies]
+anchor-lang.workspace = true
+anchor-spl.workspace = true
+wen_new_standard.workspace = true
+wen_royalty_distribution.workspace = true
+spl-transfer-hook-interface = "^0.5.1"

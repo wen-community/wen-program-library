@@ -1,7 +1,6 @@
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
-use anchor_spl::{
-    token::{self, Transfer},
-    token_interface::Token2022,
+use anchor_spl::token_interface::{
+    transfer as token_transfer, Token2022, TokenInterface, Transfer as TokenTransfer,
 };
 
 use crate::{get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount};
@@ -23,19 +22,19 @@ pub struct ClaimDistribution<'info> {
     /// CHECK: can be initialized token account or uninitialized token account, checks in cpi
     #[account(mut)]
     pub creator_token_account: UncheckedAccount<'info>,
-    pub token_program: Program<'info, Token2022>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 impl ClaimDistribution<'_> {
     pub fn transfer_tokens(&self, amount: u64, signer_seeds: &[&[&[u8]]]) -> ProgramResult {
-        let cpi_accounts = Transfer {
+        let cpi_accounts = TokenTransfer {
             from: self.distribution_token_account.to_account_info(),
             to: self.creator_token_account.to_account_info(),
             authority: self.distribution.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
-        token::transfer(cpi_ctx, amount)?;
+        token_transfer(cpi_ctx, amount)?;
         Ok(())
     }
 }

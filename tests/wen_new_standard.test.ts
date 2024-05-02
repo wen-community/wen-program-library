@@ -7,16 +7,12 @@ import { WenNewStandard } from "../target/types/wen_new_standard";
 
 import {
   Keypair,
-  Connection,
   AccountInfo,
   PublicKey,
   SystemProgram,
-  VersionedTransaction,
-  TransactionMessage,
   LAMPORTS_PER_SOL,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
-  Signer,
 } from "@solana/web3.js";
 import {
   TOKEN_2022_PROGRAM_ID,
@@ -32,107 +28,21 @@ import {
   createApproveCheckedInstruction,
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
-  TYPE_SIZE,
-  LENGTH_SIZE,
-  getMintLen,
-  ExtensionType,
 } from "@solana/spl-token";
 import {
   Field,
   TokenMetadata,
   createUpdateFieldInstruction,
-  pack,
 } from "@solana/spl-token-metadata";
-
-const MANAGER_SEED = Buffer.from("manager");
-const GROUP_ACCOUNT_SEED = Buffer.from("group");
-const MEMBER_ACCOUNT_SEED = Buffer.from("member");
-
-export const getExtraMetasAccountPda = (mint: string, programId: PublicKey) => {
-  const [extraMetasAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("extra-account-metas"), new PublicKey(mint).toBuffer()],
-    programId
-  );
-  return extraMetasAccount;
-};
-
-export const getApproveAccountPda = (mint: string, programId: PublicKey) => {
-  const [approveAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("approve-account"), new PublicKey(mint).toBuffer()],
-    programId
-  );
-
-  return approveAccount;
-};
-
-export async function getMinRentForWNSMint(
-  connection: Connection,
-  metaData: TokenMetadata,
-  type: string
-) {
-  // Size of MetadataExtension 2 bytes for type, 2 bytes for length
-  const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
-  // Size of metadata
-  const metadataLen = pack(metaData).length;
-
-  // Size of Mint Account with extensions
-  const mintLen = getMintLen(
-    [
-      ExtensionType.MintCloseAuthority,
-      ExtensionType.MetadataPointer,
-      ExtensionType.TransferHook,
-      ExtensionType.PermanentDelegate,
-    ].concat(
-      type === "member"
-        ? [ExtensionType.GroupMemberPointer]
-        : [ExtensionType.GroupPointer]
-    )
-  );
-
-  // Minimum lamports required for Mint Account
-  return connection.getMinimumBalanceForRentExemption(
-    mintLen + metadataExtension + metadataLen
-  );
-}
-
-export async function sendAndConfirmWNSTransaction(
-  connection: Connection,
-  instructions: TransactionInstruction[],
-  provider: AnchorProvider,
-  skipPreflight = true,
-  additionalSigners: Signer[] = []
-): Promise<{ signature: string; feeEstimate: number }> {
-  const transaction = new VersionedTransaction(
-    new TransactionMessage({
-      instructions,
-      payerKey: provider.wallet.publicKey,
-      recentBlockhash: (await connection.getLatestBlockhash("confirmed"))
-        .blockhash,
-    }).compileToV0Message()
-  );
-  const signedTx = await provider.wallet.signTransaction(transaction);
-  signedTx.sign(additionalSigners);
-
-  try {
-    const signature = await connection.sendTransaction(signedTx, {
-      preflightCommitment: "confirmed",
-      skipPreflight,
-    });
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash("confirmed");
-    await connection.confirmTransaction(
-      {
-        signature,
-        lastValidBlockHeight,
-        blockhash,
-      },
-      "confirmed"
-    );
-    return { signature, feeEstimate: 0 };
-  } catch (err) {
-    throw err;
-  }
-}
+import {
+  MANAGER_SEED,
+  getMinRentForWNSMint,
+  sendAndConfirmWNSTransaction,
+  getExtraMetasAccountPda,
+  getApproveAccountPda,
+  GROUP_ACCOUNT_SEED,
+  MEMBER_ACCOUNT_SEED,
+} from "./utils";
 
 describe("wen_new_standard", () => {
   const provider = anchor.AnchorProvider.env();
@@ -161,9 +71,7 @@ describe("wen_new_standard", () => {
       });
 
       it("should exist with a fixed seed", async () => {
-        expect(account.data).to.eql(
-          Buffer.from([221, 78, 171, 233, 213, 142, 113, 56])
-        );
+        expect(account.data).to.eql(Buffer.from([221, 78, 171, 233, 213, 142, 113, 56]));
       });
 
       it("should be owned by the program", async () => {
@@ -282,10 +190,7 @@ describe("wen_new_standard", () => {
 
         const instructions: TransactionInstruction[] = [];
         const rent = await getMinRentForWNSMint(connection, metadata, "member");
-        const currentRent = await connection.getBalance(
-          mintPublicKey,
-          "confirmed"
-        );
+        const currentRent = await connection.getBalance(mintPublicKey, "confirmed");
 
         if (currentRent < rent) {
           const lamportsDiff = rent - currentRent;
@@ -326,10 +231,7 @@ describe("wen_new_standard", () => {
       const creator1 = Keypair.generate();
       const creator2 = Keypair.generate();
 
-      const extraMetasAccount = getExtraMetasAccountPda(
-        mintPublicKey.toString(),
-        wnsProgramId
-      );
+      const extraMetasAccount = getExtraMetasAccountPda(mintPublicKey, wnsProgramId);
 
       let metadata: TokenMetadata | null;
 
@@ -455,19 +357,13 @@ describe("wen_new_standard", () => {
 
           transferIx.keys.push(
             {
-              pubkey: getApproveAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getApproveAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: true,
             },
             { pubkey: wnsProgramId, isSigner: false, isWritable: false },
             {
-              pubkey: getExtraMetasAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getExtraMetasAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: false,
             }
@@ -485,12 +381,7 @@ describe("wen_new_standard", () => {
           ];
 
           try {
-            await sendAndConfirmWNSTransaction(
-              connection,
-              instructions,
-              provider,
-              false
-            );
+            await sendAndConfirmWNSTransaction(connection, instructions, provider, false);
           } catch (err) {
             logs = err.logs;
           }
@@ -543,8 +434,9 @@ describe("wen_new_standard", () => {
             1 * LAMPORTS_PER_SOL
           );
 
-          const { blockhash, lastValidBlockHeight } =
-            await connection.getLatestBlockhash("confirmed");
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(
+            "confirmed"
+          );
 
           await connection.confirmTransaction({
             blockhash,
@@ -565,19 +457,13 @@ describe("wen_new_standard", () => {
 
           transferIx.keys.push(
             {
-              pubkey: getApproveAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getApproveAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: true,
             },
             { pubkey: wnsProgramId, isSigner: false, isWritable: false },
             {
-              pubkey: getExtraMetasAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getExtraMetasAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: false,
             }
@@ -594,11 +480,7 @@ describe("wen_new_standard", () => {
             transferIx,
           ];
 
-          await sendAndConfirmWNSTransaction(
-            connection,
-            instructions,
-            provider
-          );
+          await sendAndConfirmWNSTransaction(connection, instructions, provider);
 
           receiverTokenAccountData = await getAccount(
             connection,
@@ -652,31 +534,21 @@ describe("wen_new_standard", () => {
           .instruction();
 
         const instructions = [burnIx];
-        await sendAndConfirmWNSTransaction(
-          connection,
-          instructions,
-          provider,
-          true,
-          [receiver]
-        );
+        await sendAndConfirmWNSTransaction(connection, instructions, provider, true, [
+          receiver,
+        ]);
 
         tokenAccountInfo = await connection.getAccountInfo(
           receiverTokenAccount,
           "confirmed"
         );
-        mintAccountInfo = await connection.getAccountInfo(
-          mintPublicKey,
-          "confirmed"
-        );
+        mintAccountInfo = await connection.getAccountInfo(mintPublicKey, "confirmed");
 
         tokenAccountLamports = await connection.getBalance(
           receiverTokenAccount,
           "confirmed"
         );
-        mintAccountLamports = await connection.getBalance(
-          mintPublicKey,
-          "confirmed"
-        );
+        mintAccountLamports = await connection.getBalance(mintPublicKey, "confirmed");
 
         payerPostBurnBalance = await connection.getBalance(
           receiver.publicKey,
@@ -693,9 +565,7 @@ describe("wen_new_standard", () => {
         expect(mintAccountInfo).to.be.null;
       });
       it("should credit rent to payer", async () => {
-        expect(payerPostBurnBalance).to.eql(
-          payerPreBurnBalance + totalBurnRent
-        );
+        expect(payerPostBurnBalance).to.eql(payerPreBurnBalance + totalBurnRent);
       });
     });
   });
@@ -754,10 +624,7 @@ describe("wen_new_standard", () => {
         });
 
       groupAccountInfo = await program.account.tokenGroup.getAccountInfo(group);
-      groupAccount = program.coder.accounts.decode(
-        "tokenGroup",
-        groupAccountInfo.data
-      );
+      groupAccount = program.coder.accounts.decode("tokenGroup", groupAccountInfo.data);
     });
 
     describe("after creating", () => {
@@ -797,10 +664,7 @@ describe("wen_new_standard", () => {
 
         const instructions: TransactionInstruction[] = [];
         const rent = await getMinRentForWNSMint(connection, metadata, "member");
-        const currentRent = await connection.getBalance(
-          groupMintPublicKey,
-          "confirmed"
-        );
+        const currentRent = await connection.getBalance(groupMintPublicKey, "confirmed");
 
         if (currentRent < rent) {
           const lamportsDiff = rent - currentRent;
@@ -823,13 +687,9 @@ describe("wen_new_standard", () => {
           })
         );
 
-        await sendAndConfirmWNSTransaction(
-          connection,
-          instructions,
-          provider,
-          true,
-          [groupAuthorityKeyPair]
-        );
+        await sendAndConfirmWNSTransaction(connection, instructions, provider, true, [
+          groupAuthorityKeyPair,
+        ]);
 
         metadata = await getTokenMetadata(
           connection,
@@ -906,8 +766,9 @@ describe("wen_new_standard", () => {
               commitment: "confirmed",
             });
 
-          memberAccountInfo =
-            await program.account.tokenGroupMember.getAccountInfo(member);
+          memberAccountInfo = await program.account.tokenGroupMember.getAccountInfo(
+            member
+          );
           memberAccount = program.coder.accounts.decode(
             "tokenGroupMember",
             memberAccountInfo.data
@@ -931,10 +792,7 @@ describe("wen_new_standard", () => {
       describe("the group", () => {
         let groupAccount;
         before(async () => {
-          groupAccount = await program.account.tokenGroup.fetch(
-            group,
-            "confirmed"
-          );
+          groupAccount = await program.account.tokenGroup.fetch(group, "confirmed");
         });
         it("should be a size of 1", async () => {
           expect(groupAccount.size).to.eql(1);
