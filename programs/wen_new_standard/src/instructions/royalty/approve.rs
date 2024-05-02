@@ -6,16 +6,13 @@ use anchor_lang::{
     solana_program::account_info::AccountInfo,
     system_program::System,
 };
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{
-        spl_token_2022::{
-            extension::{BaseStateWithExtensions, StateWithExtensions},
-            state::Mint as BaseStateMint,
-        },
-        spl_token_metadata_interface::state::TokenMetadata,
-        Mint, Token2022,
+use anchor_spl::token_interface::{
+    spl_token_2022::{
+        extension::{BaseStateWithExtensions, StateWithExtensions},
+        state::Mint as BaseStateMint,
     },
+    spl_token_metadata_interface::state::TokenMetadata,
+    Mint, Token2022, TokenAccount,
 };
 use wen_royalty_distribution::{
     cpi::{accounts::UpdateDistribution, update_distribution},
@@ -44,34 +41,52 @@ pub struct ApproveTransfer<'info> {
         space = 8 + ApproveAccount::INIT_SPACE,
     )]
     pub approve_account: Account<'info, ApproveAccount>,
-    /// CHECK: This account can be any mint or SOL
+    /// CHECK: This account can be any mint or Pubkey::default()
     pub payment_mint: UncheckedAccount<'info>,
-    #[account(mut)]
-    /// CHECK: initialized token account or unitialized token account, checks in cpi
-    pub distribution_token_account: UncheckedAccount<'info>,
-    /// CHECK: initialized token account or unitialized token account, checks in cpi
-    #[account(mut)]
-    pub authority_token_account: UncheckedAccount<'info>,
     /// CHECK: cpi checks
     #[account(mut)]
     pub distribution_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,
     pub token_program: Program<'info, Token2022>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    /* Optional accounts */
+    #[account(
+        mut,
+        token::authority = distribution_account,
+        token::mint = payment_mint,
+        token::token_program = token_program,
+    )]
+    pub distribution_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(
+        mut,
+        token::authority = authority,
+        token::mint = payment_mint,
+        token::token_program = token_program,
+    )]
+    pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
 impl ApproveTransfer<'_> {
     pub fn distribute_royalties(&self, amount: u64) -> Result<()> {
+        let distribution_token_account_info = self
+            .distribution_token_account
+            .as_ref()
+            .map(|d| d.to_account_info());
+
+        let authority_token_account_info = self
+            .authority_token_account
+            .as_ref()
+            .map(|a| a.to_account_info());
+
         let cpi_accounts = UpdateDistribution {
             authority: self.authority.to_account_info(),
             mint: self.mint.to_account_info(),
             payment_mint: self.payment_mint.to_account_info(),
             distribution_account: self.distribution_account.to_account_info(),
-            distribution_token_account: self.distribution_token_account.to_account_info(),
-            authority_token_account: self.authority_token_account.to_account_info(),
+            distribution_token_account: distribution_token_account_info,
+            authority_token_account: authority_token_account_info,
             system_program: self.system_program.to_account_info(),
-            associated_token_program: self.associated_token_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.distribution_program.to_account_info(), cpi_accounts);

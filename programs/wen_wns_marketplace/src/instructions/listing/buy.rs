@@ -17,14 +17,10 @@ use wen_new_standard::{
 };
 use wen_royalty_distribution::{program::WenRoyaltyDistribution, DistributionAccount};
 
-use crate::{
-    constants::*,
-    utils::{
-        assert_right_associated_token_account, transfer_checked_with_hook, TransferCheckedWithHook,
-    },
-};
-use crate::{errors::*, utils::create_associated_token_account};
-use crate::{state::*, utils::calculate_royalties};
+use crate::constants::*;
+use crate::errors::*;
+use crate::state::*;
+use crate::utils::*;
 
 #[derive(Accounts)]
 #[instruction(args: FulfillListingArgs)]
@@ -54,20 +50,12 @@ pub struct FulfillListing<'info> {
     #[account(mut)]
     pub buyer: Signer<'info>,
 
-    /// CHECK: Checked based on payment_mint
-    #[account(mut)]
-    pub buyer_payment_token_account: UncheckedAccount<'info>,
-
     #[account(
         mut,
         has_one = payment_mint,
-        constraint = listing.payment_mint.eq(&distribution.payment_mint)
+        constraint = listing.payment_mint.eq(&distribution.payment_mint),
     )]
     pub distribution: Account<'info, DistributionAccount>,
-
-    /// CHECK: Created and checked based on payment_mint
-    #[account(mut)]
-    pub distribution_payment_token_account: UncheckedAccount<'info>,
 
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
@@ -87,13 +75,8 @@ pub struct FulfillListing<'info> {
     )]
     pub buyer_token_account: InterfaceAccount<'info, TokenAccount>,
 
-    /// CHECK: Constraint checked with listing. Could be any account
     #[account(mut)]
     pub seller: SystemAccount<'info>,
-
-    /// CHECK: Checked based on payment_mint
-    #[account(mut)]
-    pub seller_payment_token_account: UncheckedAccount<'info>,
 
     /// CHECK: Checked inside WNS program
     pub manager: UncheckedAccount<'info>,
@@ -108,6 +91,29 @@ pub struct FulfillListing<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
     pub system_program: Program<'info, System>,
+
+    /* Optional accounts */
+    #[account(
+        mut,
+        token::authority = seller,
+        token::mint = payment_mint,
+        token::token_program = token_program
+    )]
+    pub seller_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(
+        mut,
+        token::authority = buyer,
+        token::mint = payment_mint,
+        token::token_program = token_program
+    )]
+    pub buyer_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(
+        mut,
+        token::authority = distribution,
+        token::mint = payment_mint,
+        token::token_program = token_program
+    )]
+    pub distribution_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
 pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result<()> {
@@ -138,7 +144,6 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
     ))?;
 
     // Transfer (listing_amount - royalty) to seller
-    // Checking payment mint and creating seller token account if necessary
     let royalty_funds = calculate_royalties(&ctx.accounts.mint.to_account_info(), args.buy_amount)?;
 
     let funds_to_send = listing
@@ -146,53 +151,37 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
         .checked_sub(royalty_funds)
         .ok_or(WenWnsMarketplaceError::ArithmeticError)?;
 
-    if is_payment_mint_spl {
+    let buyer_token_account_info = if is_payment_mint_spl {
         let payment_mint = &ctx.accounts.payment_mint.try_borrow_data()?;
         let payment_mint_data = StateWithExtensions::<StateMint>::unpack(payment_mint)?;
 
-        require_neq!(
-            ctx.accounts.buyer_payment_token_account.key,
-            &Pubkey::default(),
-            WenWnsMarketplaceError::PaymentTokenAccountNotExistant
-        );
+        let buyer_payment_token_account = ctx
+            .accounts
+            .buyer_payment_token_account
+            .clone()
+            .ok_or(WenWnsMarketplaceError::InvalidPaymentTokenAccount)?;
 
-        require_neq!(
-            ctx.accounts.buyer_payment_token_account.key,
-            &Pubkey::default(),
-            WenWnsMarketplaceError::PaymentTokenAccountNotExistant
-        );
-
-        assert_right_associated_token_account(
-            ctx.accounts.buyer.key,
-            ctx.accounts.payment_mint.key,
-            ctx.accounts.buyer_payment_token_account.key,
-        )?;
-
-        if ctx.accounts.seller_payment_token_account.data_is_empty() {
-            create_associated_token_account(
-                ctx.accounts.payer.to_account_info(),
-                ctx.accounts.seller.to_account_info(),
-                ctx.accounts.payment_mint.to_account_info(),
-                ctx.accounts.seller_payment_token_account.to_account_info(),
-                ctx.accounts.associated_token_program.to_account_info(),
-                ctx.accounts.token_program.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-            )?;
-        }
+        let seller_payment_token_account = ctx
+            .accounts
+            .seller_payment_token_account
+            .clone()
+            .ok_or(WenWnsMarketplaceError::InvalidPaymentTokenAccount)?;
 
         transfer_checked(
             CpiContext::new(
                 ctx.accounts.token_program.to_account_info(),
                 TransferChecked {
                     authority: ctx.accounts.buyer.to_account_info(),
-                    from: ctx.accounts.buyer_payment_token_account.to_account_info(),
-                    to: ctx.accounts.seller_payment_token_account.to_account_info(),
+                    from: buyer_payment_token_account.to_account_info(),
+                    to: seller_payment_token_account.to_account_info(),
                     mint: ctx.accounts.payment_mint.to_account_info(),
                 },
             ),
             funds_to_send,
             payment_mint_data.base.decimals,
         )?;
+
+        Some(buyer_payment_token_account.to_account_info())
     } else {
         transfer(
             CpiContext::new(
@@ -204,27 +193,15 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
             ),
             funds_to_send,
         )?;
-    }
+        None
+    };
 
     // Approve Transfer
-    if is_payment_mint_spl
-        && ctx
-            .accounts
-            .distribution_payment_token_account
-            .data_is_empty()
-    {
-        create_associated_token_account(
-            ctx.accounts.payer.to_account_info(),
-            ctx.accounts.distribution.to_account_info(),
-            ctx.accounts.payment_mint.to_account_info(),
-            ctx.accounts
-                .distribution_payment_token_account
-                .to_account_info(),
-            ctx.accounts.associated_token_program.to_account_info(),
-            ctx.accounts.token_program.to_account_info(),
-            ctx.accounts.system_program.to_account_info(),
-        )?;
-    }
+    let distribution_token_account_info = ctx
+        .accounts
+        .distribution_payment_token_account
+        .as_ref()
+        .map(|d| d.to_account_info());
 
     approve_transfer(
         CpiContext::new(
@@ -235,14 +212,10 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
                 payment_mint: ctx.accounts.payment_mint.to_account_info(),
                 mint: ctx.accounts.mint.to_account_info(),
                 distribution_account: ctx.accounts.distribution.to_account_info(),
-                authority_token_account: ctx.accounts.buyer_payment_token_account.to_account_info(),
-                distribution_token_account: ctx
-                    .accounts
-                    .distribution_payment_token_account
-                    .to_account_info(),
+                authority_token_account: buyer_token_account_info,
+                distribution_token_account: distribution_token_account_info,
                 approve_account: ctx.accounts.approve_account.to_account_info(),
                 distribution_program: ctx.accounts.distribution_program.to_account_info(),
-                associated_token_program: ctx.accounts.associated_token_program.to_account_info(),
                 token_program: ctx.accounts.token_program.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
             },

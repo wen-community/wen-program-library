@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import {PublicKey, SystemProgram, type TransactionInstruction} from '@solana/web3.js';
 import {
 	ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -35,7 +31,6 @@ export const getNftTransferApproveIx = async (provider: Provider, args: ApproveT
 			authority: args.authority,
 			mint: args.mint,
 			systemProgram: SystemProgram.programId,
-			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
 			tokenProgram: tokenProgramId,
 			approveAccount: getApproveAccountPda(args.mint),
 			paymentMint: args.paymentMint,

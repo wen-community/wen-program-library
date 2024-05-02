@@ -299,14 +299,6 @@ export type WenNewStandard = {
           "name": "paymentMint"
         },
         {
-          "name": "distributionTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "authorityTokenAccount",
-          "writable": true
-        },
-        {
           "name": "distributionAccount",
           "writable": true
         },
@@ -323,8 +315,14 @@ export type WenNewStandard = {
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "distributionTokenAccount",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "authorityTokenAccount",
+          "writable": true,
+          "optional": true
         }
       ],
       "args": [

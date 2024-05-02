@@ -1,14 +1,14 @@
-use anchor_lang::{
-    prelude::*,
-    solana_program::{entrypoint::ProgramResult, program_pack::Pack},
-};
+use anchor_lang::{prelude::*, solana_program::program_pack::Pack};
 use anchor_spl::{
     token::{spl_token::state::Mint as TokenMint, ID as token_keg_program_id},
     token_2022::spl_token_2022::{extension::StateWithExtensions, state::Mint as Token2022Mint},
-    token_interface::{transfer_checked, TokenInterface, TransferChecked},
+    token_interface::{transfer_checked, TokenAccount, TokenInterface, TransferChecked},
 };
 
-use crate::{get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount};
+use crate::{
+    get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount,
+    DistributionErrors,
+};
 
 #[derive(Accounts)]
 pub struct ClaimDistribution<'info> {
@@ -24,17 +24,28 @@ pub struct ClaimDistribution<'info> {
     /// CHECK: can be Pubkey::default() or mint address
     #[account()]
     pub payment_mint: UncheckedAccount<'info>,
-    /// CHECK: can be initialized token account or uninitialized token account, checks in cpi
-    #[account(mut)]
-    pub distribution_token_account: UncheckedAccount<'info>,
-    /// CHECK: can be initialized token account or uninitialized token account, checks in cpi
-    #[account(mut)]
-    pub creator_token_account: UncheckedAccount<'info>,
+
     pub token_program: Interface<'info, TokenInterface>,
+
+    /* Optional accounts */
+    #[account(
+        mut,
+        token::authority = distribution,
+        token::mint = payment_mint,
+        token::token_program = token_program,
+    )]
+    pub distribution_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(
+        mut,
+        token::authority = creator,
+        token::mint = payment_mint,
+        token::token_program = token_program,
+    )]
+    pub creator_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
 impl ClaimDistribution<'_> {
-    pub fn transfer_tokens(&self, amount: u64, signer_seeds: &[&[&[u8]]]) -> ProgramResult {
+    pub fn transfer_tokens(&self, amount: u64, signer_seeds: &[&[&[u8]]]) -> Result<()> {
         let mint_data = self.payment_mint.try_borrow_data()?;
         let mint_decimals = if self.token_program.key.eq(&token_keg_program_id) {
             TokenMint::unpack(&mint_data)?.decimals
@@ -44,10 +55,20 @@ impl ClaimDistribution<'_> {
                 .decimals
         };
 
+        let creator_token_account = self
+            .creator_token_account
+            .clone()
+            .ok_or(DistributionErrors::InvalidPaymentTokenAccount)?;
+
+        let distribution_token_account = self
+            .distribution_token_account
+            .clone()
+            .ok_or(DistributionErrors::InvalidPaymentTokenAccount)?;
+
         let cpi_accounts = TransferChecked {
             mint: self.payment_mint.to_account_info(),
-            from: self.distribution_token_account.to_account_info(),
-            to: self.creator_token_account.to_account_info(),
+            from: distribution_token_account.to_account_info(),
+            to: creator_token_account.to_account_info(),
             authority: self.distribution.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

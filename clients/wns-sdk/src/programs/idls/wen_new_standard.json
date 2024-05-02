@@ -293,14 +293,6 @@
           "name": "payment_mint"
         },
         {
-          "name": "distribution_token_account",
-          "writable": true
-        },
-        {
-          "name": "authority_token_account",
-          "writable": true
-        },
-        {
           "name": "distribution_account",
           "writable": true
         },
@@ -317,8 +309,14 @@
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "distribution_token_account",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "authority_token_account",
+          "writable": true,
+          "optional": true
         }
       ],
       "args": [

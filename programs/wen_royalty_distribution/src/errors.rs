@@ -6,6 +6,8 @@ pub enum DistributionErrors {
     InvalidGroupAuthority,
     #[msg("Invalid creator pct amount. Must add up to 100")]
     InvalidCreatorPctAmount,
+    #[msg("Invalid payment token account")]
+    InvalidPaymentTokenAccount,
     #[msg("Arithmetic overflow")]
     ArithmeticOverflow,
 }

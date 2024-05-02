@@ -3,7 +3,7 @@ import {tokenProgramId} from '../utils/constants';
 import {
 	getAtaAddress, getGroupAccountPda, getManagerAccountPda, getMetadataProgram,
 } from '../utils/core';
-import {SYSVAR_RENT_PUBKEY, SystemProgram} from '@solana/web3.js';
+import {SystemProgram} from '@solana/web3.js';
 import {type Provider} from '@coral-xyz/anchor';
 import {type CommonArgs} from '../utils';
 

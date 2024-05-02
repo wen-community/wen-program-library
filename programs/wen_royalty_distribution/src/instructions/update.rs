@@ -2,14 +2,10 @@ use std::str::FromStr;
 
 use anchor_lang::{
     prelude::*,
-    solana_program::{
-        entrypoint::ProgramResult, program::invoke, program_pack::Pack,
-        system_instruction::transfer,
-    },
+    solana_program::{program::invoke, program_pack::Pack, system_instruction::transfer},
 };
 
 use anchor_spl::{
-    associated_token::AssociatedToken,
     token::{spl_token::state::Mint as TokenMint, ID as token_keg_program_id},
     token_interface::{
         spl_token_2022::{
@@ -17,7 +13,7 @@ use anchor_spl::{
             state::Mint as Token2022Mint,
         },
         spl_token_metadata_interface::state::TokenMetadata,
-        transfer_checked, Mint, TokenInterface, TransferChecked,
+        transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked,
     },
 };
 
@@ -48,21 +44,37 @@ pub struct UpdateDistribution<'info> {
     /// CHECK: can be Pubkey::default() or mint address
     #[account()]
     pub payment_mint: UncheckedAccount<'info>,
-    #[account(mut)]
+    #[account(
+        mut,
+        has_one = payment_mint,
+        seeds = [distribution_account.group_mint.as_ref(), payment_mint.key().as_ref()],
+        bump
+    )]
     pub distribution_account: Account<'info, DistributionAccount>,
-    /// CHECK: can be an initialized token account or an uninitialized token account, checks in cpi
-    #[account(mut)]
-    pub authority_token_account: UncheckedAccount<'info>,
-    #[account(mut)]
-    /// CHECK: can be an initialized token account or an uninitialized token account, checks in cpi
-    pub distribution_token_account: UncheckedAccount<'info>,
-    pub system_program: Program<'info, System>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
+
     pub token_program: Interface<'info, TokenInterface>,
+    pub system_program: Program<'info, System>,
+
+    /* Optional Accounts */
+    #[account(
+        mut,
+        token::authority = distribution_account,
+        token::token_program = token_program,
+        token::mint = payment_mint,
+    )]
+    pub distribution_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+
+    #[account(
+        mut,
+        token::authority = authority,
+        token::mint = payment_mint,
+        token::token_program = token_program,
+    )]
+    pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
 impl UpdateDistribution<'_> {
-    pub fn transfer_royalty_amount(&self, amount: u64) -> ProgramResult {
+    pub fn transfer_royalty_amount(&self, amount: u64) -> Result<()> {
         let mint_data = self.payment_mint.try_borrow_data()?;
         let mint_decimals = if self.token_program.key.eq(&token_keg_program_id) {
             TokenMint::unpack(&mint_data)?.decimals
@@ -72,10 +84,20 @@ impl UpdateDistribution<'_> {
                 .decimals
         };
 
+        let authority_token_account = self
+            .authority_token_account
+            .clone()
+            .ok_or(DistributionErrors::InvalidPaymentTokenAccount)?;
+
+        let distribution_token_account = self
+            .distribution_token_account
+            .clone()
+            .ok_or(DistributionErrors::InvalidPaymentTokenAccount)?;
+
         let cpi_accounts = TransferChecked {
             mint: self.payment_mint.to_account_info(),
-            from: self.authority_token_account.to_account_info(),
-            to: self.distribution_token_account.to_account_info(),
+            from: authority_token_account.to_account_info(),
+            to: distribution_token_account.to_account_info(),
             authority: self.authority.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -84,7 +106,7 @@ impl UpdateDistribution<'_> {
         Ok(())
     }
 
-    pub fn transfer_sol(&self, amount: u64) -> ProgramResult {
+    pub fn transfer_sol(&self, amount: u64) -> Result<()> {
         invoke(
             &transfer(self.authority.key, &self.distribution_account.key(), amount),
             &[

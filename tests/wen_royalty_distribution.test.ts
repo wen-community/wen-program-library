@@ -30,6 +30,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Account,
   TOKEN_2022_PROGRAM_ID,
+  createAssociatedTokenAccountInstruction,
   getAccount,
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
@@ -337,25 +338,6 @@ describe("wen_royalty_distribution", () => {
       });
 
       describe("after a sale", () => {
-        const buyerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
-          PublicKey.default,
-          buyer.publicKey,
-          false,
-          TOKEN_2022_PROGRAM_ID
-        );
-        const sellerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
-          PublicKey.default,
-          seller.publicKey,
-          false,
-          TOKEN_2022_PROGRAM_ID
-        );
-        const distributionPaymentMintTokenAccount = getAssociatedTokenAddressSync(
-          PublicKey.default,
-          distribution,
-          true,
-          TOKEN_2022_PROGRAM_ID
-        );
-
         const listing = getListingAccountPda(
           seller.publicKey,
           memberMintPublickey,
@@ -385,7 +367,7 @@ describe("wen_royalty_distribution", () => {
             .buy({
               buyAmount: listingAmount,
             })
-            .accountsStrict({
+            .accountsPartial({
               approveAccount,
               extraMetasAccount,
               distribution,
@@ -394,9 +376,9 @@ describe("wen_royalty_distribution", () => {
               payer: wallet.publicKey,
               buyer: buyer.publicKey,
               seller: seller.publicKey,
-              buyerPaymentTokenAccount: buyerPaymentMintTokenAccount,
-              sellerPaymentTokenAccount: sellerPaymentMintTokenAccount,
-              distributionPaymentTokenAccount: distributionPaymentMintTokenAccount,
+              buyerPaymentTokenAccount: null,
+              sellerPaymentTokenAccount: null,
+              distributionPaymentTokenAccount: null,
               mint: memberMintPublickey,
               paymentMint: PublicKey.default,
               buyerTokenAccount: buyerMemberMintTokenAccount,
@@ -465,21 +447,7 @@ describe("wen_royalty_distribution", () => {
       });
 
       describe("after claiming", () => {
-        const distributionPaymentMintTokenAccount = getAssociatedTokenAddressSync(
-          PublicKey.default,
-          distribution,
-          true,
-          TOKEN_2022_PROGRAM_ID
-        );
-
         describe("creator 1", () => {
-          const creator1PaymentMintTokenAccount = getAssociatedTokenAddressSync(
-            PublicKey.default,
-            creator1.publicKey,
-            true,
-            TOKEN_2022_PROGRAM_ID
-          );
-
           let creator1PreBalance: number;
           let creator1PostBalance: number;
           const expectedCreatorShare = royalty
@@ -499,8 +467,8 @@ describe("wen_royalty_distribution", () => {
                 creator: creator1.publicKey,
                 distribution,
                 paymentMint: PublicKey.default,
-                creatorPaymentTokenAccount: creator1PaymentMintTokenAccount,
-                distributionPaymentTokenAccount: distributionPaymentMintTokenAccount,
+                creatorPaymentTokenAccount: null,
+                distributionPaymentTokenAccount: null,
                 wenDistributionProgram: wenDistributionProgramId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -524,13 +492,6 @@ describe("wen_royalty_distribution", () => {
         });
 
         describe("creator 2", () => {
-          const creator2PaymentMintTokenAccount = getAssociatedTokenAddressSync(
-            PublicKey.default,
-            creator2.publicKey,
-            true,
-            TOKEN_2022_PROGRAM_ID
-          );
-
           let creator2PreBalance: number;
           let creator2PostBalance: number;
           const expectedCreatorShare = royalty
@@ -550,8 +511,8 @@ describe("wen_royalty_distribution", () => {
                 creator: creator2.publicKey,
                 distribution,
                 paymentMint: PublicKey.default,
-                creatorPaymentTokenAccount: creator2PaymentMintTokenAccount,
-                distributionPaymentTokenAccount: distributionPaymentMintTokenAccount,
+                creatorPaymentTokenAccount: null,
+                distributionPaymentTokenAccount: null,
                 wenDistributionProgram: wenDistributionProgramId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -947,6 +908,13 @@ describe("wen_royalty_distribution", () => {
             })
             .preInstructions([
               ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+              createAssociatedTokenAccountInstruction(
+                wallet.publicKey,
+                distributionPaymentMintTokenAccount,
+                distribution,
+                paymentMintPublickey,
+                TOKEN_2022_PROGRAM_ID
+              ),
             ])
             .signers([buyer])
             .rpc({
@@ -1063,6 +1031,15 @@ describe("wen_royalty_distribution", () => {
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
               })
+              .preInstructions([
+                createAssociatedTokenAccountInstruction(
+                  wallet.publicKey,
+                  creator1PaymentMintTokenAccount,
+                  creator1.publicKey,
+                  paymentMintPublickey,
+                  TOKEN_2022_PROGRAM_ID
+                ),
+              ])
               .signers([creator1])
               .rpc({
                 skipPreflight: true,
@@ -1115,6 +1092,15 @@ describe("wen_royalty_distribution", () => {
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
               })
+              .preInstructions([
+                createAssociatedTokenAccountInstruction(
+                  wallet.publicKey,
+                  creator2PaymentMintTokenAccount,
+                  creator2.publicKey,
+                  paymentMintPublickey,
+                  TOKEN_2022_PROGRAM_ID
+                ),
+              ])
               .signers([creator2])
               .rpc({
                 skipPreflight: true,
