@@ -24,7 +24,7 @@ pub struct CreateMintAccountArgs {
 pub struct CreateMintAccount<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    #[account(mut)]
+    #[account()]
     /// CHECK: can be any account
     pub authority: Signer<'info>,
     #[account()]
@@ -61,7 +61,6 @@ pub struct CreateMintAccount<'info> {
     )]
     pub manager: Account<'info, Manager>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
 }

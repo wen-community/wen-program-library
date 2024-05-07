@@ -36,7 +36,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -88,7 +87,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -119,8 +117,7 @@ export type WenNewStandard = {
           }
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "manager",
@@ -175,7 +172,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -303,14 +299,6 @@ export type WenNewStandard = {
           "name": "paymentMint"
         },
         {
-          "name": "distributionTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "authorityTokenAccount",
-          "writable": true
-        },
-        {
           "name": "distributionAccount",
           "writable": true
         },
@@ -327,8 +315,14 @@ export type WenNewStandard = {
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "distributionTokenAccount",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "authorityTokenAccount",
+          "writable": true,
+          "optional": true
         }
       ],
       "args": [
@@ -481,10 +475,6 @@ export type WenNewStandard = {
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
-        },
-        {
           "name": "associatedTokenProgram",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
@@ -527,7 +517,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -564,10 +553,6 @@ export type WenNewStandard = {
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
         },
         {
           "name": "associatedTokenProgram",
@@ -678,11 +663,6 @@ export type WenNewStandard = {
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "user"
         },
         {
@@ -691,8 +671,7 @@ export type WenNewStandard = {
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mintTokenAccount",
@@ -795,7 +774,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -845,7 +823,6 @@ export type WenNewStandard = {
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -891,11 +868,6 @@ export type WenNewStandard = {
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "user"
         },
         {
@@ -904,8 +876,7 @@ export type WenNewStandard = {
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mintTokenAccount",

@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 import { expect } from "chai";
 import { faker } from "@faker-js/faker";
@@ -11,7 +11,6 @@ import {
   PublicKey,
   SystemProgram,
   LAMPORTS_PER_SOL,
-  SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
@@ -125,7 +124,7 @@ describe("wen_new_standard", () => {
             payer: mintAuthPublicKey,
             receiver: mintAuthPublicKey,
             manager,
-            rent: SYSVAR_RENT_PUBKEY,
+
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -305,7 +304,6 @@ describe("wen_new_standard", () => {
             delegateAuthority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
-            payer: mintAuthPublicKey,
             user: mintAuthPublicKey,
             manager,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -403,7 +401,6 @@ describe("wen_new_standard", () => {
             delegateAuthority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
-            payer: mintAuthPublicKey,
             user: mintAuthPublicKey,
             manager,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -613,7 +610,6 @@ describe("wen_new_standard", () => {
           tokenProgram: TOKEN_2022_PROGRAM_ID,
           payer,
           manager,
-          rent: SYSVAR_RENT_PUBKEY,
           systemProgram: SystemProgram.programId,
         })
         .signers([groupMintKeyPair, groupAuthorityKeyPair])
@@ -740,7 +736,7 @@ describe("wen_new_standard", () => {
               receiver: mintAuthPublicKey,
               associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
               manager,
-              rent: SYSVAR_RENT_PUBKEY,
+  
               systemProgram: SystemProgram.programId,
               tokenProgram: TOKEN_2022_PROGRAM_ID,
             })
@@ -835,7 +831,7 @@ describe("wen_new_standard", () => {
             receiver: mintAuthPublicKey,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             manager,
-            rent: SYSVAR_RENT_PUBKEY,
+
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })

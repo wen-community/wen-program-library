@@ -45,31 +45,33 @@ export type WenRoyaltyDistribution = {
                 "account": "distributionAccount"
               },
               {
-                "kind": "arg",
+                "kind": "account",
                 "path": "paymentMint"
               }
             ]
           }
         },
         {
+          "name": "paymentMint",
+          "relations": [
+            "distribution"
+          ]
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
           "name": "distributionTokenAccount",
-          "writable": true
+          "writable": true,
+          "optional": true
         },
         {
           "name": "creatorTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "writable": true,
+          "optional": true
         }
       ],
-      "args": [
-        {
-          "name": "paymentMint",
-          "type": "pubkey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "initializeDistribution",
@@ -148,28 +150,44 @@ export type WenRoyaltyDistribution = {
           "name": "mint"
         },
         {
+          "name": "paymentMint",
+          "relations": [
+            "distributionAccount"
+          ]
+        },
+        {
           "name": "distributionAccount",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "distribution_account.group_mint",
+                "account": "distributionAccount"
+              },
+              {
+                "kind": "account",
+                "path": "paymentMint"
+              }
+            ]
+          }
         },
         {
-          "name": "authorityTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "distributionTokenAccount",
-          "writable": true
+          "name": "tokenProgram"
         },
         {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "distributionTokenAccount",
+          "writable": true,
+          "optional": true
         },
         {
-          "name": "tokenProgram",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "name": "authorityTokenAccount",
+          "writable": true,
+          "optional": true
         }
       ],
       "args": [
@@ -212,6 +230,11 @@ export type WenRoyaltyDistribution = {
     },
     {
       "code": 6002,
+      "name": "invalidPaymentTokenAccount",
+      "msg": "Invalid payment token account"
+    },
+    {
+      "code": 6003,
       "name": "arithmeticOverflow",
       "msg": "Arithmetic overflow"
     }
@@ -286,10 +309,6 @@ export type WenRoyaltyDistribution = {
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "paymentMint",
-            "type": "pubkey"
           }
         ]
       }

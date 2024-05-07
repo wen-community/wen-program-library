@@ -26,7 +26,7 @@ use crate::{
 pub struct ModifyRoyalties<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    #[account(mut)]
+    #[account()]
     pub authority: Signer<'info>,
     #[account(
         mut,

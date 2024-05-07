@@ -3,7 +3,7 @@ import {tokenProgramId} from '../utils/constants';
 import {
 	getAtaAddress, getGroupAccountPda, getManagerAccountPda, getMetadataProgram,
 } from '../utils/core';
-import {SYSVAR_RENT_PUBKEY, SystemProgram} from '@solana/web3.js';
+import {SystemProgram} from '@solana/web3.js';
 import {type Provider} from '@coral-xyz/anchor';
 import {type CommonArgs} from '../utils';
 
@@ -35,7 +35,6 @@ export const getCreateGroupIx = async (provider: Provider, args: CreateGroupArgs
 			mint: args.groupMint,
 			mintTokenAccount: getAtaAddress(args.groupMint, args.receiver),
 			systemProgram: SystemProgram.programId,
-			rent: SYSVAR_RENT_PUBKEY,
 			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
 			tokenProgram: tokenProgramId,
 			group: groupAccount,

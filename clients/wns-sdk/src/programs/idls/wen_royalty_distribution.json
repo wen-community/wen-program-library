@@ -39,31 +39,33 @@
                 "account": "DistributionAccount"
               },
               {
-                "kind": "arg",
+                "kind": "account",
                 "path": "payment_mint"
               }
             ]
           }
         },
         {
+          "name": "payment_mint",
+          "relations": [
+            "distribution"
+          ]
+        },
+        {
+          "name": "token_program"
+        },
+        {
           "name": "distribution_token_account",
-          "writable": true
+          "writable": true,
+          "optional": true
         },
         {
           "name": "creator_token_account",
-          "writable": true
-        },
-        {
-          "name": "token_program",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "writable": true,
+          "optional": true
         }
       ],
-      "args": [
-        {
-          "name": "payment_mint",
-          "type": "pubkey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "initialize_distribution",
@@ -142,28 +144,44 @@
           "name": "mint"
         },
         {
+          "name": "payment_mint",
+          "relations": [
+            "distribution_account"
+          ]
+        },
+        {
           "name": "distribution_account",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "distribution_account.group_mint",
+                "account": "DistributionAccount"
+              },
+              {
+                "kind": "account",
+                "path": "payment_mint"
+              }
+            ]
+          }
         },
         {
-          "name": "authority_token_account",
-          "writable": true
-        },
-        {
-          "name": "distribution_token_account",
-          "writable": true
+          "name": "token_program"
         },
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "distribution_token_account",
+          "writable": true,
+          "optional": true
         },
         {
-          "name": "token_program",
-          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+          "name": "authority_token_account",
+          "writable": true,
+          "optional": true
         }
       ],
       "args": [
@@ -206,6 +224,11 @@
     },
     {
       "code": 6002,
+      "name": "InvalidPaymentTokenAccount",
+      "msg": "Invalid payment token account"
+    },
+    {
+      "code": 6003,
       "name": "ArithmeticOverflow",
       "msg": "Arithmetic overflow"
     }
@@ -280,10 +303,6 @@
           {
             "name": "amount",
             "type": "u64"
-          },
-          {
-            "name": "payment_mint",
-            "type": "pubkey"
           }
         ]
       }

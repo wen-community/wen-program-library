@@ -34,7 +34,7 @@ pub mod wen_royalty_distribution {
     }
 
     /// Claim royalties from a distribution account.
-    pub fn claim_distribution(ctx: Context<ClaimDistribution>, payment_mint: Pubkey) -> Result<()> {
-        instructions::claim::handler(ctx, payment_mint)
+    pub fn claim_distribution(ctx: Context<ClaimDistribution>) -> Result<()> {
+        instructions::claim::handler(ctx)
     }
 }

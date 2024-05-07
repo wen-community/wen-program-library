@@ -33,7 +33,6 @@ export const getMintNftIx = async (provider: Provider, args: CreateNftArgs) => {
 			mint: args.mint,
 			mintTokenAccount: getAtaAddress(args.mint, args.receiver),
 			systemProgram: SystemProgram.programId,
-			rent: SYSVAR_RENT_PUBKEY,
 			associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
 			tokenProgram: tokenProgramId,
 			manager: managerAccount,
@@ -133,7 +132,6 @@ export const getThawNftIx = async (provider: Provider, args: ThawNftArgs) => {
 	const ix = await metadataProgram.methods
 		.thawMintAccount()
 		.accountsStrict({
-			payer: args.payer,
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
 			mint: args.mint,
@@ -157,7 +155,6 @@ export const getFreezeNftIx = async (provider: Provider, args: FreezeNftArgs) =>
 	const ix = await metadataProgram.methods
 		.freezeMintAccount()
 		.accountsStrict({
-			payer: args.payer,
 			user: args.authority,
 			delegateAuthority: args.delegateAuthority,
 			mint: args.mint,

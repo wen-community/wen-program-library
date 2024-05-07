@@ -14,7 +14,7 @@ use crate::{
 pub struct AddGroup<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    #[account(mut)]
+    #[account()]
     pub authority: Signer<'info>,
     #[account(
         mut,
@@ -30,7 +30,6 @@ pub struct AddGroup<'info> {
     )]
     pub member: Account<'info, TokenGroupMember>,
     #[account(
-        mut,
         mint::token_program = TOKEN22
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,

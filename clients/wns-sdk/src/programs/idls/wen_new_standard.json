@@ -30,7 +30,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -82,7 +81,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -113,8 +111,7 @@
           }
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "manager",
@@ -169,7 +166,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -297,14 +293,6 @@
           "name": "payment_mint"
         },
         {
-          "name": "distribution_token_account",
-          "writable": true
-        },
-        {
-          "name": "authority_token_account",
-          "writable": true
-        },
-        {
           "name": "distribution_account",
           "writable": true
         },
@@ -321,8 +309,14 @@
           "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
         },
         {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "distribution_token_account",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "authority_token_account",
+          "writable": true,
+          "optional": true
         }
       ],
       "args": [
@@ -475,10 +469,6 @@
           "address": "11111111111111111111111111111111"
         },
         {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
-        },
-        {
           "name": "associated_token_program",
           "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
@@ -521,7 +511,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -558,10 +547,6 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
         },
         {
           "name": "associated_token_program",
@@ -672,11 +657,6 @@
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "user"
         },
         {
@@ -685,8 +665,7 @@
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mint_token_account",
@@ -789,7 +768,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -839,7 +817,6 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true
         },
         {
@@ -885,11 +862,6 @@
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "user"
         },
         {
@@ -898,8 +870,7 @@
           "signer": true
         },
         {
-          "name": "mint",
-          "writable": true
+          "name": "mint"
         },
         {
           "name": "mint_token_account",
