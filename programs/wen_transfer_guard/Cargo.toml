@@ -14,10 +14,10 @@ cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-idl-build = ["anchor-lang/idl-build"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
-anchor-lang = "0.30.0"
+anchor-lang = { version = "0.30.0", features = ["interface-instructions"] }
 anchor-spl = "0.30.0"
-spl-tlv-account-resolution = "0.6.3"
-spl-transfer-hook-interface = "0.6.3"
+spl-tlv-account-resolution = "0.4.0"
+spl-transfer-hook-interface = "0.3.0"

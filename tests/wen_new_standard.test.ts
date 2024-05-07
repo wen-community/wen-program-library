@@ -1032,8 +1032,4 @@ describe("wen_new_standard", () => {
       });
     });
   });
-
-  describe("[TRANSFER HOOK TEST SUITE] - Initializes account metas", () => {
-    // TODO.
-  });
 });

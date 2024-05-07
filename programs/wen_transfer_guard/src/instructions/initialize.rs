@@ -22,6 +22,7 @@ pub struct Initialize<'info> {
     #[account(mint::token_program = TOKEN_2022_PROGRAM_ID)]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
+    // TODO: SWAP FOR OWN
     #[account(mut)]
     pub mint_authority: Signer<'info>,
 
@@ -46,7 +47,10 @@ pub fn processor(ctx: Context<Initialize>, metas: Vec<AnchorExtraAccountMeta>) -
         ))?;
     }
 
-    let metas: Vec<ExtraAccountMeta> = metas.into_iter().map(|meta| meta.into()).collect();
+    let metas = metas
+        .into_iter()
+        .map(|meta| meta.into())
+        .collect::<Vec<ExtraAccountMeta>>();
     let mut data = extra_metas_account.try_borrow_mut_data()?;
     ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
 
