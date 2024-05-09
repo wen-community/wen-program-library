@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, Program, web3 } from "@coral-xyz/anchor";
+import { Program, web3 } from "@coral-xyz/anchor";
 
 import { WenTransferGuard } from "../target/types/wen_transfer_guard";
 import {
@@ -13,15 +13,14 @@ import {
   getAssociatedTokenAddressSync,
   getExtraAccountMetaAddress,
   getMintLen,
-  addExtraAccountMetasForExecute,
-  createTransferCheckedInstruction,
+  createTransferCheckedWithTransferHookInstruction,
 } from "@solana/spl-token";
 
 describe("wen_transfer_guard", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const { connection, wallet } = provider;
-  const program = anchor.workspace.WenNewStandard as Program<WenTransferGuard>;
+  const program = anchor.workspace
+    .WenTransferGuard as Program<WenTransferGuard>;
 
   const mintAuthority = web3.Keypair.generate();
   const payer = web3.Keypair.generate();
@@ -38,10 +37,12 @@ describe("wen_transfer_guard", () => {
   const mintAmount = 100;
   const transferAmount = 10;
 
+  const generatedAddress = web3.Keypair.generate().publicKey;
+
   const extraMetas: ExtraAccountMeta[] = [
     {
       discriminator: 0,
-      addressConfig: web3.Keypair.generate().publicKey.toBuffer(),
+      addressConfig: generatedAddress.toBuffer(),
       isWritable: false,
       isSigner: false,
     },
@@ -130,7 +131,7 @@ describe("wen_transfer_guard", () => {
 
   it("Can transfer with extra account metas", async () => {
     // Initialize the extra metas
-    await program.methods
+    const initTxId = await program.methods
       .initialize(extraMetas as any[])
       .accountsStrict({
         extraMetasAccount: extraMetasAddress,
@@ -139,33 +140,31 @@ describe("wen_transfer_guard", () => {
         payer: payer.publicKey,
         systemProgram: web3.SystemProgram.programId,
       })
-      .signers([mintAuthority])
-      .rpc();
+      .signers([mintAuthority, payer])
+      .rpc({ skipPreflight: true, commitment: "confirmed" });
 
-    const ix = await addExtraAccountMetasForExecute(
-      provider.connection,
-      createTransferCheckedInstruction(
-        source,
-        mint.publicKey,
-        destination,
-        sourceAuthority.publicKey,
-        transferAmount,
-        decimals,
-        undefined,
-        TOKEN_2022_PROGRAM_ID
-      ),
-      TOKEN_2022_PROGRAM_ID,
+    console.log("Init tx id", initTxId);
+
+    const transferIx = await createTransferCheckedWithTransferHookInstruction(
+      program.provider.connection,
       source,
       mint.publicKey,
       destination,
       sourceAuthority.publicKey,
-      transferAmount
+      BigInt(transferAmount),
+      decimals,
+      undefined,
+      "confirmed",
+      TOKEN_2022_PROGRAM_ID
     );
 
-    await web3.sendAndConfirmTransaction(
+    const executeTxId = await web3.sendAndConfirmTransaction(
       provider.connection,
-      new web3.Transaction().add(ix),
-      [payer, sourceAuthority]
+      new web3.Transaction().add(transferIx),
+      [payer, sourceAuthority],
+      { skipPreflight: true, commitment: "confirmed" }
     );
+
+    console.log("Execute tx id", executeTxId);
   });
 });
