@@ -109,4 +109,25 @@ pub mod wen_new_standard {
     pub fn approve_transfer(ctx: Context<ApproveTransfer>, buy_amount: u64) -> Result<()> {
         instructions::royalty::approve::handler(ctx, buy_amount)
     }
+
+    /* Resize instructions */
+    pub fn resize_manager(ctx: Context<ResizeManager>) -> Result<()> {
+        instructions::resize::manager::handler(ctx)
+    }
+
+    pub fn resize_group(ctx: Context<ResizeGroup>) -> Result<()> {
+        instructions::resize::group::handler(ctx)
+    }
+
+    pub fn resize_group_member(ctx: Context<ResizeGroupMember>) -> Result<()> {
+        instructions::resize::group_member::handler(ctx)
+    }
+
+    pub fn resize_approve(ctx: Context<ResizeApprove>) -> Result<()> {
+        instructions::resize::approve::handler(ctx)
+    }
+    /**/
+
+    /* Assign bump instructions (upcoming) */
+    /**/
 }

@@ -37,4 +37,9 @@ pub mod wen_royalty_distribution {
     pub fn claim_distribution(ctx: Context<ClaimDistribution>) -> Result<()> {
         instructions::claim::handler(ctx)
     }
+
+    /// Resize old accounts for backwards compatibility.
+    pub fn resize_distribution(ctx: Context<ResizeDistribution>) -> Result<()> {
+        instructions::resize::handler(ctx)
+    }
 }
