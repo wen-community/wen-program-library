@@ -17,6 +17,5 @@ pub struct ResizeApprove<'info> {
 }
 
 pub fn handler(_: Context<ResizeApprove>) -> Result<()> {
-    msg!("Resize complete!");
     Ok(())
 }

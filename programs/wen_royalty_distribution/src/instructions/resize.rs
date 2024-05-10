@@ -24,6 +24,11 @@ pub fn handler(ctx: Context<ResizeDistribution>) -> Result<()> {
     let new_length = 8 + DistributionAccount::INIT_SPACE + 1;
     let rent_required = Rent::get()?.minimum_balance(new_length);
 
+    // Account already resized if data_len == new_length
+    if distribution_account.data_len() == new_length {
+        return Ok(());
+    }
+
     transfer(
         CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
@@ -36,7 +41,5 @@ pub fn handler(ctx: Context<ResizeDistribution>) -> Result<()> {
     )?;
 
     distribution_account.realloc(new_length, false)?;
-
-    msg!("Resize complete!");
     Ok(())
 }

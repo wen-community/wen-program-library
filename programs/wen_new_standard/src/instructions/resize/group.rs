@@ -19,6 +19,5 @@ pub struct ResizeGroup<'info> {
 }
 
 pub fn handler(_: Context<ResizeGroup>) -> Result<()> {
-    msg!("Resize complete!");
     Ok(())
 }
