@@ -21,6 +21,8 @@ pub struct DistributionAccount {
     pub payment_mint: Pubkey,
     #[max_len(10)] // we currently support 10 creators
     pub claim_data: Vec<Creator>,
+    /// PDA bump
+    pub bump: u8,
 }
 
 impl DistributionAccount {

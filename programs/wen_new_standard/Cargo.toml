@@ -7,9 +7,6 @@ edition = "2021"
 [package.metadata.docs.rs]
 tags = ["wns", "alpha", "solana", "token_extensions"]
 
-[profile.release]
-overflow-checks = true
-
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "wen_new_standard"

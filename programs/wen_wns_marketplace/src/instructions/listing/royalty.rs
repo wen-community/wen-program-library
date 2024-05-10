@@ -21,6 +21,9 @@ pub struct ClaimRoyalty<'info> {
     #[account(
         mut,
         has_one = payment_mint,
+        seeds = [distribution.group_mint.as_ref(), payment_mint.key().as_ref()],
+        seeds::program = wen_distribution_program.key(),
+        bump
     )]
     pub distribution: Account<'info, DistributionAccount>,
 

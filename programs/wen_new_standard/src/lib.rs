@@ -22,9 +22,8 @@ pub mod wen_new_standard {
         Manager instructions
     */
     /// Init manager account
-    pub fn init_manager_account(_ctx: Context<InitManagerAccount>) -> Result<()> {
-        // create manager happens in the macro, no extra processor needed
-        Ok(())
+    pub fn init_manager_account(ctx: Context<InitManagerAccount>) -> Result<()> {
+        instructions::manager::init::handler(ctx)
     }
 
     /// Token group instructions
@@ -128,6 +127,17 @@ pub mod wen_new_standard {
     }
     /**/
 
-    /* Assign bump instructions (upcoming) */
+    /* Assign bump instructions */
+    pub fn update_bump_manager(ctx: Context<UpdateBumpManager>) -> Result<()> {
+        instructions::bump::manager::handler(ctx)
+    }
+
+    pub fn update_bump_group(ctx: Context<UpdateBumpGroup>) -> Result<()> {
+        instructions::bump::group::handler(ctx)
+    }
+
+    pub fn update_bump_group_member(ctx: Context<UpdateBumpGroupMember>) -> Result<()> {
+        instructions::bump::group_member::handler(ctx)
+    }
     /**/
 }
