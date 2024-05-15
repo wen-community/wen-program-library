@@ -17,8 +17,20 @@ pub mod wen_transfer_guard {
     use super::*;
 
     #[interface(spl_transfer_hook_interface::initialize_extra_account_meta_list)]
-    pub fn initialize(ctx: Context<Initialize>, metas: Vec<AnchorExtraAccountMeta>) -> Result<()> {
-        initialize::processor(ctx, metas)
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        metas: Vec<AnchorExtraAccountMeta>,
+        cpi_rule: Option<CPIRule>,
+        transfer_amount_rule: Option<TransferAmountRule>,
+        addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+    ) -> Result<()> {
+        initialize::processor(
+            ctx,
+            metas,
+            cpi_rule,
+            transfer_amount_rule,
+            addition_fields_rule,
+        )
     }
 
     #[interface(spl_transfer_hook_interface::execute)]
