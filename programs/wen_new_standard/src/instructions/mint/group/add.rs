@@ -1,12 +1,11 @@
 use anchor_lang::prelude::*;
 
-use anchor_spl::token_interface::{
-    group_member_pointer_update, GroupMemberPointerUpdate, Mint, Token2022,
-};
-
-use crate::{
-    get_bump_in_seed_form, Manager, TokenGroup, TokenGroupMember, MANAGER_SEED,
-    MEMBER_ACCOUNT_SEED, TOKEN22,
+use anchor_spl::{
+    token_2022::ID as TOKEN_2022_PROGRAM_ID,
+    token_interface::{
+        token_group::{token_member_initialize, TokenMemberInitialize},
+        Mint, Token2022,
+    },
 };
 
 #[derive(Accounts)]
@@ -15,69 +14,41 @@ pub struct AddGroup<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account()]
-    pub authority: Signer<'info>,
+    pub group_update_authority: Signer<'info>,
+    #[account()]
+    pub member_mint_authority: Signer<'info>,
     #[account(
         mut,
-        constraint = group.update_authority == authority.key(),
+        mint::token_program = TOKEN_2022_PROGRAM_ID
     )]
-    pub group: Account<'info, TokenGroup>,
+    pub group_mint: Box<InterfaceAccount<'info, Mint>>,
     #[account(
-        init,
-        seeds = [MEMBER_ACCOUNT_SEED, mint.key().as_ref()],
-        bump,
-        payer = payer,
-        space = 8 + TokenGroupMember::INIT_SPACE
-    )]
-    pub member: Account<'info, TokenGroupMember>,
-    #[account(
-        mint::token_program = TOKEN22
+        mut,
+        mint::token_program = TOKEN_2022_PROGRAM_ID
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
-    #[account(
-        seeds = [MANAGER_SEED],
-        bump
-    )]
-    pub manager: Box<Account<'info, Manager>>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
 }
 
 impl AddGroup<'_> {
-    fn update_group_member_pointer_member_address(
-        &self,
-        member: Pubkey,
-        signer_seeds: &[&[&[u8]]],
-    ) -> Result<()> {
-        let cpi_accounts = GroupMemberPointerUpdate {
+    fn initialize_token_member(&self) -> Result<()> {
+        let cpi_accounts = TokenMemberInitialize {
             token_program_id: self.token_program.to_account_info(),
-            mint: self.mint.to_account_info(),
-            authority: self.manager.to_account_info(),
+            group: self.group_mint.to_account_info(),
+            member: self.mint.to_account_info(),
+            member_mint: self.mint.to_account_info(),
+            group_update_authority: self.group_update_authority.to_account_info(),
+            member_mint_authority: self.member_mint_authority.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new_with_signer(
-            self.token_program.to_account_info(),
-            cpi_accounts,
-            signer_seeds,
-        );
-        group_member_pointer_update(cpi_ctx, Some(member))?;
+
+        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
+        token_member_initialize(cpi_ctx)?;
         Ok(())
     }
 }
 
 pub fn handler(ctx: Context<AddGroup>) -> Result<()> {
-    let group = &mut ctx.accounts.group;
-    group.increment_size()?;
-
-    let member = &mut ctx.accounts.member;
-    member.group = group.key();
-    member.mint = ctx.accounts.mint.key();
-    member.member_number = group.size;
-
-    let member_address = member.key();
-
-    let signer_seeds = &[MANAGER_SEED, &get_bump_in_seed_form(&ctx.bumps.manager)];
-
-    ctx.accounts
-        .update_group_member_pointer_member_address(member_address, &[&signer_seeds[..]])?;
-
+    ctx.accounts.initialize_token_member()?;
     Ok(())
 }
