@@ -2,16 +2,15 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to, set_authority, spl_token_2022::instruction::AuthorityType,
+        mint_to, set_authority,
+        spl_token_2022::instruction::AuthorityType,
+        token_group::{token_group_initialize, TokenGroupInitialize},
         token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
         TokenMetadataInitialize,
     },
 };
 
-use crate::{
-    update_account_lamports_to_minimum_balance, Manager, TokenGroup, GROUP_ACCOUNT_SEED,
-    MANAGER_SEED,
-};
+use crate::{update_account_lamports_to_minimum_balance, Manager, MANAGER_SEED};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct CreateGroupAccountArgs {
@@ -33,14 +32,6 @@ pub struct CreateGroupAccount<'info> {
     pub receiver: UncheckedAccount<'info>,
     #[account(
         init,
-        seeds = [GROUP_ACCOUNT_SEED, mint.key().as_ref()],
-        bump,
-        payer = payer,
-        space = 8 + TokenGroup::INIT_SPACE
-    )]
-    pub group: Account<'info, TokenGroup>,
-    #[account(
-        init,
         signer,
         payer = payer,
         mint::token_program = token_program,
@@ -49,9 +40,8 @@ pub struct CreateGroupAccount<'info> {
         mint::freeze_authority = manager,
         extensions::metadata_pointer::authority = authority,
         extensions::metadata_pointer::metadata_address = mint,
-        // group pointer authority is left as the manager so that it can be updated once token group support inside mint is added
-        extensions::group_pointer::authority = manager,
-        extensions::group_pointer::group_address = group,
+        extensions::group_pointer::authority = authority,
+        extensions::group_pointer::group_address = mint,
         // temporary mint close authority until a better program accounts can be used
         extensions::close_authority::authority = manager,
     )]
@@ -88,6 +78,19 @@ impl<'info> CreateGroupAccount<'info> {
         Ok(())
     }
 
+    fn initialize_group(&self, max_size: u32) -> Result<()> {
+        let cpi_accounts = TokenGroupInitialize {
+            group: self.mint.to_account_info(),
+            mint: self.mint.to_account_info(),
+            mint_authority: self.authority.to_account_info(),
+            token_program_id: self.token_program.to_account_info(),
+        };
+
+        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
+        token_group_initialize(cpi_ctx, Some(self.authority.key()), max_size)?;
+        Ok(())
+    }
+
     fn mint_to_receiver(&self) -> Result<()> {
         let cpi_ctx = MintTo {
             mint: self.mint.to_account_info(),
@@ -105,9 +108,7 @@ impl<'info> CreateGroupAccount<'info> {
             account_or_mint: self.mint.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        // manager needs to be the new authority so that when solana upgrades to support group accounts, the mint can be updated
-        // this will updated to None once solana supports group accounts
-        set_authority(cpi_ctx, AuthorityType::MintTokens, Some(self.manager.key()))?;
+        set_authority(cpi_ctx, AuthorityType::MintTokens, None)?;
         Ok(())
     }
 }
@@ -117,12 +118,8 @@ pub fn handler(ctx: Context<CreateGroupAccount>, args: CreateGroupAccountArgs) -
     ctx.accounts
         .initialize_metadata(args.name, args.symbol, args.uri)?;
 
-    // using a custom group account until token22 implements group account
-    let group = &mut ctx.accounts.group;
-    group.max_size = args.max_size;
-    group.update_authority = ctx.accounts.authority.key();
-    group.mint = ctx.accounts.mint.key();
-    group.size = 0;
+    // initialize group account
+    ctx.accounts.initialize_group(args.max_size)?;
 
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;

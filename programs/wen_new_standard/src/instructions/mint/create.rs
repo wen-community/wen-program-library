@@ -40,7 +40,8 @@ pub struct CreateMintAccount<'info> {
         mint::freeze_authority = manager,
         extensions::metadata_pointer::authority = authority,
         extensions::metadata_pointer::metadata_address = mint,
-        extensions::group_member_pointer::authority = manager,
+        extensions::group_member_pointer::authority = authority,
+        extensions::group_member_pointer::member_address = mint,
         extensions::transfer_hook::authority = authority,
         extensions::permanent_delegate::delegate = args.permanent_delegate.unwrap_or_else(|| manager.key()),
         // temporary mint close authority until a better program accounts can be used
@@ -101,9 +102,7 @@ impl<'info> CreateMintAccount<'info> {
             account_or_mint: self.mint.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        // manager needs to be the new authority so that when solana upgrades to support member accounts, the mint can be updated
-        // this will updated to None once solana supports member accounts
-        set_authority(cpi_ctx, AuthorityType::MintTokens, Some(self.manager.key()))?;
+        set_authority(cpi_ctx, AuthorityType::MintTokens, None)?;
         Ok(())
     }
 
@@ -139,7 +138,6 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
 
     // remove mint authority
     ctx.accounts.update_mint_authority()?;
-    // TODO: Once Token Extension program supports Group/Member accounts natively, should lock Mint Authority
 
     // transfer minimum rent to mint account
     update_account_lamports_to_minimum_balance(
