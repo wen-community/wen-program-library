@@ -57,6 +57,11 @@ pub mod wen_new_standard {
         instructions::mint::group::add::handler(ctx)
     }
 
+    /// remove mint from group
+    pub fn remove_mint_from_group(ctx: Context<RemoveGroup>) -> Result<()> {
+        instructions::mint::group::remove::handler(ctx)
+    }
+
     /// add royalties to mint
     pub fn add_royalties(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
         instructions::mint::royalties::add::handler(ctx, args)

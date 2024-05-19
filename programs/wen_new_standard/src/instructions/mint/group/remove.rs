@@ -5,13 +5,13 @@ use anchor_spl::token_interface::{
 };
 
 use crate::{
-    get_bump_in_seed_form, Manager, TokenGroup, TokenGroupMember, GROUP_ACCOUNT_SEED, MANAGER_SEED,
-    MEMBER_ACCOUNT_SEED, TOKEN22,
+    get_bump_in_seed_form, Manager, MintErrors, TokenGroup, TokenGroupMember, GROUP_ACCOUNT_SEED,
+    MANAGER_SEED, MEMBER_ACCOUNT_SEED, TOKEN22,
 };
 
 #[derive(Accounts)]
 #[instruction()]
-pub struct AddGroup<'info> {
+pub struct RemoveGroup<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account()]
@@ -24,14 +24,14 @@ pub struct AddGroup<'info> {
     )]
     pub group: Account<'info, TokenGroup>,
     #[account(
-        init,
+        mut,
+        has_one = mint @ MintErrors::InvalidTokenGroupMemberMint,
         seeds = [MEMBER_ACCOUNT_SEED, mint.key().as_ref()],
         bump,
-        payer = payer,
-        space = 8 + TokenGroupMember::INIT_SPACE
     )]
     pub member: Account<'info, TokenGroupMember>,
     #[account(
+        mut,
         mint::token_program = TOKEN22
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
@@ -44,12 +44,8 @@ pub struct AddGroup<'info> {
     pub token_program: Program<'info, Token2022>,
 }
 
-impl AddGroup<'_> {
-    fn update_group_member_pointer_member_address(
-        &self,
-        member: Pubkey,
-        signer_seeds: &[&[&[u8]]],
-    ) -> Result<()> {
+impl RemoveGroup<'_> {
+    fn update_group_member_pointer_member_address(&self, signer_seeds: &[&[&[u8]]]) -> Result<()> {
         let cpi_accounts = GroupMemberPointerUpdate {
             token_program_id: self.token_program.to_account_info(),
             mint: self.mint.to_account_info(),
@@ -60,26 +56,22 @@ impl AddGroup<'_> {
             cpi_accounts,
             signer_seeds,
         );
-        group_member_pointer_update(cpi_ctx, Some(member))?;
+        group_member_pointer_update(cpi_ctx, None)?;
         Ok(())
     }
 }
 
-pub fn handler(ctx: Context<AddGroup>) -> Result<()> {
+pub fn handler(ctx: Context<RemoveGroup>) -> Result<()> {
     let group = &mut ctx.accounts.group;
-    group.increment_size()?;
+    group.decrement_size()?;
 
     let member = &mut ctx.accounts.member;
-    member.group = group.key();
-    member.mint = ctx.accounts.mint.key();
-    member.member_number = group.size;
-
-    let member_address = member.key();
+    member.close(ctx.accounts.payer.to_account_info())?;
 
     let signer_seeds = &[MANAGER_SEED, &get_bump_in_seed_form(&ctx.bumps.manager)];
 
     ctx.accounts
-        .update_group_member_pointer_member_address(member_address, &[&signer_seeds[..]])?;
+        .update_group_member_pointer_member_address(&[&signer_seeds[..]])?;
 
     Ok(())
 }

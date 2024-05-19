@@ -574,6 +574,9 @@ describe("wen_new_standard", () => {
     const groupMintKeyPair = Keypair.generate();
     const groupMintPublicKey = groupMintKeyPair.publicKey;
 
+    const mintKeyPair = Keypair.generate();
+    const mintPublicKey = mintKeyPair.publicKey;
+
     const [group] = PublicKey.findProgramAddressSync(
       [GROUP_ACCOUNT_SEED, groupMintPublicKey.toBuffer()],
       program.programId
@@ -700,10 +703,7 @@ describe("wen_new_standard", () => {
     });
 
     describe("after adding a mint as a member", () => {
-      const mintKeyPair = Keypair.generate();
-
       const mintAuthPublicKey = wallet.publicKey;
-      const mintPublicKey = mintKeyPair.publicKey;
       const mintTokenAccount = getAssociatedTokenAddressSync(
         mintPublicKey,
         mintAuthPublicKey,
@@ -876,13 +876,52 @@ describe("wen_new_standard", () => {
       });
     });
 
-    describe.skip("after removing mint as a member", () => {
+    describe("after removing mint as a member", () => {
+      const mintAuthPublicKey = wallet.publicKey;
+      const [member] = PublicKey.findProgramAddressSync(
+        [MEMBER_ACCOUNT_SEED, mintPublicKey.toBuffer()],
+        program.programId
+      );
+
+      let memberAccountInfo: AccountInfo<Buffer>;
       describe("the mint", () => {
-        it.skip("should not point back to the group", async () => {});
+        before(async () => {
+          await program.methods
+            .removeMintFromGroup()
+            .accountsStrict({
+              authority: groupAuthorityPublicKey,
+              group,
+              mint: mintPublicKey,
+              payer: mintAuthPublicKey,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .signers([groupAuthorityKeyPair])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+
+          memberAccountInfo = await program.account.tokenGroupMember.getAccountInfo(
+            member
+          );
+        });
+        it("should not point back to the group", async () => {
+          expect(memberAccountInfo).to.be.null;
+        });
       });
 
       describe("the group", () => {
-        it.skip("should have a size of 0", async () => {});
+        let groupAccount;
+        before(async () => {
+          groupAccount = await program.account.tokenGroup.fetch(group, "confirmed");
+        });
+        it("should be a size of 0", async () => {
+          expect(groupAccount.size).to.eql(0);
+        });
       });
     });
   });
