@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "build": "pnpm --filter {wen_new_standard} build",
+    "format": "pnpm format",
+    "lint": "pnpm lint"
+  }
+}

@@ -1,7 +1,8 @@
 {
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "clients": "node ./kinobi.mjs"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.0",
@@ -10,6 +11,12 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@kinobi-so/nodes": "^0.20.2",
+    "@kinobi-so/nodes-from-anchor": "^0.20.5",
+    "@kinobi-so/renderers": "^0.20.3",
+    "@kinobi-so/renderers-core": "^0.20.1",
+    "@kinobi-so/visitors": "^0.20.2",
+    "@kinobi-so/visitors-core": "^0.20.1",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",

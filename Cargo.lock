@@ -2664,7 +2664,7 @@ dependencies = [
 
 [[package]]
 name = "wen_new_standard"
-version = "0.3.2-alpha"
+version = "0.4.0-alpha"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -2681,6 +2681,17 @@ dependencies = [
  "anchor-spl",
  "spl-tlv-account-resolution 0.4.0",
  "spl-transfer-hook-interface 0.5.1",
+]
+
+[[package]]
+name = "wen_wns_marketplace"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "spl-transfer-hook-interface 0.5.1",
+ "wen_new_standard",
+ "wen_royalty_distribution",
 ]
 
 [[package]]
