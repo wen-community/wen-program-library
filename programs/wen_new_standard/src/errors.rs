@@ -26,4 +26,6 @@ pub enum MintErrors {
     InvalidFreezeAuthority,
     #[msg("Invalid delegate authority.")]
     InvalidDelegateAuthority,
+    #[msg("Invalid Token group member mint")]
+    InvalidTokenGroupMemberMint,
 }
