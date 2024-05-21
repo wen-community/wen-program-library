@@ -1,12 +1,12 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::sysvar::{self},
+};
 use anchor_spl::{token_2022::spl_token_2022::ID as TOKEN_2022_PROGRAM_ID, token_interface::Mint};
 use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
 use spl_transfer_hook_interface::{error::TransferHookError, instruction::ExecuteInstruction};
 
-use crate::{
-    AnchorExtraAccountMeta, AssignedGuardV1, GuardV1, ASSIGNED_GUARD_V1,
-    EXTRA_ACCOUNT_METAS, GUARD_V1, WEN_TOKEN_GUARD,
-};
+use crate::{AnchorExtraAccountMeta, GuardV1, EXTRA_ACCOUNT_METAS, GUARD_V1, WEN_TOKEN_GUARD};
 
 #[derive(Accounts)]
 #[instruction(metas: Vec<AnchorExtraAccountMeta>)]
@@ -14,7 +14,7 @@ pub struct Initialize<'info> {
     /// CHECK: This account's data is a buffer of TLV data
     #[account(
         init,
-        space = ExtraAccountMetaList::size_of(metas.len()).unwrap(),
+        space = ExtraAccountMetaList::size_of(2).unwrap(),
         // space = 8 + 4 + 2 * 35,
         seeds = [EXTRA_ACCOUNT_METAS.as_ref(), mint.key().as_ref()],
         bump,
@@ -32,19 +32,6 @@ pub struct Initialize<'info> {
     )]
     pub guard: Account<'info, GuardV1>,
 
-    #[account(
-        init,
-        seeds = [
-            ASSIGNED_GUARD_V1.as_ref(),
-            guard.key().as_ref(),
-            mint.key().as_ref()
-        ],
-        bump,
-        payer = payer,
-        space = AssignedGuardV1::size_of(),
-    )]
-    pub assigned_guard: Account<'info, AssignedGuardV1>,
-
     #[account(mint::token_program = TOKEN_2022_PROGRAM_ID)]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
@@ -58,11 +45,11 @@ pub struct Initialize<'info> {
     pub payer: Signer<'info>,
 }
 
-pub fn processor(ctx: Context<Initialize>, metas: Vec<AnchorExtraAccountMeta>) -> Result<()> {
-    let assigned_guard = &mut ctx.accounts.assigned_guard;
+pub fn processor(ctx: Context<Initialize>) -> Result<()> {
     let extra_metas_account = &ctx.accounts.extra_metas_account;
     let mint = &ctx.accounts.mint;
     let mint_authority = &ctx.accounts.mint_authority;
+    let guard = &ctx.accounts.guard;
 
     if mint_authority.key()
         != mint.mint_authority.ok_or(Into::<ProgramError>::into(
@@ -74,18 +61,25 @@ pub fn processor(ctx: Context<Initialize>, metas: Vec<AnchorExtraAccountMeta>) -
         ))?;
     }
 
-    let metas = metas
-        .into_iter()
-        .map(|meta| meta.into())
-        .collect::<Vec<ExtraAccountMeta>>();
+    let metas: Vec<ExtraAccountMeta> = vec![
+        // Guard to be assigned to
+        ExtraAccountMeta {
+            discriminator: 1,
+            is_signer: false.into(),
+            is_writable: false.into(),
+            address_config: guard.key().to_bytes(),
+        },
+        // Instructions sysvar to check for caller program
+        ExtraAccountMeta {
+            discriminator: 0,
+            is_signer: false.into(),
+            is_writable: false.into(),
+            address_config: sysvar::instructions::id().to_bytes(),
+        },
+    ];
+
     let mut data = extra_metas_account.try_borrow_mut_data()?;
     ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
-
-    assigned_guard.set_inner(AssignedGuardV1::new(
-        ctx.bumps.assigned_guard,
-        ctx.accounts.guard.key(),
-        mint.key(),
-    ));
 
     Ok(())
 }

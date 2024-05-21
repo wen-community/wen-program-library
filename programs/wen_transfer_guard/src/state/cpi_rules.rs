@@ -1,17 +1,29 @@
 use anchor_lang::prelude::*;
 
+use crate::error::WenTransferGuardError;
+
 // Control which protocols can interact with a mint's tokens. eg only allow royalty respecting protocols to facilitate transfers.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
-pub enum CPIRule {
+pub enum CpiRule {
     Allow(Vec<Pubkey>),
     Deny(Vec<Pubkey>),
 }
 
-impl CPIRule {
-    pub fn size_of(allow_vec: Vec<Pubkey>, deny_vec: Vec<Pubkey>) -> usize {
+impl CpiRule {
+    pub fn size_of(vec: Vec<Pubkey>) -> usize {
         1 +                             // Enum size
-        (4 + (allow_vec.len() * 32)) +  // Allow size
-        (4 + (deny_vec.len() * 32)) // Deny size
+        4 + (vec.len() * 32) // Vec size
+    }
+
+    pub fn enforce_rule(&self, caller_program_id: &Pubkey) -> Result<()> {
+        require!(
+            match self {
+                CpiRule::Allow(allow_vec) => allow_vec.contains(caller_program_id),
+                CpiRule::Deny(deny_vec) => !deny_vec.contains(caller_program_id),
+            },
+            WenTransferGuardError::CpiRuleEnforceFailed
+        );
+        Ok(())
     }
 }
 
@@ -30,6 +42,36 @@ impl TransferAmountRule {
         8 + // u64 size
         8 // u64 size
     }
+
+    pub fn enforce_rule(&self, amount: u64) -> Result<()> {
+        match self {
+            TransferAmountRule::Above(above) => {
+                require!(
+                    amount > *above,
+                    WenTransferGuardError::TransferAmountRuleEnforceFailed
+                );
+            }
+            TransferAmountRule::Below(below) => {
+                require!(
+                    amount < *below,
+                    WenTransferGuardError::TransferAmountRuleEnforceFailed
+                );
+            }
+            TransferAmountRule::Equal(equal) => {
+                require!(
+                    amount == *equal,
+                    WenTransferGuardError::TransferAmountRuleEnforceFailed
+                );
+            }
+            TransferAmountRule::Rang(min, max) => {
+                require!(
+                    amount > *min && amount < *max,
+                    WenTransferGuardError::TransferAmountRuleEnforceFailed
+                );
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
@@ -39,10 +81,9 @@ pub enum MetadataAdditionalFieldRestriction {
 }
 
 impl MetadataAdditionalFieldRestriction {
-    pub fn size_of(includes_vec: Vec<String>, excludes_vec: Vec<String>) -> usize {
+    pub fn size_of(vec: Vec<String>) -> usize {
         1 + // Enum size
-        4 + includes_vec.iter().map(|s| s.len() + 4).sum::<usize>() + // Includes size, Strings are vecs so + 4 on each
-        4 + excludes_vec.iter().map(|s| s.len() + 4).sum::<usize>() // Excludes size, Strings are vecs so + 4 on each
+        4 + vec.iter().map(|s| s.len() + 4).sum::<usize>()
     }
 }
 
@@ -58,21 +99,63 @@ impl MetadataAdditionalFieldRule {
         field: String,
         value_restrictions: Option<MetadataAdditionalFieldRestriction>,
     ) -> usize {
-        4 + field.len() + // Field size
-        1 + // Option size
-        match value_restrictions {
-            Some(restriction) => MetadataAdditionalFieldRestriction::size_of(
-                match &restriction {
-                    MetadataAdditionalFieldRestriction::Includes(includes) => includes.to_vec(),
-                    MetadataAdditionalFieldRestriction::Excludes(_) => vec![],
-                },
-                match &restriction {
-                    MetadataAdditionalFieldRestriction::Includes(_) => vec![],
-                    MetadataAdditionalFieldRestriction::Excludes(excludes) => excludes.to_vec(),
-                },
-            ),
-            None => 0,
+        let mut size = 0;
+        size += 4 + field.len(); // Field
+        size += 1; // Option
+        if let Some(restriction) = value_restrictions {
+            match restriction {
+                MetadataAdditionalFieldRestriction::Includes(includes) => {
+                    size += MetadataAdditionalFieldRestriction::size_of(includes);
+                }
+                MetadataAdditionalFieldRestriction::Excludes(excludes) => {
+                    size += MetadataAdditionalFieldRestriction::size_of(excludes);
+                }
+            }
         }
+        size
+    }
+
+    pub fn enforce_rule(&self, metadata: &Vec<(String, String)>) -> Result<()> {
+        let mut field_exists = false;
+        let mut field_value_passes = false;
+
+        for (key, value) in metadata {
+            if key == &self.field {
+                field_exists = true;
+                if let Some(restriction) = &self.value_restrictions {
+                    match restriction {
+                        MetadataAdditionalFieldRestriction::Includes(includes) => {
+                            if includes.contains(value) {
+                                field_value_passes = true;
+                                break;
+                            }
+                        }
+                        MetadataAdditionalFieldRestriction::Excludes(excludes) => {
+                            if !excludes.contains(value) {
+                                field_value_passes = true;
+                            } else {
+                                field_value_passes = false;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    field_value_passes = true;
+                }
+            }
+        }
+
+        require!(
+            field_exists,
+            WenTransferGuardError::MetadataFieldDoesNotExist
+        );
+        if self.value_restrictions.is_some() {
+            require!(
+                field_value_passes,
+                WenTransferGuardError::MetadataFieldDoesNotPass
+            );
+        }
+        Ok(())
     }
 }
 
@@ -80,53 +163,63 @@ impl MetadataAdditionalFieldRule {
 pub struct GuardV1 {
     pub identifier: [u8; 32],
     pub bump: u8,
-    pub cpi_rule: Option<CPIRule>,
+    pub cpi_rule: Option<CpiRule>,
     pub transfer_amount_rule: Option<TransferAmountRule>,
     pub addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
 }
 
 impl GuardV1 {
     pub fn size_of(
-        cpi_rule: Option<CPIRule>,
+        cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
         addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> usize {
-        8 + // Discriminator
-        1 + // Bump
-        32 + // Identifier
-        1 + match cpi_rule {
-            Some(rule) => CPIRule::size_of(
-                match &rule {
-                    CPIRule::Allow(allow_vec) => allow_vec.to_vec(),
-                    CPIRule::Deny(_) => vec![],
-                },
-                match &rule {
-                    CPIRule::Allow(_) => vec![],
-                    CPIRule::Deny(deny_vec) => deny_vec.to_vec(),
-                },
-            ),
-            None => 0,
-        } + 1
-            + match transfer_amount_rule {
-                Some(_) => TransferAmountRule::size_of(),
-                None => 0,
+        let mut size: usize = 0;
+        size += 8; // Discriminator
+        size += 1; // Bump
+        size += 32; // Identifier
+
+        size += 1; // Option (CPIRule)
+
+        // CpiRule size (if present)
+        if let Some(rule) = cpi_rule {
+            match rule {
+                CpiRule::Allow(allow_vec) => {
+                    size += CpiRule::size_of(allow_vec);
+                }
+                CpiRule::Deny(deny_vec) => {
+                    size += CpiRule::size_of(deny_vec);
+                }
             }
-            + 4
-            + addition_fields_rule
-                .iter()
-                .map(|rule| {
-                    MetadataAdditionalFieldRule::size_of(
-                        rule.field.clone(),
-                        rule.value_restrictions.clone(),
-                    )
-                })
-                .sum::<usize>()
+        }
+
+        size += 1; // Option (TransferAmountRule)
+
+        // Transfer amount rule size (if present)
+        if let Some(_) = transfer_amount_rule {
+            size += TransferAmountRule::size_of();
+        }
+
+        size += 4; // Vec length
+
+        // Additional fields rule size
+        size += addition_fields_rule
+            .iter()
+            .map(|rule| {
+                MetadataAdditionalFieldRule::size_of(
+                    rule.field.clone(),
+                    rule.value_restrictions.clone(), // TODO: Clean up clone
+                )
+            })
+            .sum::<usize>();
+
+        size
     }
 
     pub fn new(
         identifier: [u8; 32],
         bump: u8,
-        cpi_rule: Option<CPIRule>,
+        cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
         addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> Self {
@@ -138,24 +231,33 @@ impl GuardV1 {
             addition_fields_rule,
         }
     }
-}
 
-#[account]
-pub struct AssignedGuardV1 {
-    pub bump: u8,
-    pub guard: Pubkey,
-    pub mint: Pubkey,
-}
+    pub fn enforce_rules(
+        &self,
+        caller_program_id: Option<Pubkey>,
+        amount: Option<u64>,
+        metadata: &Vec<(String, String)>,
+    ) -> Result<()> {
+        if let Some(rule) = &self.cpi_rule {
+            require!(
+                caller_program_id.is_some(),
+                WenTransferGuardError::CallerProgramIdNotPassedAsArgument
+            );
+            rule.enforce_rule(&caller_program_id.unwrap())?;
+        }
 
-impl AssignedGuardV1 {
-    pub fn size_of() -> usize {
-        8 + // Discriminator
-        1 + // Bump
-        32 + // Guard
-        32 // mint
-    }
+        if let Some(rule) = &self.transfer_amount_rule {
+            require!(
+                amount.is_some(),
+                WenTransferGuardError::AmountNotPassedAsArgument
+            );
+            rule.enforce_rule(amount.unwrap())?;
+        }
 
-    pub fn new(bump: u8, guard: Pubkey, mint: Pubkey) -> Self {
-        Self { bump, guard, mint }
+        for rule in &self.addition_fields_rule {
+            rule.enforce_rule(metadata)?;
+        }
+
+        Ok(())
     }
 }

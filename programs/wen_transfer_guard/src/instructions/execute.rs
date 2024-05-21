@@ -1,4 +1,7 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{
+    prelude::*,
+    solana_program::sysvar::{self, instructions::get_instruction_relative},
+};
 use anchor_spl::{
     token_2022::spl_token_2022::ID as TOKEN_2022_PROGRAM_ID,
     token_interface::{Mint, TokenAccount},
@@ -6,7 +9,10 @@ use anchor_spl::{
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 use spl_transfer_hook_interface::instruction::{ExecuteInstruction, TransferHookInstruction};
 
-use crate::{tools::check_token_account_is_transferring, EXTRA_ACCOUNT_METAS};
+use crate::{
+    tools::check_token_account_is_transferring, GuardV1, EXTRA_ACCOUNT_METAS, GUARD_V1,
+    WEN_TOKEN_GUARD,
+};
 
 #[derive(Accounts)]
 pub struct Execute<'info> {
@@ -37,13 +43,25 @@ pub struct Execute<'info> {
     )]
     pub extra_metas_account: UncheckedAccount<'info>,
 
-    /// CHECK: TODO: ADD VALIDATION FOR DENYLIST/ALLOWLIST ACCOUNTS
-    pub denylist: UncheckedAccount<'info>,
+    #[account(
+        seeds = [
+            WEN_TOKEN_GUARD.as_ref(),
+            GUARD_V1.as_ref(),
+            guard.identifier.as_ref()
+        ],
+        bump = guard.bump,
+    )]
+    pub guard: Account<'info, GuardV1>,
+
+    /// CHECK: sysvar account for instruction data
+    #[account(address = sysvar::instructions::id())]
+    instruction_sysvar_account: UncheckedAccount<'info>,
 }
 
 pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
     let source_account = &ctx.accounts.source_account;
     let destination_account = &ctx.accounts.destination_account;
+    let guard = &ctx.accounts.guard;
 
     check_token_account_is_transferring(&source_account.to_account_info().try_borrow_data()?)?;
     check_token_account_is_transferring(&destination_account.to_account_info().try_borrow_data()?)?;
@@ -55,6 +73,20 @@ pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
         &ctx.program_id,
         &data,
     )?;
+
+    // Note:
+    // In CPI, if program A calls program B and then program B calls this program,
+    // the the resulting program id from current_ix will be program A.
+    let current_ix = get_instruction_relative(
+        0,
+        &ctx.accounts.instruction_sysvar_account.to_account_info(),
+    )
+    .unwrap();
+
+    let caller_program_id = Some(current_ix.program_id.key());
+
+    // Enforce guard rules
+    guard.enforce_rules(caller_program_id, Some(amount), &vec![])?;
 
     Ok(())
 }

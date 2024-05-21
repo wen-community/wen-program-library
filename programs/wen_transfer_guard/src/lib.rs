@@ -19,7 +19,7 @@ pub mod wen_transfer_guard {
     pub fn create_guard(
         ctx: Context<CreateGuard>,
         identifier: [u8; 32],
-        cpi_rule: Option<CPIRule>,
+        cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
         addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> Result<()> {
@@ -33,8 +33,8 @@ pub mod wen_transfer_guard {
     }
 
     #[interface(spl_transfer_hook_interface::initialize_extra_account_meta_list)]
-    pub fn initialize(ctx: Context<Initialize>, metas: Vec<AnchorExtraAccountMeta>) -> Result<()> {
-        initialize::processor(ctx, metas)
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        initialize::processor(ctx)
     }
 
     #[interface(spl_transfer_hook_interface::execute)]

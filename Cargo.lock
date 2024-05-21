@@ -2705,6 +2705,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "spl-pod 0.2.2",
  "spl-tlv-account-resolution 0.4.0",
  "spl-transfer-hook-interface 0.3.0",
 ]

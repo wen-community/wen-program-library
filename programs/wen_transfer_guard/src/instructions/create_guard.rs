@@ -1,14 +1,14 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    CPIRule, GuardV1, MetadataAdditionalFieldRule, TransferAmountRule, GUARD_V1, WEN_TOKEN_GUARD,
+    CpiRule, GuardV1, MetadataAdditionalFieldRule, TransferAmountRule, GUARD_V1, WEN_TOKEN_GUARD,
 };
 
 #[derive(Accounts)]
 #[instruction(
     // 32 Bytes identifier, can be a hash, a string, etc.
     identifier: [u8; 32],
-    cpi_rule: Option<CPIRule>,
+    cpi_rule: Option<CpiRule>,
     transfer_amount_rule: Option<TransferAmountRule>,
     addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
 )]
@@ -33,7 +33,7 @@ pub struct CreateGuard<'info> {
 pub fn processor(
     ctx: Context<CreateGuard>,
     identifier: [u8; 32],
-    cpi_rule: Option<CPIRule>,
+    cpi_rule: Option<CpiRule>,
     transfer_amount_rule: Option<TransferAmountRule>,
     addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
 ) -> Result<()> {
