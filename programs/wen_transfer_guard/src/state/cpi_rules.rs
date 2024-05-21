@@ -9,8 +9,8 @@ pub enum CPIRule {
 
 impl CPIRule {
     pub fn size_of(allow_vec: Vec<Pubkey>, deny_vec: Vec<Pubkey>) -> usize {
-        1 +                                 // Enum size
-        (4 + (allow_vec.len() * 32)) +      // Allow size
+        1 +                             // Enum size
+        (4 + (allow_vec.len() * 32)) +  // Allow size
         (4 + (deny_vec.len() * 32)) // Deny size
     }
 }
@@ -78,10 +78,11 @@ impl MetadataAdditionalFieldRule {
 
 #[account]
 pub struct GuardV1 {
-    bump: u8,
-    cpi_rule: Option<CPIRule>,
-    transfer_amount_rule: Option<TransferAmountRule>,
-    addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+    pub identifier: [u8; 32],
+    pub bump: u8,
+    pub cpi_rule: Option<CPIRule>,
+    pub transfer_amount_rule: Option<TransferAmountRule>,
+    pub addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
 }
 
 impl GuardV1 {
@@ -90,7 +91,9 @@ impl GuardV1 {
         transfer_amount_rule: Option<TransferAmountRule>,
         addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> usize {
+        8 + // Discriminator
         1 + // Bump
+        32 + // Identifier
         1 + match cpi_rule {
             Some(rule) => CPIRule::size_of(
                 match &rule {
@@ -121,16 +124,38 @@ impl GuardV1 {
     }
 
     pub fn new(
+        identifier: [u8; 32],
         bump: u8,
         cpi_rule: Option<CPIRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
         addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> Self {
         Self {
+            identifier,
             bump,
             cpi_rule,
             transfer_amount_rule,
             addition_fields_rule,
         }
+    }
+}
+
+#[account]
+pub struct AssignedGuardV1 {
+    pub bump: u8,
+    pub guard: Pubkey,
+    pub mint: Pubkey,
+}
+
+impl AssignedGuardV1 {
+    pub fn size_of() -> usize {
+        8 + // Discriminator
+        1 + // Bump
+        32 + // Guard
+        32 // mint
+    }
+
+    pub fn new(bump: u8, guard: Pubkey, mint: Pubkey) -> Self {
+        Self { bump, guard, mint }
     }
 }
