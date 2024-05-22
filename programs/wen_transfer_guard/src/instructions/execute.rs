@@ -3,8 +3,12 @@ use anchor_lang::{
     solana_program::sysvar::{self, instructions::get_instruction_relative},
 };
 use anchor_spl::{
-    token_2022::spl_token_2022::ID as TOKEN_2022_PROGRAM_ID,
-    token_interface::{Mint, TokenAccount},
+    token_2022::spl_token_2022::{
+        extension::{BaseStateWithExtensions, StateWithExtensions},
+        state::Mint as BaseStateMint,
+        ID as TOKEN_2022_PROGRAM_ID,
+    },
+    token_interface::{spl_token_metadata_interface::state::TokenMetadata, Mint, TokenAccount},
 };
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 use spl_transfer_hook_interface::instruction::{ExecuteInstruction, TransferHookInstruction};
@@ -61,6 +65,7 @@ pub struct Execute<'info> {
 pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
     let source_account = &ctx.accounts.source_account;
     let destination_account = &ctx.accounts.destination_account;
+    let mint_account = ctx.accounts.mint.to_account_info();
     let guard = &ctx.accounts.guard;
 
     check_token_account_is_transferring(&source_account.to_account_info().try_borrow_data()?)?;
@@ -83,10 +88,17 @@ pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
     )
     .unwrap();
 
-    let caller_program_id = Some(current_ix.program_id.key());
+    let mint_account_data = mint_account.try_borrow_data()?;
+    let mint_data: StateWithExtensions<_> =
+        StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
+    let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
     // Enforce guard rules
-    guard.enforce_rules(caller_program_id, Some(amount), &vec![])?;
+    guard.enforce_rules(
+        Some(current_ix.program_id.key()),
+        Some(amount),
+        &metadata.additional_metadata,
+    )?;
 
     Ok(())
 }

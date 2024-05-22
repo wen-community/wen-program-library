@@ -232,6 +232,22 @@ impl GuardV1 {
         }
     }
 
+    /// Enforce all rules set in the guard.
+    ///
+    /// ### Arguments
+    ///
+    /// * `caller_program_id` - The program id of the caller program.
+    /// * `amount` - The amount of tokens being transferred.
+    /// * `metadata` - The mint metadata.
+    ///
+    /// ### Errors
+    ///
+    /// * `CallerProgramIdNotPassedAsArgument` - The caller program id was not passed as an argument. This is required for CPI rules.
+    /// * `AmountNotPassedAsArgument` - The amount was not passed as an argument. This is required for transfer amount rules.
+    ///
+    /// ### Returns
+    ///
+    /// * `Ok(())` - If all rules pass.
     pub fn enforce_rules(
         &self,
         caller_program_id: Option<Pubkey>,

@@ -64,14 +64,14 @@ pub fn processor(ctx: Context<Initialize>) -> Result<()> {
     let metas: Vec<ExtraAccountMeta> = vec![
         // Guard to be assigned to
         ExtraAccountMeta {
-            discriminator: 1,
+            discriminator: 1, // 1 As in PDA for current program.
             is_signer: false.into(),
             is_writable: false.into(),
             address_config: guard.key().to_bytes(),
         },
         // Instructions sysvar to check for caller program
         ExtraAccountMeta {
-            discriminator: 0,
+            discriminator: 0, // 0 As in static pubkey (Sysvar).
             is_signer: false.into(),
             is_writable: false.into(),
             address_config: sysvar::instructions::id().to_bytes(),
