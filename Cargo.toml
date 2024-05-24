@@ -3,11 +3,12 @@ members = ["programs/*"]
 resolver = "2"
 
 [workspace.dependencies]
-anchor-lang = { version = "0.30.0", features = ["init-if-needed", "interface-instructions"] }
-anchor-spl = { version = "0.30.0" }
-wen_new_standard = { path = "programs/wen_new_standard", features = [
-  "cpi",
+anchor-lang = { version = "0.30.0", features = [
+  "init-if-needed",
+  "interface-instructions",
 ] }
+anchor-spl = { version = "0.30.0" }
+wen_new_standard = { path = "programs/wen_new_standard", features = ["cpi"] }
 wen_royalty_distribution = { path = "programs/wen_royalty_distribution", features = [
   "cpi",
 ] }
