@@ -1,24 +1,26 @@
 {
+  "name": "wen-program-library",
   "version": "0.4.0",
+  "description": "A library of programs maintained by the WEN community",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "clients": "node ./kinobi.mjs",
-    "version": "auto-changelog"
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wen-community/wen-program-library.git"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.0",
     "@solana/spl-token": "^0.4.6",
     "@solana/spl-token-metadata": "^0.1.4"
   },
-  "auto-changelog": {
-    "commitUrl": "https://github.com/wen-community/wen-program-library",
-    "issueUrl": "https://github.com/wen-community/wen-program-library",
-    "mergeUrl": "https://github.com/wen-community/wen-program-library",
-    "package": true,
-    "releaseSummary": true
-  },
   "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
     "@faker-js/faker": "^8.4.1",
     "@kinobi-so/nodes": "^0.20.2",
     "@kinobi-so/nodes-from-anchor": "^0.20.5",
@@ -29,8 +31,9 @@
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
-    "auto-changelog": "^2.4.0",
     "chai": "^4.3.4",
+    "conventional-changelog-cli": "^5.0.0",
+    "husky": "^9.0.11",
     "mocha": "^9.0.3",
     "prettier": "^2.6.2",
     "ts-mocha": "^10.0.0",
