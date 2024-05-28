@@ -12,10 +12,3 @@
 * complete implementing remove mint from group ([cc42ff6](https://github.com/wen-community/wen-program-library/commit/cc42ff65eeb0add98d4000b0bda9a79b270912df))
 * use conventional-changelog to keep a change log between releases. resolves [#73](https://github.com/wen-community/wen-program-library/issues/73) ([e73ba50](https://github.com/wen-community/wen-program-library/commit/e73ba509299f2a705aa817d8ee36e556f95f02e4))
 * use kinobi to generate js and rust sdks ([#86](https://github.com/wen-community/wen-program-library/issues/86)) ([27e97a3](https://github.com/wen-community/wen-program-library/commit/27e97a37350562bd267956c170cabd19fb9a0a43))
-
-
-
-# Change Log
-
-All notable changes to this project will be documented in this file.
-See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
