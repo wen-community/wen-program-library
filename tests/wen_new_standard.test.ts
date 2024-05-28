@@ -70,11 +70,15 @@ describe("wen_new_standard", () => {
       });
 
       it("should exist with a fixed seed", async () => {
-        expect(account.data).to.eql(Buffer.from([221, 78, 171, 233, 213, 142, 113, 56]));
+        expect(account.data).to.eql(
+          Buffer.from([221, 78, 171, 233, 213, 142, 113, 56])
+        );
       });
 
       it("should be owned by the program", async () => {
-        expect(account.owner).to.eql(program.programId);
+        expect((account.owner as PublicKey).toBase58()).to.eql(
+          program.programId.toBase58()
+        );
       });
     });
   });
@@ -154,11 +158,15 @@ describe("wen_new_standard", () => {
       });
 
       it("should be owned by the token extensions program", async () => {
-        expect(mintAccountInfo.owner).to.eql(TOKEN_2022_PROGRAM_ID);
+        expect(mintAccountInfo.owner.toBase58()).to.eql(
+          TOKEN_2022_PROGRAM_ID.toBase58()
+        );
       });
 
       it("should have metadata pointer", async () => {
-        expect(metadataPointer.metadataAddress).to.eql(mintPublicKey);
+        expect(metadataPointer.metadataAddress.toBase58()).to.eql(
+          mintPublicKey.toBase58()
+        );
       });
 
       it("should have right name set", async () => {
@@ -189,7 +197,10 @@ describe("wen_new_standard", () => {
 
         const instructions: TransactionInstruction[] = [];
         const rent = await getMinRentForWNSMint(connection, metadata, "member");
-        const currentRent = await connection.getBalance(mintPublicKey, "confirmed");
+        const currentRent = await connection.getBalance(
+          mintPublicKey,
+          "confirmed"
+        );
 
         if (currentRent < rent) {
           const lamportsDiff = rent - currentRent;
@@ -230,7 +241,10 @@ describe("wen_new_standard", () => {
       const creator1 = Keypair.generate();
       const creator2 = Keypair.generate();
 
-      const extraMetasAccount = getExtraMetasAccountPda(mintPublicKey, wnsProgramId);
+      const extraMetasAccount = getExtraMetasAccountPda(
+        mintPublicKey,
+        wnsProgramId
+      );
 
       let metadata: TokenMetadata | null;
 
@@ -379,7 +393,12 @@ describe("wen_new_standard", () => {
           ];
 
           try {
-            await sendAndConfirmWNSTransaction(connection, instructions, provider, false);
+            await sendAndConfirmWNSTransaction(
+              connection,
+              instructions,
+              provider,
+              false
+            );
           } catch (err) {
             logs = err.logs;
           }
@@ -431,9 +450,8 @@ describe("wen_new_standard", () => {
             1 * LAMPORTS_PER_SOL
           );
 
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(
-            "confirmed"
-          );
+          const { blockhash, lastValidBlockHeight } =
+            await connection.getLatestBlockhash("confirmed");
 
           await connection.confirmTransaction({
             blockhash,
@@ -477,7 +495,11 @@ describe("wen_new_standard", () => {
             transferIx,
           ];
 
-          await sendAndConfirmWNSTransaction(connection, instructions, provider);
+          await sendAndConfirmWNSTransaction(
+            connection,
+            instructions,
+            provider
+          );
 
           receiverTokenAccountData = await getAccount(
             connection,
@@ -492,7 +514,9 @@ describe("wen_new_standard", () => {
         });
 
         it("should be owned by the new owner", async () => {
-          expect(receiverTokenAccountData.owner).to.eql(receiver.publicKey);
+          expect(receiverTokenAccountData.owner.toBase58()).to.eql(
+            receiver.publicKey.toBase58()
+          );
         });
       });
     });
@@ -531,21 +555,31 @@ describe("wen_new_standard", () => {
           .instruction();
 
         const instructions = [burnIx];
-        await sendAndConfirmWNSTransaction(connection, instructions, provider, true, [
-          receiver,
-        ]);
+        await sendAndConfirmWNSTransaction(
+          connection,
+          instructions,
+          provider,
+          true,
+          [receiver]
+        );
 
         tokenAccountInfo = await connection.getAccountInfo(
           receiverTokenAccount,
           "confirmed"
         );
-        mintAccountInfo = await connection.getAccountInfo(mintPublicKey, "confirmed");
+        mintAccountInfo = await connection.getAccountInfo(
+          mintPublicKey,
+          "confirmed"
+        );
 
         tokenAccountLamports = await connection.getBalance(
           receiverTokenAccount,
           "confirmed"
         );
-        mintAccountLamports = await connection.getBalance(mintPublicKey, "confirmed");
+        mintAccountLamports = await connection.getBalance(
+          mintPublicKey,
+          "confirmed"
+        );
 
         payerPostBurnBalance = await connection.getBalance(
           receiver.publicKey,
@@ -562,7 +596,9 @@ describe("wen_new_standard", () => {
         expect(mintAccountInfo).to.be.null;
       });
       it("should credit rent to payer", async () => {
-        expect(payerPostBurnBalance).to.eql(payerPreBurnBalance + totalBurnRent);
+        expect(payerPostBurnBalance).to.eql(
+          payerPreBurnBalance + totalBurnRent
+        );
       });
     });
   });
@@ -623,20 +659,29 @@ describe("wen_new_standard", () => {
         });
 
       groupAccountInfo = await program.account.tokenGroup.getAccountInfo(group);
-      groupAccount = program.coder.accounts.decode("tokenGroup", groupAccountInfo.data);
+      groupAccount = program.coder.accounts.decode(
+        "tokenGroup",
+        groupAccountInfo.data
+      );
     });
 
     describe("after creating", () => {
       it("should be an account owned by the program", async () => {
-        expect(groupAccountInfo.owner).to.eql(program.programId);
+        expect(groupAccountInfo.owner.toBase58()).to.eql(
+          program.programId.toBase58()
+        );
       });
 
       it("should have an update authority", async () => {
-        expect(groupAccount.updateAuthority).to.eql(groupAuthorityPublicKey);
+        expect((groupAccount.updateAuthority as PublicKey).toBase58()).to.eql(
+          groupAuthorityPublicKey.toBase58()
+        );
       });
 
       it("should reference the group mint", async () => {
-        expect(groupAccount.mint).to.eql(groupMintPublicKey);
+        expect((groupAccount.mint as PublicKey).toBase58()).to.eql(
+          groupMintPublicKey.toBase58()
+        );
       });
 
       it("should have a max size", async () => {
@@ -663,7 +708,10 @@ describe("wen_new_standard", () => {
 
         const instructions: TransactionInstruction[] = [];
         const rent = await getMinRentForWNSMint(connection, metadata, "member");
-        const currentRent = await connection.getBalance(groupMintPublicKey, "confirmed");
+        const currentRent = await connection.getBalance(
+          groupMintPublicKey,
+          "confirmed"
+        );
 
         if (currentRent < rent) {
           const lamportsDiff = rent - currentRent;
@@ -686,9 +734,13 @@ describe("wen_new_standard", () => {
           })
         );
 
-        await sendAndConfirmWNSTransaction(connection, instructions, provider, true, [
-          groupAuthorityKeyPair,
-        ]);
+        await sendAndConfirmWNSTransaction(
+          connection,
+          instructions,
+          provider,
+          true,
+          [groupAuthorityKeyPair]
+        );
 
         metadata = await getTokenMetadata(
           connection,
@@ -736,7 +788,7 @@ describe("wen_new_standard", () => {
               receiver: mintAuthPublicKey,
               associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
               manager,
-  
+
               systemProgram: SystemProgram.programId,
               tokenProgram: TOKEN_2022_PROGRAM_ID,
             })
@@ -762,9 +814,8 @@ describe("wen_new_standard", () => {
               commitment: "confirmed",
             });
 
-          memberAccountInfo = await program.account.tokenGroupMember.getAccountInfo(
-            member
-          );
+          memberAccountInfo =
+            await program.account.tokenGroupMember.getAccountInfo(member);
           memberAccount = program.coder.accounts.decode(
             "tokenGroupMember",
             memberAccountInfo.data
@@ -772,23 +823,32 @@ describe("wen_new_standard", () => {
         });
 
         it("should be an account owned by the program", async () => {
-          expect(memberAccountInfo.owner).to.eql(program.programId);
+          expect((memberAccountInfo.owner as PublicKey).toBase58()).to.eql(
+            program.programId.toBase58()
+          );
         });
         it("should point back to the group", async () => {
-          expect(memberAccount.group).to.eql(group);
+          expect((memberAccount.group as PublicKey).toBase58()).to.eql(
+            group.toBase58()
+          );
         });
         it("should have the right member number", async () => {
           expect(memberAccount.memberNumber.toString()).to.eql("1");
         });
         it("should have the right member mint", async () => {
-          expect(memberAccount.mint).to.eql(mintPublicKey);
+          expect((memberAccount.mint as PublicKey).toBase58()).to.eql(
+            mintPublicKey.toBase58()
+          );
         });
       });
 
       describe("the group", () => {
         let groupAccount;
         before(async () => {
-          groupAccount = await program.account.tokenGroup.fetch(group, "confirmed");
+          groupAccount = await program.account.tokenGroup.fetch(
+            group,
+            "confirmed"
+          );
         });
         it("should be a size of 1", async () => {
           expect(groupAccount.size).to.eql(1);
@@ -905,9 +965,8 @@ describe("wen_new_standard", () => {
               commitment: "confirmed",
             });
 
-          memberAccountInfo = await program.account.tokenGroupMember.getAccountInfo(
-            member
-          );
+          memberAccountInfo =
+            await program.account.tokenGroupMember.getAccountInfo(member);
         });
         it("should not point back to the group", async () => {
           expect(memberAccountInfo).to.be.null;
@@ -917,7 +976,10 @@ describe("wen_new_standard", () => {
       describe("the group", () => {
         let groupAccount;
         before(async () => {
-          groupAccount = await program.account.tokenGroup.fetch(group, "confirmed");
+          groupAccount = await program.account.tokenGroup.fetch(
+            group,
+            "confirmed"
+          );
         });
         it("should be a size of 0", async () => {
           expect(groupAccount.size).to.eql(0);
