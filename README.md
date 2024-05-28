@@ -1,21 +1,26 @@
 # WEN Program Library
 
-A collection of solana programs maintained by the WEN developer community.
-
+A collection of Solana programs maintained by the WEN developer community.
 
 ## Contents
-
-- [Programs](#programs)
+- [Overview](#overview)
 - [Building](#building)
+- [Programs](#programs)
 - [Testing](#testing)
 - [Programs](#programs)
 - [Clients](#clients)
 - [CLI](#cli)
 - [License](#license)
 
-## Features
-
 ## Overview
+
+WEN New Standard
+
+WEN New Standard is a specification for representing NFTs using Token Extensions (TE). This specification is enforced and encoded through a program that currently addresses missing features such as token groups and setting up required extensions on TE.
+
+WEN Royalty Distribution
+
+WEN Royalty Distribution is a specification for royalties on WNS assets, which also enforces the payout of royalties through a Token Extension transfer hook.
 
 ## Building
 
@@ -53,15 +58,17 @@ This project contains the following programs:
 
 The packages below can be used to interact with `wen_new_standard` program.
 
-### JavaScript
+#### JavaScript
 ```bash
 npm install @wen-community/wen-new-standard
 ```
 
-### Rust
+#### Rust
 ```bash
 cargo add wen_new_standard
 ```
+
+### [wen_royalty_distribution](./programs/wen_royalty_distribution/README.md) `diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay`
 
 ## Clients
 
