@@ -1,9 +1,16 @@
 # 0.4.0 (2024-05-28)
 
+### Breaking Changes
+* Removed the payer account from thaw/burn mint account instructions ([28761be](https://github.com/wen-community/wen-program-library/pull/77/commits/28761be18bac01782f92dbe78da69c1f7598ea37))
+* Removed the neccesity of rent account for program instructions ([d657ff](https://github.com/wen-community/wen-program-library/pull/77/commits/d657ff2f2a62fbf486ba8f91217deaf0fac17f1f))
+* Added `payment_mint` for distribution program's update and claim instructions ([e6b45cb](https://github.com/wen-community/wen-program-library/pull/77/commits/e6b45cbd11162d26c3e7a54d30b74e64be6c4058))
+* Payment Mint token accounts are now optional if the payment mint is SOL (Pubkey::default) ([8779bc5](https://github.com/wen-community/wen-program-library/pull/77/commits/8779bc53e1b76a413d819be77332f83338c37dc3))
+
 
 ### Bug Fixes
 
 * add yarn lock ([b8fa0b6](https://github.com/wen-community/wen-program-library/commit/b8fa0b65aee79fbb980a4a1ba096b6578a54ea50))
+* Remove mutable requirement over mint and authority accounts for wen new standard program instructions ([27e6390](https://github.com/wen-community/wen-program-library/pull/77/commits/27e63904b02902f219827d6b3f5042a85f02e61f))
 
 
 ### Features
