@@ -35,7 +35,6 @@ pub struct CreateGuard<'info> {
         mint::freeze_authority = payer,
         extensions::metadata_pointer::authority = payer,
         extensions::metadata_pointer::metadata_address = mint,
-
         mint::token_program = token_program,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
@@ -45,7 +44,6 @@ pub struct CreateGuard<'info> {
         payer = payer,
         associated_token::mint = mint,
         associated_token::authority = payer,
-
         associated_token::token_program = token_program,
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,

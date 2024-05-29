@@ -82,12 +82,6 @@ pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
     // Note:
     // In CPI, if program A calls program B and then program B calls this program,
     // the the resulting program id from current_ix will be program A.
-    let current_ix = get_instruction_relative(
-        0,
-        &ctx.accounts.instruction_sysvar_account.to_account_info(),
-    )
-    .unwrap();
-
     let mint_account_data = mint_account.try_borrow_data()?;
     let mint_data: StateWithExtensions<_> =
         StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
@@ -95,9 +89,14 @@ pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
 
     // Enforce guard rules
     guard.enforce_rules(
-        Some(current_ix.program_id.key()),
-        Some(amount),
         &metadata.additional_metadata,
+        amount,
+        get_instruction_relative(
+            0,
+            &ctx.accounts.instruction_sysvar_account.to_account_info(),
+        )?
+        .program_id
+        .key(),
     )?;
 
     Ok(())

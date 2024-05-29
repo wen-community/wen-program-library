@@ -20,6 +20,10 @@ pub mod wen_transfer_guard {
         create_guard::processor(ctx, args)
     }
 
+    pub fn update_guard(ctx: Context<UpdateGuard>, args: UpdateGuardArgs) -> Result<()> {
+        update_guard::processor(ctx, args)
+    }
+
     #[interface(spl_transfer_hook_interface::initialize_extra_account_meta_list)]
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         initialize::processor(ctx)

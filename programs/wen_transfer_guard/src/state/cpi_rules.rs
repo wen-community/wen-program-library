@@ -232,6 +232,17 @@ impl GuardV1 {
         }
     }
 
+    pub fn update(
+        &mut self,
+        cpi_rule: Option<CpiRule>,
+        transfer_amount_rule: Option<TransferAmountRule>,
+        addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+    ) {
+        self.cpi_rule = cpi_rule;
+        self.transfer_amount_rule = transfer_amount_rule;
+        self.addition_fields_rule = addition_fields_rule;
+    }
+
     /// Enforce all rules set in the guard.
     ///
     /// ### Arguments
@@ -250,24 +261,16 @@ impl GuardV1 {
     /// * `Ok(())` - If all rules pass.
     pub fn enforce_rules(
         &self,
-        caller_program_id: Option<Pubkey>,
-        amount: Option<u64>,
         metadata: &Vec<(String, String)>,
+        amount: u64,
+        caller_program_id: Pubkey,
     ) -> Result<()> {
         if let Some(rule) = &self.cpi_rule {
-            require!(
-                caller_program_id.is_some(),
-                WenTransferGuardError::CallerProgramIdNotPassedAsArgument
-            );
-            rule.enforce_rule(&caller_program_id.unwrap())?;
+            rule.enforce_rule(&caller_program_id)?;
         }
 
         if let Some(rule) = &self.transfer_amount_rule {
-            require!(
-                amount.is_some(),
-                WenTransferGuardError::AmountNotPassedAsArgument
-            );
-            rule.enforce_rule(amount.unwrap())?;
+            rule.enforce_rule(amount)?;
         }
 
         for rule in &self.addition_fields_rule {
