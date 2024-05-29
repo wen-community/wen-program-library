@@ -16,20 +16,8 @@ declare_id!("4MrF8SuFtwGg53bL6KziCe7suvKqUoBg7o7Lnix1Ton5");
 pub mod wen_transfer_guard {
     use super::*;
 
-    pub fn create_guard(
-        ctx: Context<CreateGuard>,
-        identifier: [u8; 32],
-        cpi_rule: Option<CpiRule>,
-        transfer_amount_rule: Option<TransferAmountRule>,
-        addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
-    ) -> Result<()> {
-        create_guard::processor(
-            ctx,
-            identifier,
-            cpi_rule,
-            transfer_amount_rule,
-            addition_fields_rule,
-        )
+    pub fn create_guard(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()> {
+        create_guard::processor(ctx, args)
     }
 
     #[interface(spl_transfer_hook_interface::initialize_extra_account_meta_list)]

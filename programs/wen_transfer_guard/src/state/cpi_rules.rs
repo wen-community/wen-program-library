@@ -161,7 +161,7 @@ impl MetadataAdditionalFieldRule {
 
 #[account]
 pub struct GuardV1 {
-    pub identifier: [u8; 32],
+    pub mint: Pubkey,
     pub bump: u8,
     pub cpi_rule: Option<CpiRule>,
     pub transfer_amount_rule: Option<TransferAmountRule>,
@@ -177,7 +177,7 @@ impl GuardV1 {
         let mut size: usize = 0;
         size += 8; // Discriminator
         size += 1; // Bump
-        size += 32; // Identifier
+        size += 32; // Mint
 
         size += 1; // Option (CPIRule)
 
@@ -217,14 +217,14 @@ impl GuardV1 {
     }
 
     pub fn new(
-        identifier: [u8; 32],
+        mint: Pubkey,
         bump: u8,
         cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
         addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> Self {
         Self {
-            identifier,
+            mint,
             bump,
             cpi_rule,
             transfer_amount_rule,

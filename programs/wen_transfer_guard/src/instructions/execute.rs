@@ -51,7 +51,7 @@ pub struct Execute<'info> {
         seeds = [
             WEN_TOKEN_GUARD.as_ref(),
             GUARD_V1.as_ref(),
-            guard.identifier.as_ref()
+            guard.mint.as_ref()
         ],
         bump = guard.bump,
     )]

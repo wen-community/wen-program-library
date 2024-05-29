@@ -1,51 +1,120 @@
 use anchor_lang::prelude::*;
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_2022::{mint_to, MintTo, Token2022},
+    token_interface::{token_metadata_initialize, Mint, TokenAccount, TokenMetadataInitialize},
+};
 
 use crate::{
-    CpiRule, GuardV1, MetadataAdditionalFieldRule, TransferAmountRule, GUARD_V1, WEN_TOKEN_GUARD,
+    tools::update_account_lamports_to_minimum_balance, CpiRule, GuardV1,
+    MetadataAdditionalFieldRule, TransferAmountRule, GUARD_V1, WEN_TOKEN_GUARD,
 };
 
 #[derive(Accounts)]
-#[instruction(
-    // 32 Bytes identifier, can be a hash, a string, etc.
-    identifier: [u8; 32],
-    cpi_rule: Option<CpiRule>,
-    transfer_amount_rule: Option<TransferAmountRule>,
-    addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
-)]
+#[instruction(args: CreateGuardArgs)]
 pub struct CreateGuard<'info> {
     #[account(
         init,
         seeds = [
             WEN_TOKEN_GUARD.as_ref(),
             GUARD_V1.as_ref(),
-            identifier.as_ref()
+            mint.key().as_ref()
         ],
         bump,
         payer = payer,
-        space = GuardV1::size_of(cpi_rule, transfer_amount_rule, addition_fields_rule),
+        space = GuardV1::size_of(args.cpi_rule, args.transfer_amount_rule, args.addition_fields_rule),
     )]
     pub guard: Account<'info, GuardV1>,
+
+    #[account(
+        init,
+        signer,
+        payer = payer,
+        mint::decimals = 0,
+        mint::authority = payer,
+        mint::freeze_authority = payer,
+        extensions::metadata_pointer::authority = payer,
+        extensions::metadata_pointer::metadata_address = mint,
+
+        mint::token_program = token_program,
+    )]
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
+
+    #[account(
+        init,
+        payer = payer,
+        associated_token::mint = mint,
+        associated_token::authority = payer,
+
+        associated_token::token_program = token_program,
+    )]
+    pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token2022>,
     pub system_program: Program<'info, System>,
 }
 
-pub fn processor(
-    ctx: Context<CreateGuard>,
-    identifier: [u8; 32],
-    cpi_rule: Option<CpiRule>,
-    transfer_amount_rule: Option<TransferAmountRule>,
-    addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
-) -> Result<()> {
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct CreateGuardArgs {
+    pub name: String,
+    pub symbol: String,
+    pub uri: String,
+    pub cpi_rule: Option<CpiRule>,
+    pub transfer_amount_rule: Option<TransferAmountRule>,
+    pub addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+}
+
+/// IX: create_guard
+/// Creates a guard and mints an ownership token to the creator.
+pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()> {
     let guard = &mut ctx.accounts.guard;
     let bump = ctx.bumps.guard;
 
+    /* Initialize token metadata */
+    token_metadata_initialize(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            TokenMetadataInitialize {
+                token_program_id: ctx.accounts.token_program.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info(),
+                metadata: ctx.accounts.mint.to_account_info(), // metadata account is the mint, since data is stored in mint
+                mint_authority: ctx.accounts.payer.to_account_info(),
+                update_authority: ctx.accounts.payer.to_account_info(),
+            },
+        ),
+        args.name,
+        args.symbol,
+        args.uri,
+    )?;
+
+    mint_to(
+        CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                mint: ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.mint_token_account.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+            },
+        ),
+        1,
+    )?;
+
     guard.set_inner(GuardV1::new(
-        identifier,
+        ctx.accounts.mint.key(),
         bump,
-        cpi_rule,
-        transfer_amount_rule,
-        addition_fields_rule,
+        args.cpi_rule,
+        args.transfer_amount_rule,
+        args.addition_fields_rule,
     ));
+
+    update_account_lamports_to_minimum_balance(
+        ctx.accounts.mint.to_account_info(),
+        ctx.accounts.payer.to_account_info(),
+        ctx.accounts.system_program.to_account_info(),
+    )?;
     Ok(())
 }
