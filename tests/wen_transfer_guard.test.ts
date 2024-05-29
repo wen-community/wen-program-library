@@ -1,10 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
+import { BankrunProvider } from "anchor-bankrun";
 import { Program, web3 } from "@coral-xyz/anchor";
 
 import { WenTransferGuard } from "../target/types/wen_transfer_guard";
 import {
   ExtensionType,
-  ExtraAccountMeta,
   TOKEN_2022_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   createInitializeMintInstruction,
@@ -13,158 +13,154 @@ import {
   getAssociatedTokenAddressSync,
   getExtraAccountMetaAddress,
   getMintLen,
-  createTransferCheckedWithTransferHookInstruction,
 } from "@solana/spl-token";
+import { ProgramTestContext, startAnchor } from "solana-bankrun";
 
-describe("wen_transfer_guard", () => {
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
-  const program = anchor.workspace
-    .WenTransferGuard as Program<WenTransferGuard>;
+const sendSignedVtx = async (
+  provider: BankrunProvider,
+  payer: web3.PublicKey,
+  signers: web3.Signer[],
+  ...ixs: web3.TransactionInstruction[]
+) =>
+  provider.sendAndConfirm(
+    new web3.VersionedTransaction(
+      new web3.TransactionMessage({
+        payerKey: payer,
+        instructions: ixs,
+        recentBlockhash: provider.context.lastBlockhash,
+      }).compileToV0Message()
+    ),
+    signers
+  );
 
-  const mintAuthority = web3.Keypair.generate();
-  const payer = web3.Keypair.generate();
-  const mint = web3.Keypair.generate();
-  const sourceAuthority = web3.Keypair.generate();
-  const destinationAuthority = web3.Keypair.generate().publicKey;
+const kMINT = {
+  keypair: web3.Keypair.generate(),
+  decimals: 9,
+  mintAmount: 1e9,
+  mintAuthority: web3.Keypair.generate(),
+};
+const kSOURCE_AUTHORITY = web3.Keypair.generate();
+const kDESTINATION_AUTHORITY = web3.Keypair.generate();
 
-  let source: web3.PublicKey = null;
-  let destination: web3.PublicKey = null;
+const createMint = async (
+  programId: web3.PublicKey,
+  payer: web3.Signer,
+  provider: BankrunProvider,
+  MINT = kMINT,
+  SOURCE_AUTHORITY = kSOURCE_AUTHORITY,
+  DESTINATION_AUTHORITY = kDESTINATION_AUTHORITY
+) => {
+  const extensions = [ExtensionType.TransferHook];
+  const mintLen = getMintLen(extensions);
+  const lamports = 1e9;
 
-  let extraMetasAddress: web3.PublicKey = null;
+  const sourceAta = getAssociatedTokenAddressSync(
+    MINT.keypair.publicKey,
+    SOURCE_AUTHORITY.publicKey,
+    false,
+    TOKEN_2022_PROGRAM_ID
+  );
+  const destinationAta = getAssociatedTokenAddressSync(
+    MINT.keypair.publicKey,
+    DESTINATION_AUTHORITY.publicKey,
+    false,
+    TOKEN_2022_PROGRAM_ID
+  );
 
-  const decimals = 2;
-  const mintAmount = 100;
-  const transferAmount = 10;
-
-  const generatedAddress = web3.Keypair.generate().publicKey;
-
-  const extraMetas: ExtraAccountMeta[] = [
-    {
-      discriminator: 0,
-      addressConfig: generatedAddress.toBuffer(),
-      isWritable: false,
-      isSigner: false,
-    },
+  const ixs = [
+    web3.SystemProgram.createAccount({
+      fromPubkey: payer.publicKey,
+      newAccountPubkey: MINT.keypair.publicKey,
+      space: mintLen,
+      lamports,
+      programId: TOKEN_2022_PROGRAM_ID,
+    }),
+    createInitializeTransferHookInstruction(
+      MINT.keypair.publicKey,
+      MINT.mintAuthority.publicKey,
+      programId,
+      TOKEN_2022_PROGRAM_ID
+    ),
+    createInitializeMintInstruction(
+      MINT.keypair.publicKey,
+      MINT.decimals,
+      MINT.mintAuthority.publicKey,
+      MINT.mintAuthority.publicKey,
+      TOKEN_2022_PROGRAM_ID
+    ),
+    createAssociatedTokenAccountInstruction(
+      payer.publicKey,
+      sourceAta,
+      SOURCE_AUTHORITY.publicKey,
+      MINT.keypair.publicKey,
+      TOKEN_2022_PROGRAM_ID
+    ),
+    createAssociatedTokenAccountInstruction(
+      payer.publicKey,
+      destinationAta,
+      DESTINATION_AUTHORITY.publicKey,
+      MINT.keypair.publicKey,
+      TOKEN_2022_PROGRAM_ID
+    ),
+    createMintToInstruction(
+      MINT.keypair.publicKey,
+      sourceAta,
+      MINT.mintAuthority.publicKey,
+      MINT.mintAmount,
+      [],
+      TOKEN_2022_PROGRAM_ID
+    ),
   ];
 
+  const txId = await sendSignedVtx(
+    provider,
+    payer.publicKey,
+    [payer, MINT.keypair, MINT.mintAuthority],
+    ...ixs
+  );
+
+  return {
+    sourceAta,
+    destinationAta,
+    txId,
+  };
+};
+
+describe("wen_transfer_guard", () => {
+  // Anchor + Bankrun Tooling
+  let context: ProgramTestContext;
+  let provider: BankrunProvider;
+  let program: anchor.Program<WenTransferGuard>;
+
+  let kSourceAta: web3.PublicKey | null = null;
+  let kDestinationAta: web3.PublicKey | null = null;
+  let kExtraMetasAddress: web3.PublicKey | null = null;
+
   before(async () => {
-    const extensions = [ExtensionType.TransferHook];
-    const mintLen = getMintLen(extensions);
-    const lamports =
-      await provider.connection.getMinimumBalanceForRentExemption(mintLen);
+    context = await startAnchor("./", [], []);
+    provider = new BankrunProvider(context);
+    const idl = require("../target/idl/wen_transfer_guard.json");
+    program = new Program<WenTransferGuard>(idl, provider);
 
-    source = getAssociatedTokenAddressSync(
-      mint.publicKey,
-      sourceAuthority.publicKey,
-      false,
-      TOKEN_2022_PROGRAM_ID
-    );
-    destination = getAssociatedTokenAddressSync(
-      mint.publicKey,
-      destinationAuthority,
-      false,
-      TOKEN_2022_PROGRAM_ID
-    );
-
-    extraMetasAddress = getExtraAccountMetaAddress(
-      mint.publicKey,
+    const extraMetasAddress = getExtraAccountMetaAddress(
+      kMINT.keypair.publicKey,
       program.programId
     );
 
-    const transaction = new web3.Transaction().add(
-      web3.SystemProgram.createAccount({
-        fromPubkey: payer.publicKey,
-        newAccountPubkey: mint.publicKey,
-        space: mintLen,
-        lamports,
-        programId: TOKEN_2022_PROGRAM_ID,
-      }),
-      createInitializeTransferHookInstruction(
-        mint.publicKey,
-        mintAuthority.publicKey,
-        program.programId,
-        TOKEN_2022_PROGRAM_ID
-      ),
-      createInitializeMintInstruction(
-        mint.publicKey,
-        decimals,
-        mintAuthority.publicKey,
-        mintAuthority.publicKey,
-        TOKEN_2022_PROGRAM_ID
-      ),
-      createAssociatedTokenAccountInstruction(
-        payer.publicKey,
-        source,
-        sourceAuthority.publicKey,
-        mint.publicKey,
-        TOKEN_2022_PROGRAM_ID
-      ),
-      createAssociatedTokenAccountInstruction(
-        payer.publicKey,
-        destination,
-        destinationAuthority,
-        mint.publicKey,
-        TOKEN_2022_PROGRAM_ID
-      ),
-      createMintToInstruction(
-        mint.publicKey,
-        source,
-        mintAuthority.publicKey,
-        mintAmount,
-        [],
-        TOKEN_2022_PROGRAM_ID
-      )
+    // Create a mint
+    const { sourceAta, destinationAta } = await createMint(
+      program.programId,
+      context.payer,
+      provider
     );
 
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(payer.publicKey, 10000000000),
-      "confirmed"
-    );
-
-    await web3.sendAndConfirmTransaction(provider.connection, transaction, [
-      payer,
-      mint,
-      mintAuthority,
-    ]);
+    kSourceAta = sourceAta;
+    kDestinationAta = destinationAta;
+    kExtraMetasAddress = extraMetasAddress;
   });
 
-  it("Can transfer with extra account metas", async () => {
-    // Initialize the extra metas
-    const initTxId = await program.methods
-      .initialize(extraMetas as any[])
-      .accountsStrict({
-        extraMetasAccount: extraMetasAddress,
-        mint: mint.publicKey,
-        mintAuthority: mintAuthority.publicKey,
-        payer: payer.publicKey,
-        systemProgram: web3.SystemProgram.programId,
-      })
-      .signers([mintAuthority, payer])
-      .rpc({ skipPreflight: true, commitment: "confirmed" });
-
-    console.log("Init tx id", initTxId);
-
-    const transferIx = await createTransferCheckedWithTransferHookInstruction(
-      program.provider.connection,
-      source,
-      mint.publicKey,
-      destination,
-      sourceAuthority.publicKey,
-      BigInt(transferAmount),
-      decimals,
-      undefined,
-      "confirmed",
-      TOKEN_2022_PROGRAM_ID
-    );
-
-    const executeTxId = await web3.sendAndConfirmTransaction(
-      provider.connection,
-      new web3.Transaction().add(transferIx),
-      [payer, sourceAuthority],
-      { skipPreflight: true, commitment: "confirmed" }
-    );
-
-    console.log("Execute tx id", executeTxId);
-  });
+  it("[Transfer Guards] - Initializes a Transfer Guard", async () => {});
+  it("[Transfer Guards] - Updates a Transfer Guard", async () => {});
+  it("[Transfer Hook] - Assigns guard to Mint via Init", async () => {});
+  it("[Transfer Hook] - Executes correctly during transfer", async () => {});
 });
