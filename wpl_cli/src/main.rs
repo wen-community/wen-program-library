@@ -1,31 +1,53 @@
-mod asset;
+pub mod args;
+pub mod group;
+pub mod utils;
 
+use std::{str::FromStr, time::Duration};
+
+use anyhow::{anyhow, Result};
+use args::*;
+use clap::Parser;
+use group::subcommand as group_subcommand;
+use solana_cli_config::{Config, CONFIG_FILE};
+use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_sdk::commitment_config::CommitmentConfig;
 use tokio;
-use asset::{subcommand as asset_subcommand, AssetCommand};
-use anyhow::Result;
-use clap::{Parser, Subcommand};
-
-#[derive(Debug, Parser)]
-#[clap(author, version)]
-struct Args {
-    #[command(subcommand)]
-    command: Command,
-}
-
-#[derive(Debug, Subcommand)]
-enum Command {
-    #[clap(name = "asset")]
-    Asset(AssetCommand),
-}
+use utils::parse_keypair;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-
     env_logger::init();
 
+    let config_file = CONFIG_FILE
+        .as_ref()
+        .ok_or_else(|| anyhow!("unable to get config file path"))?;
+
+    let mut cli_config = Config::load(&config_file)?;
+
+    cli_config.json_rpc_url = if let Some(custom_json_rpc_url) = args.rpc {
+        custom_json_rpc_url
+    } else {
+        cli_config.json_rpc_url
+    };
+
+    cli_config.keypair_path = if let Some(custom_keypair_path) = args.keypair {
+        custom_keypair_path
+    } else {
+        cli_config.keypair_path
+    };
+
+    cli_config.save(&config_file)?;
+
+    let async_client = RpcClient::new_with_timeout_and_commitment(
+        cli_config.json_rpc_url.clone(),
+        Duration::from_secs(args.timeout),
+        CommitmentConfig::from_str(&cli_config.commitment)?,
+    );
+    let keypair = parse_keypair(&cli_config.keypair_path)?;
+
     match args.command {
-        Command::Asset(subcommand) => asset_subcommand(subcommand).await?,
+        Command::Group(subcommand) => group_subcommand(async_client, keypair, subcommand).await?,
     }
 
     Ok(())
