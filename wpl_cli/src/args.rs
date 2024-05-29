@@ -1,4 +1,5 @@
 use crate::group::*;
+use crate::manager::*;
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
@@ -26,6 +27,8 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    #[clap(name = "manager")]
+    Manager(ManagerSubCommand),
     #[clap(name = "group")]
     Group(GroupSubCommand),
 }

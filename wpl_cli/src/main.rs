@@ -1,5 +1,6 @@
 pub mod args;
 pub mod group;
+pub mod manager;
 pub mod utils;
 
 use std::{str::FromStr, time::Duration};
@@ -7,11 +8,13 @@ use std::{str::FromStr, time::Duration};
 use anyhow::{anyhow, Result};
 use args::*;
 use clap::Parser;
-use group::subcommand as group_subcommand;
 use solana_cli_config::{Config, CONFIG_FILE};
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use tokio;
+
+use group::subcommand as group_subcommand;
+use manager::subcommand as manager_subcommand;
 use utils::parse_keypair;
 
 #[tokio::main]
@@ -47,6 +50,9 @@ async fn main() -> Result<()> {
     let keypair = parse_keypair(&cli_config.keypair_path)?;
 
     match args.command {
+        Command::Manager(subcommand) => {
+            manager_subcommand(async_client, keypair, subcommand).await?
+        }
         Command::Group(subcommand) => group_subcommand(async_client, keypair, subcommand).await?,
     }
 
