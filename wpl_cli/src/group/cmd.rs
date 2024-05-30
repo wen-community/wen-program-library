@@ -1,4 +1,5 @@
 use super::create::{run as create_group_account, CreateArgs};
+use super::update::{run as update_group_account, UpdateArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
@@ -14,7 +15,11 @@ pub struct GroupSubCommand {
 #[derive(Debug, Clone, Subcommand)]
 pub enum Commands {
     #[clap(name = "create")]
+    /// Create a new group account (collection)
     Create(CreateArgs),
+    #[clap(name = "update")]
+    /// Update a group account (collection)
+    Update(UpdateArgs),
 }
 
 pub async fn subcommand(
@@ -25,6 +30,9 @@ pub async fn subcommand(
     match subcommand.action {
         Commands::Create(args) => {
             create_group_account(async_client, keypair, args).await?;
+        }
+        Commands::Update(args) => {
+            update_group_account(async_client, keypair, args).await?;
         }
     }
 

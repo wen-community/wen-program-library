@@ -4,7 +4,7 @@ use clap::Parser;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
-    message::{v0, VersionedMessage},
+    message::{v0::Message as TransactionMessage, VersionedMessage},
     pubkey::Pubkey,
     signature::Keypair,
     signer::Signer,
@@ -37,7 +37,7 @@ pub struct CreateArgs {
     pub size: u32,
     /// Receiver address of the collection
     #[arg(short = 'R', long, value_parser = clap::value_parser!(Pubkey))]
-    pub receiver: Pubkey,
+    pub receiver: Option<Pubkey>,
 }
 
 pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) -> Result<()> {
@@ -48,11 +48,14 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) ->
     let mint_pubkey = mint_keypair.pubkey();
     let keypair_pubkey = keypair.pubkey();
 
-    let mint_token_account = get_associated_token_address_with_program_id(
-        &keypair_pubkey,
-        &mint_pubkey,
-        &TOKEN_PROGRAM_ID,
-    );
+    let receiver = if let Some(receiver) = args.receiver {
+        receiver
+    } else {
+        keypair_pubkey
+    };
+
+    let mint_token_account =
+        get_associated_token_address_with_program_id(&receiver, &mint_pubkey, &TOKEN_PROGRAM_ID);
 
     let group = derive_group_account(&mint_pubkey);
     let manager = derive_manager_account();
@@ -63,7 +66,7 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) ->
         group,
         manager,
         mint: mint_pubkey,
-        receiver: keypair_pubkey,
+        receiver,
         mint_token_account,
         associated_token_program: ASSOCIATED_TOKEN_PROGRAM_ID,
         token_program: TOKEN_PROGRAM_ID,
@@ -80,7 +83,7 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) ->
             },
         });
 
-    let transaction_message = VersionedMessage::V0(v0::Message::try_compile(
+    let transaction_message = VersionedMessage::V0(TransactionMessage::try_compile(
         &payer,
         &[create_group_account_ix],
         &[],
@@ -94,7 +97,12 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) ->
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!("Group created successfully! Signature: {:?}", signature);
+    println!(
+        "Group created successfully! Group account: {:?}\nGroup mint: {:?}\nSignature: {:?}",
+        group.to_string(),
+        mint_pubkey.to_string(),
+        signature
+    );
 
     Ok(())
 }

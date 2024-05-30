@@ -1,3 +1,5 @@
+#![allow(ambiguous_glob_reexports)]
+
 pub mod args;
 pub mod group;
 pub mod manager;

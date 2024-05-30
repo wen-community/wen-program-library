@@ -1,4 +1,5 @@
 mod cmd;
-mod create;
+mod instructions;
 
 pub use cmd::*;
+pub use instructions::*;
