@@ -1,4 +1,4 @@
-use super::{add::run as add_metadata, MetadataArgs};
+use super::{add::run as add_metadata, remove::run as remove_metadata, MetadataArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
@@ -16,6 +16,9 @@ pub enum Commands {
     #[clap(name = "add")]
     /// Add metadata for a mint account (member)
     Add(MetadataArgs),
+    #[clap(name = "remove")]
+    /// Remove metadata for a mint account (member)
+    Remove(MetadataArgs),
 }
 
 pub async fn subcommand(
@@ -26,6 +29,9 @@ pub async fn subcommand(
     match subcommand.action {
         Commands::Add(args) => {
             add_metadata(async_client, keypair, args).await?;
+        }
+        Commands::Remove(args) => {
+            remove_metadata(async_client, keypair, args).await?;
         }
     }
 
