@@ -3,6 +3,7 @@
 pub mod args;
 pub mod group;
 pub mod manager;
+pub mod mint;
 pub mod utils;
 
 use std::{str::FromStr, time::Duration};
@@ -17,6 +18,7 @@ use tokio;
 
 use group::subcommand as group_subcommand;
 use manager::subcommand as manager_subcommand;
+use mint::subcommand as mint_subcommand;
 use utils::parse_keypair;
 
 #[tokio::main]
@@ -56,6 +58,7 @@ async fn main() -> Result<()> {
             manager_subcommand(async_client, keypair, subcommand).await?
         }
         Command::Group(subcommand) => group_subcommand(async_client, keypair, subcommand).await?,
+        Command::Mint(subcommand) => mint_subcommand(async_client, keypair, subcommand).await?,
     }
 
     Ok(())
