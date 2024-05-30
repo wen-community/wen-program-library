@@ -24,7 +24,10 @@ use utils::parse_keypair;
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    env_logger::init();
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .parse_default_env()
+        .init();
 
     let config_file = CONFIG_FILE
         .as_ref()

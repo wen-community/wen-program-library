@@ -38,3 +38,11 @@ pub fn derive_group_account(mint: &Pubkey) -> Pubkey {
 pub fn derive_manager_account() -> Pubkey {
     Pubkey::find_program_address(&[MANAGER_SEED], &WEN_NEW_STANDARD_PROGRAM_ID).0
 }
+
+pub fn derive_extra_metas_account(mint: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[META_LIST_ACCOUNT_SEED, mint.as_ref()],
+        &WEN_NEW_STANDARD_PROGRAM_ID,
+    )
+    .0
+}

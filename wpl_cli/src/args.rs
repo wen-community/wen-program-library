@@ -5,7 +5,12 @@ use crate::mint::*;
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[clap(author, version)]
+#[command(
+    author,
+    version,
+    name = "Wen New Standard",
+    about = "An open and composable NFT standard on Solana."
+)]
 pub struct Args {
     /// RPC endpoint url to override using the Solana config
     #[arg(short, long, global = true)]
@@ -20,7 +25,7 @@ pub struct Args {
     pub log_level: String,
 
     /// Path to the owner keypair file
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub keypair: Option<String>,
 
     #[command(subcommand)]

@@ -1,4 +1,5 @@
 use super::create::{run as create_group_account, CreateArgs};
+use super::royalty::{royalty_subcommand, RoyaltySubCommand};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
@@ -16,6 +17,9 @@ pub enum Commands {
     #[clap(name = "create")]
     /// Create a new mint account (member)
     Create(CreateArgs),
+    #[clap(name = "royalty")]
+    /// Royalty based instructions for a mint account (member)
+    Royalty(RoyaltySubCommand),
 }
 
 pub async fn subcommand(
@@ -26,6 +30,9 @@ pub async fn subcommand(
     match subcommand.action {
         Commands::Create(args) => {
             create_group_account(async_client, keypair, args).await?;
+        }
+        Commands::Royalty(subcommand) => {
+            royalty_subcommand(async_client, keypair, subcommand).await?;
         }
     }
 

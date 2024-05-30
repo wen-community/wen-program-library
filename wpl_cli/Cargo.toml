@@ -21,4 +21,4 @@ solana-sdk = "1.18.14"
 spl-associated-token-account = "3.0.2"
 spl-token-2022 = "3.0.2"
 tokio = { version = "1.37.0", features = ["full"] }
-wen_new_standard = { path = "../clients/rust/wen_new_standard" }
+wen_new_standard = { path = "../clients/rust/wen_new_standard", features = ["serde"] }
