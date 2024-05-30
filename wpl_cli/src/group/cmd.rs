@@ -1,4 +1,5 @@
 use super::create::{run as create_group_account, CreateArgs};
+use super::mint::{group_mint_subcommand, GroupMintSubCommand};
 use super::update::{run as update_group_account, UpdateArgs};
 
 use anyhow::Result;
@@ -20,6 +21,9 @@ pub enum Commands {
     #[clap(name = "update")]
     /// Update a group account (collection)
     Update(UpdateArgs),
+    #[clap(name = "mint")]
+    /// Mint grouping related instructions
+    Mint(GroupMintSubCommand),
 }
 
 pub async fn subcommand(
@@ -33,6 +37,9 @@ pub async fn subcommand(
         }
         Commands::Update(args) => {
             update_group_account(async_client, keypair, args).await?;
+        }
+        Commands::Mint(subcommand) => {
+            group_mint_subcommand(async_client, keypair, subcommand).await?;
         }
     }
 
