@@ -1,4 +1,5 @@
 use super::create::{run as create_group_account, CreateArgs};
+use super::metadata::{metadata_subcommand, MetadataSubCommand};
 use super::royalty::{royalty_subcommand, RoyaltySubCommand};
 
 use anyhow::Result;
@@ -20,6 +21,9 @@ pub enum Commands {
     #[clap(name = "royalty")]
     /// Royalty based instructions for a mint account (member)
     Royalty(RoyaltySubCommand),
+    #[clap(name = "metadata")]
+    /// Metadata based instructions for a mint account (member)
+    Metadata(MetadataSubCommand),
 }
 
 pub async fn subcommand(
@@ -33,6 +37,9 @@ pub async fn subcommand(
         }
         Commands::Royalty(subcommand) => {
             royalty_subcommand(async_client, keypair, subcommand).await?;
+        }
+        Commands::Metadata(subcommand) => {
+            metadata_subcommand(async_client, keypair, subcommand).await?;
         }
     }
 

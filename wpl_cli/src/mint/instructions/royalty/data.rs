@@ -11,7 +11,7 @@ use wen_new_standard::types::UpdateRoyaltiesArgs;
 
 #[derive(Debug, Parser, Clone)]
 pub struct RoyaltyArgs {
-    /// Name of the member mint account
+    /// Member mint
     #[arg(short, long, value_parser = clap::value_parser!(Pubkey))]
     pub mint: Pubkey,
     /// Config file for royalties
@@ -21,8 +21,8 @@ pub struct RoyaltyArgs {
 
 pub fn parse_update_royalties_args(config_path: PathBuf) -> Result<UpdateRoyaltiesArgs> {
     return if Path::new(&config_path).exists() {
-        let create_reward_center_config_file = File::open(config_path)?;
-        let update_royalties_args = serde_json::from_reader(create_reward_center_config_file)?;
+        let royalty_config = File::open(config_path)?;
+        let update_royalties_args = serde_json::from_reader(royalty_config)?;
         Ok(update_royalties_args)
     } else {
         warn!("Royalties config doesn't exist");
