@@ -20,7 +20,7 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: MetadataArgs) 
     let mint_pubkey = args.mint;
     let keypair_pubkey = keypair.pubkey();
 
-    let add_royalties = AddMetadata {
+    let add_metadata = AddMetadata {
         payer: keypair_pubkey,
         authority: keypair_pubkey,
         mint: mint_pubkey,
@@ -30,13 +30,13 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: MetadataArgs) 
 
     let add_metadata_args = parse_add_metadata_pairs(args.metadata_path)?;
 
-    let add_royalties_ix = add_royalties.instruction(AddMetadataInstructionArgs {
+    let add_metadata_ix = add_metadata.instruction(AddMetadataInstructionArgs {
         args: add_metadata_args,
     });
 
     let transaction_message = VersionedMessage::V0(TransactionMessage::try_compile(
         &payer,
-        &[add_royalties_ix],
+        &[add_metadata_ix],
         &[],
         recent_blockhash,
     )?);

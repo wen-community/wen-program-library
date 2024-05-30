@@ -1,3 +1,4 @@
+use super::burn::{run as burn_mint_account, BurnArgs};
 use super::create::{run as create_mint_account, CreateArgs};
 use super::freeze::{run as freeze_mint_account, FreezeArgs};
 use super::metadata::{metadata_subcommand, MetadataSubCommand};
@@ -26,6 +27,9 @@ pub enum Commands {
     #[clap(name = "thaw")]
     /// Thaw a mint account (member)
     Thaw(ThawArgs),
+    #[clap(name = "burn")]
+    /// Burn a mint account (member)
+    Burn(BurnArgs),
     #[clap(name = "royalty")]
     /// Royalty based instructions for a mint account (member)
     Royalty(RoyaltySubCommand),
@@ -54,6 +58,9 @@ pub async fn subcommand(
         }
         Commands::Thaw(args) => {
             thaw_mint_account(async_client, keypair, args).await?;
+        }
+        Commands::Burn(args) => {
+            burn_mint_account(async_client, keypair, args).await?;
         }
     }
 
