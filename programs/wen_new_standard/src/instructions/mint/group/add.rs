@@ -32,6 +32,7 @@ pub struct AddGroup<'info> {
     )]
     pub member: Account<'info, TokenGroupMember>,
     #[account(
+        mut,
         mint::token_program = TOKEN22
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
