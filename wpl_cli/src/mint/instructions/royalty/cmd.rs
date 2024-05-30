@@ -1,4 +1,5 @@
 use super::add::run as add_royalties;
+use super::modify::run as modify_royalties;
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
@@ -18,6 +19,8 @@ pub enum Commands {
     #[clap(name = "add")]
     /// Add royalties for a mint account (member)
     Add(RoyaltyArgs),
+    /// Modify royalties for a mint account (member)
+    Modify(RoyaltyArgs),
 }
 
 pub async fn subcommand(
@@ -28,6 +31,9 @@ pub async fn subcommand(
     match subcommand.action {
         Commands::Add(args) => {
             add_royalties(async_client, keypair, args).await?;
+        }
+        Commands::Modify(args) => {
+            modify_royalties(async_client, keypair, args).await?;
         }
     }
 
