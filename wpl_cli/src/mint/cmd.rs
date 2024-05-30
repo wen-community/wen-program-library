@@ -1,4 +1,5 @@
-use super::create::{run as create_group_account, CreateArgs};
+use super::create::{run as create_mint_account, CreateArgs};
+use super::freeze::{run as freeze_mint_account, FreezeArgs};
 use super::metadata::{metadata_subcommand, MetadataSubCommand};
 use super::royalty::{royalty_subcommand, RoyaltySubCommand};
 
@@ -18,6 +19,9 @@ pub enum Commands {
     #[clap(name = "create")]
     /// Create a new mint account (member)
     Create(CreateArgs),
+    #[clap(name = "freeze")]
+    /// Freeze a mint account (member)
+    Freeze(FreezeArgs),
     #[clap(name = "royalty")]
     /// Royalty based instructions for a mint account (member)
     Royalty(RoyaltySubCommand),
@@ -33,13 +37,16 @@ pub async fn subcommand(
 ) -> Result<()> {
     match subcommand.action {
         Commands::Create(args) => {
-            create_group_account(async_client, keypair, args).await?;
+            create_mint_account(async_client, keypair, args).await?;
         }
         Commands::Royalty(subcommand) => {
             royalty_subcommand(async_client, keypair, subcommand).await?;
         }
         Commands::Metadata(subcommand) => {
             metadata_subcommand(async_client, keypair, subcommand).await?;
+        },
+        Commands::Freeze(args) => {
+            freeze_mint_account(async_client, keypair, args).await?;
         }
     }
 
