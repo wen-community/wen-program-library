@@ -2,6 +2,7 @@ use super::create::{run as create_mint_account, CreateArgs};
 use super::freeze::{run as freeze_mint_account, FreezeArgs};
 use super::metadata::{metadata_subcommand, MetadataSubCommand};
 use super::royalty::{royalty_subcommand, RoyaltySubCommand};
+use super::thaw::{run as thaw_mint_account, ThawArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
@@ -22,6 +23,9 @@ pub enum Commands {
     #[clap(name = "freeze")]
     /// Freeze a mint account (member)
     Freeze(FreezeArgs),
+    #[clap(name = "thaw")]
+    /// Thaw a mint account (member)
+    Thaw(ThawArgs),
     #[clap(name = "royalty")]
     /// Royalty based instructions for a mint account (member)
     Royalty(RoyaltySubCommand),
@@ -44,9 +48,12 @@ pub async fn subcommand(
         }
         Commands::Metadata(subcommand) => {
             metadata_subcommand(async_client, keypair, subcommand).await?;
-        },
+        }
         Commands::Freeze(args) => {
             freeze_mint_account(async_client, keypair, args).await?;
+        }
+        Commands::Thaw(args) => {
+            thaw_mint_account(async_client, keypair, args).await?;
         }
     }
 
