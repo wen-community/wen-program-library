@@ -48,7 +48,7 @@ impl UpdateGroupAccount {
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.group, false,
         ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+        accounts.push(solana_program::instruction::AccountMeta::new(
             self.mint, false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
