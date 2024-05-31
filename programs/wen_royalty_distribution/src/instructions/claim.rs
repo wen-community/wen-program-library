@@ -24,10 +24,6 @@ pub struct ClaimDistribution<'info> {
     /// CHECK: can be Pubkey::default() or mint address
     #[account()]
     pub payment_mint: UncheckedAccount<'info>,
-
-    pub token_program: Interface<'info, TokenInterface>,
-
-    /* Optional accounts */
     #[account(
         mut,
         token::authority = distribution,
@@ -42,6 +38,7 @@ pub struct ClaimDistribution<'info> {
         token::token_program = token_program,
     )]
     pub creator_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    pub token_program: Interface<'info, TokenInterface>,
 }
 
 impl ClaimDistribution<'_> {

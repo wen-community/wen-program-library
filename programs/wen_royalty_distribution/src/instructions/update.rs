@@ -51,11 +51,6 @@ pub struct UpdateDistribution<'info> {
         bump
     )]
     pub distribution_account: Account<'info, DistributionAccount>,
-
-    pub token_program: Interface<'info, TokenInterface>,
-    pub system_program: Program<'info, System>,
-
-    /* Optional Accounts */
     #[account(
         mut,
         token::authority = distribution_account,
@@ -71,6 +66,8 @@ pub struct UpdateDistribution<'info> {
         token::token_program = token_program,
     )]
     pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub system_program: Program<'info, System>,
 }
 
 impl UpdateDistribution<'_> {
