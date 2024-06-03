@@ -58,6 +58,7 @@ pub struct ApproveTransfer<'info> {
     )]
     pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(mut)]
+    /// CHECK: CPI Checks
     pub distribution_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,

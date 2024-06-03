@@ -42,6 +42,10 @@ export type ApproveTransferInstruction<
   TAccountMint extends string | IAccountMeta<string> = string,
   TAccountApproveAccount extends string | IAccountMeta<string> = string,
   TAccountPaymentMint extends string | IAccountMeta<string> = string,
+  TAccountDistributionTokenAccount extends
+    | string
+    | IAccountMeta<string> = string,
+  TAccountAuthorityTokenAccount extends string | IAccountMeta<string> = string,
   TAccountDistributionAccount extends string | IAccountMeta<string> = string,
   TAccountSystemProgram extends
     | string
@@ -52,10 +56,6 @@ export type ApproveTransferInstruction<
   TAccountTokenProgram extends
     | string
     | IAccountMeta<string> = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
-  TAccountDistributionTokenAccount extends
-    | string
-    | IAccountMeta<string> = string,
-  TAccountAuthorityTokenAccount extends string | IAccountMeta<string> = string,
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
 > = IInstruction<TProgram> &
   IInstructionWithData<Uint8Array> &
@@ -78,6 +78,12 @@ export type ApproveTransferInstruction<
       TAccountPaymentMint extends string
         ? ReadonlyAccount<TAccountPaymentMint>
         : TAccountPaymentMint,
+      TAccountDistributionTokenAccount extends string
+        ? WritableAccount<TAccountDistributionTokenAccount>
+        : TAccountDistributionTokenAccount,
+      TAccountAuthorityTokenAccount extends string
+        ? WritableAccount<TAccountAuthorityTokenAccount>
+        : TAccountAuthorityTokenAccount,
       TAccountDistributionAccount extends string
         ? WritableAccount<TAccountDistributionAccount>
         : TAccountDistributionAccount,
@@ -90,12 +96,6 @@ export type ApproveTransferInstruction<
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
-      TAccountDistributionTokenAccount extends string
-        ? WritableAccount<TAccountDistributionTokenAccount>
-        : TAccountDistributionTokenAccount,
-      TAccountAuthorityTokenAccount extends string
-        ? WritableAccount<TAccountAuthorityTokenAccount>
-        : TAccountAuthorityTokenAccount,
       ...TRemainingAccounts,
     ]
   >;
@@ -143,24 +143,24 @@ export type ApproveTransferInput<
   TAccountMint extends string = string,
   TAccountApproveAccount extends string = string,
   TAccountPaymentMint extends string = string,
+  TAccountDistributionTokenAccount extends string = string,
+  TAccountAuthorityTokenAccount extends string = string,
   TAccountDistributionAccount extends string = string,
   TAccountSystemProgram extends string = string,
   TAccountDistributionProgram extends string = string,
   TAccountTokenProgram extends string = string,
-  TAccountDistributionTokenAccount extends string = string,
-  TAccountAuthorityTokenAccount extends string = string,
 > = {
   payer: TransactionSigner<TAccountPayer>;
   authority: TransactionSigner<TAccountAuthority>;
   mint: Address<TAccountMint>;
   approveAccount: Address<TAccountApproveAccount>;
   paymentMint: Address<TAccountPaymentMint>;
+  distributionTokenAccount?: Address<TAccountDistributionTokenAccount>;
+  authorityTokenAccount?: Address<TAccountAuthorityTokenAccount>;
   distributionAccount: Address<TAccountDistributionAccount>;
   systemProgram?: Address<TAccountSystemProgram>;
   distributionProgram?: Address<TAccountDistributionProgram>;
   tokenProgram?: Address<TAccountTokenProgram>;
-  distributionTokenAccount?: Address<TAccountDistributionTokenAccount>;
-  authorityTokenAccount?: Address<TAccountAuthorityTokenAccount>;
   buyAmount: ApproveTransferInstructionDataArgs['buyAmount'];
 };
 
@@ -170,12 +170,12 @@ export function getApproveTransferInstruction<
   TAccountMint extends string,
   TAccountApproveAccount extends string,
   TAccountPaymentMint extends string,
+  TAccountDistributionTokenAccount extends string,
+  TAccountAuthorityTokenAccount extends string,
   TAccountDistributionAccount extends string,
   TAccountSystemProgram extends string,
   TAccountDistributionProgram extends string,
   TAccountTokenProgram extends string,
-  TAccountDistributionTokenAccount extends string,
-  TAccountAuthorityTokenAccount extends string,
 >(
   input: ApproveTransferInput<
     TAccountPayer,
@@ -183,12 +183,12 @@ export function getApproveTransferInstruction<
     TAccountMint,
     TAccountApproveAccount,
     TAccountPaymentMint,
+    TAccountDistributionTokenAccount,
+    TAccountAuthorityTokenAccount,
     TAccountDistributionAccount,
     TAccountSystemProgram,
     TAccountDistributionProgram,
-    TAccountTokenProgram,
-    TAccountDistributionTokenAccount,
-    TAccountAuthorityTokenAccount
+    TAccountTokenProgram
   >
 ): ApproveTransferInstruction<
   typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -197,12 +197,12 @@ export function getApproveTransferInstruction<
   TAccountMint,
   TAccountApproveAccount,
   TAccountPaymentMint,
+  TAccountDistributionTokenAccount,
+  TAccountAuthorityTokenAccount,
   TAccountDistributionAccount,
   TAccountSystemProgram,
   TAccountDistributionProgram,
-  TAccountTokenProgram,
-  TAccountDistributionTokenAccount,
-  TAccountAuthorityTokenAccount
+  TAccountTokenProgram
 > {
   // Program address.
   const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
@@ -214,6 +214,14 @@ export function getApproveTransferInstruction<
     mint: { value: input.mint ?? null, isWritable: false },
     approveAccount: { value: input.approveAccount ?? null, isWritable: true },
     paymentMint: { value: input.paymentMint ?? null, isWritable: false },
+    distributionTokenAccount: {
+      value: input.distributionTokenAccount ?? null,
+      isWritable: true,
+    },
+    authorityTokenAccount: {
+      value: input.authorityTokenAccount ?? null,
+      isWritable: true,
+    },
     distributionAccount: {
       value: input.distributionAccount ?? null,
       isWritable: true,
@@ -224,14 +232,6 @@ export function getApproveTransferInstruction<
       isWritable: false,
     },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    distributionTokenAccount: {
-      value: input.distributionTokenAccount ?? null,
-      isWritable: true,
-    },
-    authorityTokenAccount: {
-      value: input.authorityTokenAccount ?? null,
-      isWritable: true,
-    },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -263,12 +263,12 @@ export function getApproveTransferInstruction<
       getAccountMeta(accounts.mint),
       getAccountMeta(accounts.approveAccount),
       getAccountMeta(accounts.paymentMint),
+      getAccountMeta(accounts.distributionTokenAccount),
+      getAccountMeta(accounts.authorityTokenAccount),
       getAccountMeta(accounts.distributionAccount),
       getAccountMeta(accounts.systemProgram),
       getAccountMeta(accounts.distributionProgram),
       getAccountMeta(accounts.tokenProgram),
-      getAccountMeta(accounts.distributionTokenAccount),
-      getAccountMeta(accounts.authorityTokenAccount),
     ],
     programAddress,
     data: getApproveTransferInstructionDataEncoder().encode(
@@ -281,12 +281,12 @@ export function getApproveTransferInstruction<
     TAccountMint,
     TAccountApproveAccount,
     TAccountPaymentMint,
+    TAccountDistributionTokenAccount,
+    TAccountAuthorityTokenAccount,
     TAccountDistributionAccount,
     TAccountSystemProgram,
     TAccountDistributionProgram,
-    TAccountTokenProgram,
-    TAccountDistributionTokenAccount,
-    TAccountAuthorityTokenAccount
+    TAccountTokenProgram
   >;
 
   return instruction;
@@ -303,12 +303,12 @@ export type ParsedApproveTransferInstruction<
     mint: TAccountMetas[2];
     approveAccount: TAccountMetas[3];
     paymentMint: TAccountMetas[4];
-    distributionAccount: TAccountMetas[5];
-    systemProgram: TAccountMetas[6];
-    distributionProgram: TAccountMetas[7];
-    tokenProgram: TAccountMetas[8];
-    distributionTokenAccount?: TAccountMetas[9] | undefined;
-    authorityTokenAccount?: TAccountMetas[10] | undefined;
+    distributionTokenAccount?: TAccountMetas[5] | undefined;
+    authorityTokenAccount?: TAccountMetas[6] | undefined;
+    distributionAccount: TAccountMetas[7];
+    systemProgram: TAccountMetas[8];
+    distributionProgram: TAccountMetas[9];
+    tokenProgram: TAccountMetas[10];
   };
   data: ApproveTransferInstructionData;
 };
@@ -345,12 +345,12 @@ export function parseApproveTransferInstruction<
       mint: getNextAccount(),
       approveAccount: getNextAccount(),
       paymentMint: getNextAccount(),
+      distributionTokenAccount: getNextOptionalAccount(),
+      authorityTokenAccount: getNextOptionalAccount(),
       distributionAccount: getNextAccount(),
       systemProgram: getNextAccount(),
       distributionProgram: getNextAccount(),
       tokenProgram: getNextAccount(),
-      distributionTokenAccount: getNextOptionalAccount(),
-      authorityTokenAccount: getNextOptionalAccount(),
     },
     data: getApproveTransferInstructionDataDecoder().decode(instruction.data),
   };
