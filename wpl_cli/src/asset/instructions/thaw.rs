@@ -1,11 +1,9 @@
 use anyhow::Result;
 
 use clap::Parser;
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::{
     message::{v0::Message as TransactionMessage, VersionedMessage},
     pubkey::Pubkey,
-    signature::Keypair,
     signer::Signer,
     transaction::VersionedTransaction,
 };
@@ -13,7 +11,7 @@ use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token_2022::{instruction::revoke, ID as TOKEN_PROGRAM_ID};
 use wen_new_standard::instructions::ThawMintAccount;
 
-use crate::utils::derive_manager_account;
+use crate::{utils::derive_manager_account, Context};
 
 #[derive(Debug, Parser, Clone)]
 pub struct ThawArgs {
@@ -25,7 +23,8 @@ pub struct ThawArgs {
     pub is_delegate: bool,
 }
 
-pub async fn run(client: RpcClient, keypair: Keypair, args: ThawArgs) -> Result<()> {
+pub async fn run(context: Context, args: ThawArgs) -> Result<()> {
+    let Context { client, keypair } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -70,14 +69,9 @@ pub async fn run(client: RpcClient, keypair: Keypair, args: ThawArgs) -> Result<
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
-    log::info!(
-        "Asset thawed successfully! Signature: {:?}",
-        signature
-    );
+    log::info!("Asset thawed successfully! Signature: {:?}", signature);
 
     Ok(())
 }

@@ -1,10 +1,10 @@
+use crate::Context;
+
 use super::add::run as add_royalties;
 use super::modify::run as modify_royalties;
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::signature::Keypair;
 
 use super::data::RoyaltyArgs;
 
@@ -24,16 +24,15 @@ pub enum Commands {
 }
 
 pub async fn subcommand(
-    client: RpcClient,
-    keypair: Keypair,
+    context: Context,
     subcommand: RoyaltySubCommand,
 ) -> Result<()> {
     match subcommand.action {
         Commands::Add(args) => {
-            add_royalties(client, keypair, args).await?;
+            add_royalties(context, args).await?;
         }
         Commands::Modify(args) => {
-            modify_royalties(client, keypair, args).await?;
+            modify_royalties(context, args).await?;
         }
     }
 

@@ -1,12 +1,10 @@
 use anyhow::Result;
 
 use clap::Parser;
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     message::{v0::Message as TransactionMessage, VersionedMessage},
     pubkey::Pubkey,
-    signature::Keypair,
     signer::Signer,
     transaction::VersionedTransaction,
 };
@@ -16,7 +14,7 @@ use wen_new_standard::{
     types::UpdateGroupAccountArgs,
 };
 
-use crate::utils::derive_group_account;
+use crate::{utils::derive_group_account, Context};
 
 #[derive(Debug, Parser, Clone)]
 pub struct UpdateArgs {
@@ -37,7 +35,8 @@ pub struct UpdateArgs {
     pub mint: Pubkey,
 }
 
-pub async fn run(client: RpcClient, keypair: Keypair, args: UpdateArgs) -> Result<()> {
+pub async fn run(context: Context, args: UpdateArgs) -> Result<()> {
+    let Context { client, keypair } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -74,11 +73,12 @@ pub async fn run(client: RpcClient, keypair: Keypair, args: UpdateArgs) -> Resul
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
-    log::info!("Collection updated successfully! Signature: {:?}", signature);
+    log::info!(
+        "Collection updated successfully! Signature: {:?}",
+        signature
+    );
 
     Ok(())
 }

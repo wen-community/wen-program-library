@@ -1,7 +1,6 @@
 use anyhow::Result;
 
 use clap::Parser;
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     message::{v0::Message as TransactionMessage, VersionedMessage},
@@ -19,7 +18,10 @@ use wen_new_standard::{
     types::CreateGroupAccountArgs,
 };
 
-use crate::utils::{derive_group_account, derive_manager_account};
+use crate::{
+    utils::{derive_group_account, derive_manager_account},
+    Context,
+};
 
 #[derive(Debug, Parser, Clone)]
 pub struct CreateArgs {
@@ -40,7 +42,8 @@ pub struct CreateArgs {
     pub receiver: Option<Pubkey>,
 }
 
-pub async fn run(client: RpcClient, keypair: Keypair, args: CreateArgs) -> Result<()> {
+pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
+    let Context { client, keypair } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -93,9 +96,7 @@ pub async fn run(client: RpcClient, keypair: Keypair, args: CreateArgs) -> Resul
     let transaction =
         VersionedTransaction::try_new(transaction_message, &[&keypair, &mint_keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
     log::info!(
         "Collection created successfully! Collection PDA: {:?}\nCollection: {:?}\nSignature: {:?}",

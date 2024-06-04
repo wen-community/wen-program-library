@@ -1,17 +1,16 @@
 use anyhow::Result;
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     message::{v0, VersionedMessage},
-    signature::Keypair,
     signer::Signer,
     transaction::VersionedTransaction,
 };
 use wen_new_standard::instructions::InitManagerAccount;
 
-use crate::utils::derive_manager_account;
+use crate::{utils::derive_manager_account, Context};
 
-pub async fn run(client: RpcClient, keypair: Keypair) -> Result<()> {
+pub async fn run(context: Context) -> Result<()> {
+    let Context { keypair, client } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -34,9 +33,7 @@ pub async fn run(client: RpcClient, keypair: Keypair) -> Result<()> {
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
     log::info!(
         "Manager initialized successfully! Signature: {:?}",

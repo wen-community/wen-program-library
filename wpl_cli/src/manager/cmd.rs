@@ -1,9 +1,8 @@
 use super::init::run as init_manager_account;
+use crate::Context;
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::signature::Keypair;
 
 #[derive(Debug, Clone, Args)]
 pub struct ManagerSubCommand {
@@ -17,14 +16,10 @@ pub enum Commands {
     Init,
 }
 
-pub async fn subcommand(
-    client: RpcClient,
-    keypair: Keypair,
-    subcommand: ManagerSubCommand,
-) -> Result<()> {
+pub async fn subcommand(context: Context, subcommand: ManagerSubCommand) -> Result<()> {
     match subcommand.action {
         Commands::Init => {
-            init_manager_account(client, keypair).await?;
+            init_manager_account(context).await?;
         }
     }
 

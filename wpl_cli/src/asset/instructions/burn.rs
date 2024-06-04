@@ -1,11 +1,9 @@
 use anyhow::Result;
 
 use clap::Parser;
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::{
     message::{v0::Message as TransactionMessage, VersionedMessage},
     pubkey::Pubkey,
-    signature::Keypair,
     signer::Signer,
     transaction::VersionedTransaction,
 };
@@ -13,7 +11,7 @@ use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token_2022::ID as TOKEN_PROGRAM_ID;
 use wen_new_standard::instructions::BurnMintAccount;
 
-use crate::utils::derive_manager_account;
+use crate::{utils::derive_manager_account, Context};
 
 #[derive(Debug, Parser, Clone)]
 pub struct BurnArgs {
@@ -22,7 +20,8 @@ pub struct BurnArgs {
     pub mint: Pubkey,
 }
 
-pub async fn run(client: RpcClient, keypair: Keypair, args: BurnArgs) -> Result<()> {
+pub async fn run(context: Context, args: BurnArgs) -> Result<()> {
+    let Context { client, keypair } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -56,9 +55,7 @@ pub async fn run(client: RpcClient, keypair: Keypair, args: BurnArgs) -> Result<
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
     log::info!("Asset burnt successfully! Signature: {:?}", signature);
 

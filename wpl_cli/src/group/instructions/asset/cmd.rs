@@ -1,9 +1,9 @@
+use crate::Context;
+
 use super::{add::run as add_mint, remove::run as remove_mint, AssetArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::signature::Keypair;
 
 #[derive(Debug, Clone, Args)]
 pub struct CollectionAssetSubCommand {
@@ -21,17 +21,13 @@ pub enum Commands {
     Remove(AssetArgs),
 }
 
-pub async fn subcommand(
-    client: RpcClient,
-    keypair: Keypair,
-    subcommand: CollectionAssetSubCommand,
-) -> Result<()> {
+pub async fn subcommand(context: Context, subcommand: CollectionAssetSubCommand) -> Result<()> {
     match subcommand.action {
         Commands::Add(args) => {
-            add_mint(client, keypair, args).await?;
+            add_mint(context, args).await?;
         }
         Commands::Remove(args) => {
-            remove_mint(client, keypair, args).await?;
+            remove_mint(context, args).await?;
         }
     }
 

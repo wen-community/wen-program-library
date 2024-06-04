@@ -1,3 +1,5 @@
+use crate::Context;
+
 use super::burn::{run as burn_mint_account, BurnArgs};
 use super::create::{run as create_mint_account, CreateArgs};
 use super::freeze::{run as freeze_mint_account, FreezeArgs};
@@ -7,8 +9,6 @@ use super::thaw::{run as thaw_mint_account, ThawArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::signature::Keypair;
 
 #[derive(Debug, Clone, Args)]
 pub struct AssetSubcommand {
@@ -38,29 +38,25 @@ pub enum Commands {
     Metadata(MetadataSubCommand),
 }
 
-pub async fn subcommand(
-    client: RpcClient,
-    keypair: Keypair,
-    subcommand: AssetSubcommand,
-) -> Result<()> {
+pub async fn subcommand(context: Context, subcommand: AssetSubcommand) -> Result<()> {
     match subcommand.action {
         Commands::Create(args) => {
-            create_mint_account(client, keypair, args).await?;
+            create_mint_account(context, args).await?;
         }
         Commands::Royalty(subcommand) => {
-            royalty_subcommand(client, keypair, subcommand).await?;
+            royalty_subcommand(context, subcommand).await?;
         }
         Commands::Metadata(subcommand) => {
-            metadata_subcommand(client, keypair, subcommand).await?;
+            metadata_subcommand(context, subcommand).await?;
         }
         Commands::Freeze(args) => {
-            freeze_mint_account(client, keypair, args).await?;
+            freeze_mint_account(context, args).await?;
         }
         Commands::Thaw(args) => {
-            thaw_mint_account(client, keypair, args).await?;
+            thaw_mint_account(context, args).await?;
         }
         Commands::Burn(args) => {
-            burn_mint_account(client, keypair, args).await?;
+            burn_mint_account(context, args).await?;
         }
     }
 

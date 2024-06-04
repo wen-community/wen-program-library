@@ -1,10 +1,7 @@
 use anyhow::Result;
-
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     message::{v0::Message as TransactionMessage, VersionedMessage},
-    signature::Keypair,
     signer::Signer,
     transaction::VersionedTransaction,
 };
@@ -12,9 +9,10 @@ use spl_token_2022::ID as TOKEN_PROGRAM_ID;
 use wen_new_standard::instructions::{AddRoyalties, AddRoyaltiesInstructionArgs};
 
 use super::super::RoyaltyArgs;
-use crate::{asset::parse_update_royalties_args, utils::derive_extra_metas_account};
+use crate::{asset::parse_update_royalties_args, utils::derive_extra_metas_account, Context};
 
-pub async fn run(client: RpcClient, keypair: Keypair, args: RoyaltyArgs) -> Result<()> {
+pub async fn run(context: Context, args: RoyaltyArgs) -> Result<()> {
+    let Context { client, keypair } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -46,9 +44,7 @@ pub async fn run(client: RpcClient, keypair: Keypair, args: RoyaltyArgs) -> Resu
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
     log::info!(
         "Added royalties for asset {:?} successfully! Signature: {:?}",

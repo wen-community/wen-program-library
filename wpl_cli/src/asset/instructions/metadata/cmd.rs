@@ -1,9 +1,9 @@
+use crate::Context;
+
 use super::{add::run as add_metadata, remove::run as remove_metadata, MetadataArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
-use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::signature::Keypair;
 
 #[derive(Debug, Clone, Args)]
 pub struct MetadataSubCommand {
@@ -22,16 +22,15 @@ pub enum Commands {
 }
 
 pub async fn subcommand(
-    client: RpcClient,
-    keypair: Keypair,
+    context: Context,
     subcommand: MetadataSubCommand,
 ) -> Result<()> {
     match subcommand.action {
         Commands::Add(args) => {
-            add_metadata(client, keypair, args).await?;
+            add_metadata(context, args).await?;
         }
         Commands::Remove(args) => {
-            remove_metadata(client, keypair, args).await?;
+            remove_metadata(context, args).await?;
         }
     }
 

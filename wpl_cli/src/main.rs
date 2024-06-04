@@ -1,9 +1,9 @@
 #![allow(ambiguous_glob_reexports)]
 
 pub mod args;
+pub mod asset;
 pub mod group;
 pub mod manager;
-pub mod asset;
 pub mod utils;
 
 use std::{str::FromStr, time::Duration};
@@ -15,9 +15,9 @@ use solana_cli_config::{Config, CONFIG_FILE};
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 
+use asset::subcommand as asset_subcommand;
 use group::subcommand as group_subcommand;
 use manager::subcommand as manager_subcommand;
-use asset::subcommand as asset_subcommand;
 use utils::parse_keypair;
 
 #[tokio::main]
@@ -54,13 +54,12 @@ async fn main() -> Result<()> {
         CommitmentConfig::from_str(&cli_config.commitment)?,
     );
     let keypair = parse_keypair(&cli_config.keypair_path)?;
+    let context = Context { keypair, client };
 
     match args.command {
-        Command::Manager(subcommand) => {
-            manager_subcommand(client, keypair, subcommand).await?
-        }
-        Command::Group(subcommand) => group_subcommand(client, keypair, subcommand).await?,
-        Command::Asset(subcommand) => asset_subcommand(client, keypair, subcommand).await?,
+        Command::Manager(subcommand) => manager_subcommand(context, subcommand).await?,
+        Command::Group(subcommand) => group_subcommand(context, subcommand).await?,
+        Command::Asset(subcommand) => asset_subcommand(context, subcommand).await?,
     }
 
     Ok(())

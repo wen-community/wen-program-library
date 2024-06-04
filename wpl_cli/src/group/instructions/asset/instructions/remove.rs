@@ -1,19 +1,18 @@
 use anyhow::Result;
 
-use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     message::{v0::Message as TransactionMessage, VersionedMessage},
-    signature::Keypair,
     signer::Signer,
     transaction::VersionedTransaction,
 };
 use spl_token_2022::ID as TOKEN_PROGRAM_ID;
 use wen_new_standard::instructions::RemoveMintFromGroup;
 
-use crate::{group::AssetArgs, utils::*};
+use crate::{group::AssetArgs, utils::*, Context};
 
-pub async fn run(client: RpcClient, keypair: Keypair, args: AssetArgs) -> Result<()> {
+pub async fn run(context: Context, args: AssetArgs) -> Result<()> {
+    let Context { client, keypair } = context;
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
@@ -47,9 +46,7 @@ pub async fn run(client: RpcClient, keypair: Keypair, args: AssetArgs) -> Result
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = client
-        .send_and_confirm_transaction(&transaction)
-        .await?;
+    let signature = client.send_and_confirm_transaction(&transaction).await?;
 
     log::info!(
         "Asset {:?} removed from collection {:?} successfully! Signature: {:?}",

@@ -1,8 +1,10 @@
+use crate::asset::*;
 use crate::group::*;
 use crate::manager::*;
-use crate::asset::*;
 
 use clap::{Parser, Subcommand};
+use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_sdk::signature::Keypair;
 
 #[derive(Debug, Parser)]
 #[command(
@@ -43,4 +45,9 @@ pub enum Command {
     /// Asset related instructions
     #[clap(name = "asset")]
     Asset(AssetSubcommand),
+}
+
+pub struct Context {
+    pub client: RpcClient,
+    pub keypair: Keypair,
 }
