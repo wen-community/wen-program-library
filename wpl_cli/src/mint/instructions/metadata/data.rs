@@ -20,23 +20,23 @@ pub struct MetadataArgs {
 }
 
 pub fn parse_add_metadata_pairs(metadata_path: PathBuf) -> Result<Vec<AddMetadataArgs>> {
-    return if Path::new(&metadata_path).exists() {
+    if Path::new(&metadata_path).exists() {
         let metadata_config = File::open(metadata_path)?;
         let add_metadata_args = serde_json::from_reader(metadata_config)?;
         Ok(add_metadata_args)
     } else {
         warn!("Metadata config doesn't exist");
         Ok(vec![])
-    };
+    }
 }
 
 pub fn parse_remove_metadata_pairs(metadata_path: PathBuf) -> Result<Vec<RemoveMetadataArgs>> {
-    return if Path::new(&metadata_path).exists() {
+    if Path::new(&metadata_path).exists() {
         let metadata_config = File::open(metadata_path)?;
         let remove_metadata_args = serde_json::from_reader(metadata_config)?;
         Ok(remove_metadata_args)
     } else {
         warn!("Metadata config doesn't exist");
         Ok(vec![])
-    };
+    }
 }

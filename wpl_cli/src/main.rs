@@ -14,7 +14,6 @@ use clap::Parser;
 use solana_cli_config::{Config, CONFIG_FILE};
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
-use tokio;
 
 use group::subcommand as group_subcommand;
 use manager::subcommand as manager_subcommand;
@@ -33,7 +32,7 @@ async fn main() -> Result<()> {
         .as_ref()
         .ok_or_else(|| anyhow!("unable to get config file path"))?;
 
-    let mut cli_config = Config::load(&config_file)?;
+    let mut cli_config = Config::load(config_file)?;
 
     cli_config.json_rpc_url = if let Some(custom_json_rpc_url) = args.rpc {
         custom_json_rpc_url
@@ -47,7 +46,7 @@ async fn main() -> Result<()> {
         cli_config.keypair_path
     };
 
-    cli_config.save(&config_file)?;
+    cli_config.save(config_file)?;
 
     let async_client = RpcClient::new_with_timeout_and_commitment(
         cli_config.json_rpc_url.clone(),
