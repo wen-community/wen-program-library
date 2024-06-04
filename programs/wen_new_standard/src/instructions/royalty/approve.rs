@@ -43,14 +43,6 @@ pub struct ApproveTransfer<'info> {
     pub approve_account: Account<'info, ApproveAccount>,
     /// CHECK: This account can be any mint or Pubkey::default()
     pub payment_mint: UncheckedAccount<'info>,
-    /// CHECK: cpi checks
-    #[account(mut)]
-    pub distribution_account: UncheckedAccount<'info>,
-    pub system_program: Program<'info, System>,
-    pub distribution_program: Program<'info, WenRoyaltyDistribution>,
-    pub token_program: Program<'info, Token2022>,
-
-    /* Optional accounts */
     #[account(
         mut,
         token::authority = distribution_account,
@@ -65,6 +57,12 @@ pub struct ApproveTransfer<'info> {
         token::token_program = token_program,
     )]
     pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
+    #[account(mut)]
+    /// CHECK: CPI Checks
+    pub distribution_account: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
+    pub distribution_program: Program<'info, WenRoyaltyDistribution>,
+    pub token_program: Program<'info, Token2022>,
 }
 
 impl ApproveTransfer<'_> {
