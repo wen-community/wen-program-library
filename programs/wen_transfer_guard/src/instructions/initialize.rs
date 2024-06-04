@@ -6,10 +6,9 @@ use anchor_spl::{token_2022::spl_token_2022::ID as TOKEN_2022_PROGRAM_ID, token_
 use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountMetaList};
 use spl_transfer_hook_interface::{error::TransferHookError, instruction::ExecuteInstruction};
 
-use crate::{AnchorExtraAccountMeta, GuardV1, EXTRA_ACCOUNT_METAS, GUARD_V1, WEN_TOKEN_GUARD};
+use crate::{GuardV1, EXTRA_ACCOUNT_METAS, GUARD_V1, WEN_TOKEN_GUARD};
 
 #[derive(Accounts)]
-#[instruction(metas: Vec<AnchorExtraAccountMeta>)]
 pub struct Initialize<'info> {
     /// CHECK: This account's data is a buffer of TLV data
     #[account(

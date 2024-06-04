@@ -24,21 +24,20 @@ pub struct UpdateGuard<'info> {
     pub guard: Account<'info, GuardV1>,
 
     #[account(
-        address = guard.mint,
+        constraint = guard.mint == mint.key(),
         mint::token_program = token_program,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         associated_token::mint = mint,
-        associated_token::authority = signer,
+        associated_token::authority = guard_authority,
         associated_token::token_program = token_program,
-        constraint = mint_token_account.amount == 1 @ WenTransferGuardError::GuardTokenAmountShouldBeAtLeastOne
+        constraint = token_account.amount == 1 @ WenTransferGuardError::GuardTokenAmountShouldBeAtLeastOne
     )]
-    pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    #[account(mut)]
-    pub signer: Signer<'info>,
+    pub guard_authority: Signer<'info>,
 
     pub token_program: Program<'info, Token2022>,
     pub system_program: Program<'info, System>,

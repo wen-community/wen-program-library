@@ -31,9 +31,9 @@ pub struct CreateGuard<'info> {
         signer,
         payer = payer,
         mint::decimals = 0,
-        mint::authority = payer,
-        mint::freeze_authority = payer,
-        extensions::metadata_pointer::authority = payer,
+        mint::authority = guard_authority,
+        mint::freeze_authority = guard_authority,
+        extensions::metadata_pointer::authority = guard_authority,
         extensions::metadata_pointer::metadata_address = mint,
         mint::token_program = token_program,
     )]
@@ -43,10 +43,12 @@ pub struct CreateGuard<'info> {
         init,
         payer = payer,
         associated_token::mint = mint,
-        associated_token::authority = payer,
+        associated_token::authority = guard_authority,
         associated_token::token_program = token_program,
     )]
     pub mint_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    pub guard_authority: Signer<'info>,
 
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -72,6 +74,7 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
     let guard = &mut ctx.accounts.guard;
     let bump = ctx.bumps.guard;
 
+    msg!("wen_transfer_guard: Initializing guard token metadata");
     /* Initialize token metadata */
     token_metadata_initialize(
         CpiContext::new(
@@ -80,8 +83,8 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
                 token_program_id: ctx.accounts.token_program.to_account_info(),
                 mint: ctx.accounts.mint.to_account_info(),
                 metadata: ctx.accounts.mint.to_account_info(), // metadata account is the mint, since data is stored in mint
-                mint_authority: ctx.accounts.payer.to_account_info(),
-                update_authority: ctx.accounts.payer.to_account_info(),
+                mint_authority: ctx.accounts.guard_authority.to_account_info(),
+                update_authority: ctx.accounts.guard_authority.to_account_info(),
             },
         ),
         args.name,
@@ -89,18 +92,20 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
         args.uri,
     )?;
 
+    msg!("wen_transfer_guard: Minting guard token to payer");
     mint_to(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
             MintTo {
                 mint: ctx.accounts.mint.to_account_info(),
                 to: ctx.accounts.mint_token_account.to_account_info(),
-                authority: ctx.accounts.payer.to_account_info(),
+                authority: ctx.accounts.guard_authority.to_account_info(),
             },
         ),
         1,
     )?;
 
+    msg!("wen_transfer_guard: Storing guard data in account");
     guard.set_inner(GuardV1::new(
         ctx.accounts.mint.key(),
         bump,
@@ -109,6 +114,7 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
         args.addition_fields_rule,
     ));
 
+    msg!("wen_transfer_guard: Updating mint account balance to minimum balance");
     update_account_lamports_to_minimum_balance(
         ctx.accounts.mint.to_account_info(),
         ctx.accounts.payer.to_account_info(),
