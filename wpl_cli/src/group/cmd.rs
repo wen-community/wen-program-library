@@ -1,5 +1,5 @@
 use super::create::{run as create_group_account, CreateArgs};
-use super::mint::{group_mint_subcommand, GroupMintSubCommand};
+use super::asset::{collection_asset_subcommand, CollectionAssetSubCommand};
 use super::update::{run as update_group_account, UpdateArgs};
 
 use anyhow::Result;
@@ -16,30 +16,30 @@ pub struct GroupSubCommand {
 #[derive(Debug, Clone, Subcommand)]
 pub enum Commands {
     #[clap(name = "create")]
-    /// Create a new group account (collection)
+    /// Create a collection
     Create(CreateArgs),
     #[clap(name = "update")]
-    /// Update a group account (collection)
+    /// Update a collection
     Update(UpdateArgs),
     #[clap(name = "mint")]
-    /// Mint grouping related instructions
-    Mint(GroupMintSubCommand),
+    /// Asset grouping related instructions
+    Asset(CollectionAssetSubCommand),
 }
 
 pub async fn subcommand(
-    async_client: RpcClient,
+    client: RpcClient,
     keypair: Keypair,
     subcommand: GroupSubCommand,
 ) -> Result<()> {
     match subcommand.action {
         Commands::Create(args) => {
-            create_group_account(async_client, keypair, args).await?;
+            create_group_account(client, keypair, args).await?;
         }
         Commands::Update(args) => {
-            update_group_account(async_client, keypair, args).await?;
+            update_group_account(client, keypair, args).await?;
         }
-        Commands::Mint(subcommand) => {
-            group_mint_subcommand(async_client, keypair, subcommand).await?;
+        Commands::Asset(subcommand) => {
+            collection_asset_subcommand(client, keypair, subcommand).await?;
         }
     }
 

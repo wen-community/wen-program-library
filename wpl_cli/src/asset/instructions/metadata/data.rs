@@ -11,7 +11,7 @@ use wen_new_standard::types::{AddMetadataArgs, RemoveMetadataArgs};
 
 #[derive(Debug, Parser, Clone)]
 pub struct MetadataArgs {
-    /// Member mint
+    /// Asset address
     #[arg(short, long, value_parser = clap::value_parser!(Pubkey))]
     pub mint: Pubkey,
     /// Config file for metadata

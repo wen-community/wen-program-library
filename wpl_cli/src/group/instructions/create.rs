@@ -40,9 +40,9 @@ pub struct CreateArgs {
     pub receiver: Option<Pubkey>,
 }
 
-pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) -> Result<()> {
+pub async fn run(client: RpcClient, keypair: Keypair, args: CreateArgs) -> Result<()> {
     let payer = keypair.pubkey();
-    let recent_blockhash = async_client.get_latest_blockhash().await?;
+    let recent_blockhash = client.get_latest_blockhash().await?;
 
     let mint_keypair = Keypair::new();
     let mint_pubkey = mint_keypair.pubkey();
@@ -93,12 +93,12 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) ->
     let transaction =
         VersionedTransaction::try_new(transaction_message, &[&keypair, &mint_keypair])?;
 
-    let signature = async_client
+    let signature = client
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!(
-        "Group created successfully! Group account: {:?}\nGroup mint: {:?}\nSignature: {:?}",
+    log::info!(
+        "Collection created successfully! Collection PDA: {:?}\nCollection: {:?}\nSignature: {:?}",
         group.to_string(),
         mint_pubkey.to_string(),
         signature

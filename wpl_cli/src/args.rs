@@ -1,6 +1,6 @@
 use crate::group::*;
 use crate::manager::*;
-use crate::mint::*;
+use crate::asset::*;
 
 use clap::{Parser, Subcommand};
 
@@ -34,13 +34,13 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    #[clap(name = "manager")]
     /// Manager related instructions
+    #[clap(name = "manager")]
     Manager(ManagerSubCommand),
-    #[clap(name = "group")]
-    /// Group account related instructions
+    /// Collection related instructions
+    #[clap(name = "collection")]
     Group(GroupSubCommand),
-    /// Mint account related instructions
-    #[clap(name = "mint")]
-    Mint(MintSubCommand),
+    /// Asset related instructions
+    #[clap(name = "asset")]
+    Asset(AssetSubcommand),
 }

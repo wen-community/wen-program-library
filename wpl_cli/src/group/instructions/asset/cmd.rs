@@ -1,4 +1,4 @@
-use super::{add::run as add_metadata, remove::run as remove_metadata, MetadataArgs};
+use super::{add::run as add_mint, remove::run as remove_mint, AssetArgs};
 
 use anyhow::Result;
 use clap::{Args, Subcommand};
@@ -6,7 +6,7 @@ use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::signature::Keypair;
 
 #[derive(Debug, Clone, Args)]
-pub struct MetadataSubCommand {
+pub struct CollectionAssetSubCommand {
     #[clap(subcommand)]
     pub action: Commands,
 }
@@ -14,24 +14,24 @@ pub struct MetadataSubCommand {
 #[derive(Debug, Clone, Subcommand)]
 pub enum Commands {
     #[clap(name = "add")]
-    /// Add metadata for a mint account (member)
-    Add(MetadataArgs),
+    /// Add an asset to a collection
+    Add(AssetArgs),
     #[clap(name = "remove")]
-    /// Remove metadata for a mint account (member)
-    Remove(MetadataArgs),
+    /// Remove an asset from a collection
+    Remove(AssetArgs),
 }
 
 pub async fn subcommand(
-    async_client: RpcClient,
+    client: RpcClient,
     keypair: Keypair,
-    subcommand: MetadataSubCommand,
+    subcommand: CollectionAssetSubCommand,
 ) -> Result<()> {
     match subcommand.action {
         Commands::Add(args) => {
-            add_metadata(async_client, keypair, args).await?;
+            add_mint(client, keypair, args).await?;
         }
         Commands::Remove(args) => {
-            remove_metadata(async_client, keypair, args).await?;
+            remove_mint(client, keypair, args).await?;
         }
     }
 

@@ -37,9 +37,9 @@ pub struct UpdateArgs {
     pub mint: Pubkey,
 }
 
-pub async fn run(async_client: RpcClient, keypair: Keypair, args: UpdateArgs) -> Result<()> {
+pub async fn run(client: RpcClient, keypair: Keypair, args: UpdateArgs) -> Result<()> {
     let payer = keypair.pubkey();
-    let recent_blockhash = async_client.get_latest_blockhash().await?;
+    let recent_blockhash = client.get_latest_blockhash().await?;
 
     let mint_pubkey = args.mint;
     let keypair_pubkey = keypair.pubkey();
@@ -74,11 +74,11 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: UpdateArgs) ->
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = async_client
+    let signature = client
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!("Group updated successfully! Signature: {:?}", signature);
+    log::info!("Collection updated successfully! Signature: {:?}", signature);
 
     Ok(())
 }

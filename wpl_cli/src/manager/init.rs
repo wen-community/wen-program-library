@@ -11,9 +11,9 @@ use wen_new_standard::instructions::InitManagerAccount;
 
 use crate::utils::derive_manager_account;
 
-pub async fn run(async_client: RpcClient, keypair: Keypair) -> Result<()> {
+pub async fn run(client: RpcClient, keypair: Keypair) -> Result<()> {
     let payer = keypair.pubkey();
-    let recent_blockhash = async_client.get_latest_blockhash().await?;
+    let recent_blockhash = client.get_latest_blockhash().await?;
 
     let manager = derive_manager_account();
 
@@ -34,11 +34,11 @@ pub async fn run(async_client: RpcClient, keypair: Keypair) -> Result<()> {
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = async_client
+    let signature = client
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!(
+    log::info!(
         "Manager initialized successfully! Signature: {:?}",
         signature
     );

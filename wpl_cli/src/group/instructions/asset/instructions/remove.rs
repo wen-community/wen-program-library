@@ -11,11 +11,11 @@ use solana_sdk::{
 use spl_token_2022::ID as TOKEN_PROGRAM_ID;
 use wen_new_standard::instructions::RemoveMintFromGroup;
 
-use crate::{group::MintArgs, utils::*};
+use crate::{group::AssetArgs, utils::*};
 
-pub async fn run(async_client: RpcClient, keypair: Keypair, args: MintArgs) -> Result<()> {
+pub async fn run(client: RpcClient, keypair: Keypair, args: AssetArgs) -> Result<()> {
     let payer = keypair.pubkey();
-    let recent_blockhash = async_client.get_latest_blockhash().await?;
+    let recent_blockhash = client.get_latest_blockhash().await?;
 
     let group_mint_pubkey = args.group_mint;
     let member_mint_pubkey = args.mint;
@@ -47,12 +47,12 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: MintArgs) -> R
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = async_client
+    let signature = client
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!(
-        "Member mint {:?} removed from group mint {:?} successfully! Signature: {:?}",
+    log::info!(
+        "Asset {:?} removed from collection {:?} successfully! Signature: {:?}",
         member_mint_pubkey.to_string(),
         group_mint_pubkey.to_string(),
         signature

@@ -18,13 +18,13 @@ pub enum Commands {
 }
 
 pub async fn subcommand(
-    async_client: RpcClient,
+    client: RpcClient,
     keypair: Keypair,
     subcommand: ManagerSubCommand,
 ) -> Result<()> {
     match subcommand.action {
         Commands::Init => {
-            init_manager_account(async_client, keypair).await?;
+            init_manager_account(client, keypair).await?;
         }
     }
 

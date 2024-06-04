@@ -3,7 +3,7 @@
 pub mod args;
 pub mod group;
 pub mod manager;
-pub mod mint;
+pub mod asset;
 pub mod utils;
 
 use std::{str::FromStr, time::Duration};
@@ -17,7 +17,7 @@ use solana_sdk::commitment_config::CommitmentConfig;
 
 use group::subcommand as group_subcommand;
 use manager::subcommand as manager_subcommand;
-use mint::subcommand as mint_subcommand;
+use asset::subcommand as asset_subcommand;
 use utils::parse_keypair;
 
 #[tokio::main]
@@ -48,7 +48,7 @@ async fn main() -> Result<()> {
 
     cli_config.save(config_file)?;
 
-    let async_client = RpcClient::new_with_timeout_and_commitment(
+    let client = RpcClient::new_with_timeout_and_commitment(
         cli_config.json_rpc_url.clone(),
         Duration::from_secs(args.timeout),
         CommitmentConfig::from_str(&cli_config.commitment)?,
@@ -57,10 +57,10 @@ async fn main() -> Result<()> {
 
     match args.command {
         Command::Manager(subcommand) => {
-            manager_subcommand(async_client, keypair, subcommand).await?
+            manager_subcommand(client, keypair, subcommand).await?
         }
-        Command::Group(subcommand) => group_subcommand(async_client, keypair, subcommand).await?,
-        Command::Mint(subcommand) => mint_subcommand(async_client, keypair, subcommand).await?,
+        Command::Group(subcommand) => group_subcommand(client, keypair, subcommand).await?,
+        Command::Asset(subcommand) => asset_subcommand(client, keypair, subcommand).await?,
     }
 
     Ok(())

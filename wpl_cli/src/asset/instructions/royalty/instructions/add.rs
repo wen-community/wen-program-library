@@ -9,46 +9,49 @@ use solana_sdk::{
     transaction::VersionedTransaction,
 };
 use spl_token_2022::ID as TOKEN_PROGRAM_ID;
-use wen_new_standard::instructions::{AddMetadata, AddMetadataInstructionArgs};
+use wen_new_standard::instructions::{AddRoyalties, AddRoyaltiesInstructionArgs};
 
-use crate::mint::{parse_add_metadata_pairs, MetadataArgs};
+use super::super::RoyaltyArgs;
+use crate::{asset::parse_update_royalties_args, utils::derive_extra_metas_account};
 
-pub async fn run(async_client: RpcClient, keypair: Keypair, args: MetadataArgs) -> Result<()> {
+pub async fn run(client: RpcClient, keypair: Keypair, args: RoyaltyArgs) -> Result<()> {
     let payer = keypair.pubkey();
-    let recent_blockhash = async_client.get_latest_blockhash().await?;
+    let recent_blockhash = client.get_latest_blockhash().await?;
 
     let mint_pubkey = args.mint;
     let keypair_pubkey = keypair.pubkey();
 
-    let add_metadata = AddMetadata {
+    let extra_metas_account = derive_extra_metas_account(&mint_pubkey);
+    let add_royalties = AddRoyalties {
         payer: keypair_pubkey,
         authority: keypair_pubkey,
         mint: mint_pubkey,
         token_program: TOKEN_PROGRAM_ID,
         system_program: SYSTEM_PROGRAM_ID,
+        extra_metas_account,
     };
 
-    let add_metadata_args = parse_add_metadata_pairs(args.metadata_path)?;
+    let update_royalties_args = parse_update_royalties_args(args.config_path)?;
 
-    let add_metadata_ix = add_metadata.instruction(AddMetadataInstructionArgs {
-        args: add_metadata_args,
+    let add_royalties_ix = add_royalties.instruction(AddRoyaltiesInstructionArgs {
+        args: update_royalties_args,
     });
 
     let transaction_message = VersionedMessage::V0(TransactionMessage::try_compile(
         &payer,
-        &[add_metadata_ix],
+        &[add_royalties_ix],
         &[],
         recent_blockhash,
     )?);
 
     let transaction = VersionedTransaction::try_new(transaction_message, &[&keypair])?;
 
-    let signature = async_client
+    let signature = client
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!(
-        "Added metadata for member mint {:?} successfully! Signature: {:?}",
+    log::info!(
+        "Added royalties for asset {:?} successfully! Signature: {:?}",
         mint_pubkey.to_string(),
         signature
     );

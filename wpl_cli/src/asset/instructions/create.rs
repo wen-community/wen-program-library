@@ -23,16 +23,16 @@ use crate::utils::derive_manager_account;
 
 #[derive(Debug, Parser, Clone)]
 pub struct CreateArgs {
-    /// Name of the member mint
+    /// Name of the asset
     #[arg(short, long)]
     pub name: String,
-    /// Symbol of the member mint
+    /// Symbol of the asset
     #[arg(short, long)]
     pub symbol: String,
-    /// URI of the member mint
+    /// URI of the asset
     #[arg(short, long)]
     pub uri: String,
-    /// Receiver address of the collection
+    /// Receiver address of the asset
     #[arg(short = 'R', long, value_parser = clap::value_parser!(Pubkey))]
     pub receiver: Option<Pubkey>,
     /// Optional permanent delegate
@@ -40,9 +40,9 @@ pub struct CreateArgs {
     pub permanent_delegate: Option<Pubkey>,
 }
 
-pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) -> Result<()> {
+pub async fn run(client: RpcClient, keypair: Keypair, args: CreateArgs) -> Result<()> {
     let payer = keypair.pubkey();
-    let recent_blockhash = async_client.get_latest_blockhash().await?;
+    let recent_blockhash = client.get_latest_blockhash().await?;
 
     let mint_keypair = Keypair::new();
     let mint_pubkey = mint_keypair.pubkey();
@@ -90,12 +90,12 @@ pub async fn run(async_client: RpcClient, keypair: Keypair, args: CreateArgs) ->
     let transaction =
         VersionedTransaction::try_new(transaction_message, &[&keypair, &mint_keypair])?;
 
-    let signature = async_client
+    let signature = client
         .send_and_confirm_transaction(&transaction)
         .await?;
 
-    println!(
-        "Member mint account created successfully! Member mint: {:?}\nSignature: {:?}",
+    log::info!(
+        "Asset created successfully! Asset mint: {:?}\nSignature: {:?}",
         mint_pubkey.to_string(),
         signature
     );
