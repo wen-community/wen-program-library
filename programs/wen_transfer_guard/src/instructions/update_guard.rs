@@ -43,7 +43,7 @@ pub struct UpdateGuard<'info> {
 pub struct UpdateGuardArgs {
     pub cpi_rule: Option<CpiRule>,
     pub transfer_amount_rule: Option<TransferAmountRule>,
-    pub addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+    pub additional_fields_rule: Vec<MetadataAdditionalFieldRule>,
 }
 
 /// IX: update_guard
@@ -53,7 +53,7 @@ pub fn processor(ctx: Context<UpdateGuard>, args: UpdateGuardArgs) -> Result<()>
     guard.update(
         args.cpi_rule,
         args.transfer_amount_rule,
-        args.addition_fields_rule,
+        args.additional_fields_rule,
     );
     Ok(())
 }

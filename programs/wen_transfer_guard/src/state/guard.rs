@@ -250,7 +250,7 @@ impl GuardV1 {
             size += TransferAmountRule::size_of();
         }
 
-        size += 4; // addition_fields_rules vec length
+        size += 4; // additional_fields_rules vec length
 
         // Additional fields rule size
         size += additional_fields_rule
@@ -271,14 +271,14 @@ impl GuardV1 {
         bump: u8,
         cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
-        addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+        additional_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> Self {
         Self {
             mint,
             bump,
             cpi_rule,
             transfer_amount_rule,
-            additional_fields_rule: addition_fields_rule,
+            additional_fields_rule,
         }
     }
 
@@ -286,11 +286,11 @@ impl GuardV1 {
         &mut self,
         cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
-        addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+        additional_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) {
         self.cpi_rule = cpi_rule;
         self.transfer_amount_rule = transfer_amount_rule;
-        self.additional_fields_rule = addition_fields_rule;
+        self.additional_fields_rule = additional_fields_rule;
     }
 
     /// Enforce all rules set in the guard.

@@ -234,21 +234,20 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
   });
 
   it("[Transfer Guards] - Initializes a transfer guard.", async () => {
-    let builder = program.methods.createGuard({
-      ...kGuardMetadata,
-      additionFieldsRule: [],
-      transferAmountRule: null,
-      cpiRule: kGuardOriginalCpiRule,
-    });
-
-    builder = builder.accounts({
-      mint: kGuardMint.publicKey,
-      mintTokenAccount: kGuardMintAta,
-      guardAuthority: kGuardOwner.publicKey,
-      payer: context.payer.publicKey,
-    });
-
-    const ix = await builder.instruction();
+    const ix = await program.methods
+      .createGuard({
+        ...kGuardMetadata,
+        additionFieldsRule: [],
+        transferAmountRule: null,
+        cpiRule: kGuardOriginalCpiRule,
+      })
+      .accounts({
+        mint: kGuardMint.publicKey,
+        mintTokenAccount: kGuardMintAta,
+        guardAuthority: kGuardOwner.publicKey,
+        payer: context.payer.publicKey,
+      })
+      .instruction();
 
     await sendSignedVtx(
       provider,
@@ -267,24 +266,22 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
   });
 
   it("[Transfer Guards] - Updates a transfer guard.", async () => {
-    let builder = program.methods.updateGuard({
-      additionFieldsRule: [],
-      transferAmountRule: null,
-      cpiRule: kGuardUpdatedCpiRule,
-    });
-
-    builder = builder.accounts({
-      mint: kGuardMint.publicKey,
-      tokenAccount: kGuardMintAta,
-      guardAuthority: kGuardOwner.publicKey,
-    });
-
-    const ix = await builder.instruction();
+    const ix = await program.methods
+      .updateGuard({
+        additionFieldsRule: [],
+        transferAmountRule: null,
+        cpiRule: kGuardUpdatedCpiRule,
+      })
+      .accounts({
+        mint: kGuardMint.publicKey,
+        tokenAccount: kGuardMintAta,
+        guardAuthority: kGuardOwner.publicKey,
+      })
+      .instruction();
 
     await sendSignedVtx(provider, context.payer.publicKey, [kGuardOwner], ix);
 
     const guard = await program.account.guardV1.fetch(kGuard);
-
     const denyRules = guard.cpiRule.deny[0];
 
     expect(denyRules.length).to.be.eq(1);
@@ -292,18 +289,17 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
   });
 
   it("[Transfer Hook] - Assigns guard to mint via init.", async () => {
-    let builder = program.methods.initialize();
-
-    builder = builder.accountsStrict({
-      guard: kGuard,
-      mint: kMint.keypair.publicKey,
-      mintAuthority: kMint.mintAuthority.publicKey,
-      payer: context.payer.publicKey,
-      extraMetasAccount: kExtraMetasAddress,
-      systemProgram: web3.SystemProgram.programId,
-    });
-
-    const ix = await builder.instruction();
+    const ix = await program.methods
+      .initialize()
+      .accountsStrict({
+        guard: kGuard,
+        mint: kMint.keypair.publicKey,
+        mintAuthority: kMint.mintAuthority.publicKey,
+        payer: context.payer.publicKey,
+        extraMetasAccount: kExtraMetasAddress,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .instruction();
 
     await sendSignedVtx(
       provider,

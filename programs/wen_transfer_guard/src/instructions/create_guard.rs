@@ -21,7 +21,7 @@ pub struct CreateGuard<'info> {
         seeds = [WEN_TOKEN_GUARD.as_ref(), GUARD_V1.as_ref(), mint.key().as_ref()],
         bump,
         payer = payer,
-        space = GuardV1::size_of(args.cpi_rule, args.transfer_amount_rule, args.addition_fields_rule),
+        space = GuardV1::size_of(args.cpi_rule, args.transfer_amount_rule, args.additional_fields_rule),
     )]
     pub guard: Account<'info, GuardV1>,
 
@@ -64,7 +64,7 @@ pub struct CreateGuardArgs {
     pub uri: String,
     pub cpi_rule: Option<CpiRule>,
     pub transfer_amount_rule: Option<TransferAmountRule>,
-    pub addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+    pub additional_fields_rule: Vec<MetadataAdditionalFieldRule>,
 }
 
 /// IX: create_guard
@@ -106,7 +106,7 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
         bump,
         args.cpi_rule,
         args.transfer_amount_rule,
-        args.addition_fields_rule,
+        args.additional_fields_rule,
     ));
 
     update_account_lamports_to_minimum_balance(

@@ -1,5 +1,5 @@
 pub mod anchor_extra_account_meta;
-pub mod cpi_rules;
+pub mod guard;
 
 pub use anchor_extra_account_meta::*;
-pub use cpi_rules::*;
+pub use guard::*;
