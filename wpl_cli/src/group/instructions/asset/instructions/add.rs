@@ -16,8 +16,8 @@ pub async fn run(context: Context, args: AssetArgs) -> Result<()> {
     let payer = keypair.pubkey();
     let recent_blockhash = client.get_latest_blockhash().await?;
 
-    let group_mint_pubkey = args.group_mint;
-    let member_mint_pubkey = args.mint;
+    let group_mint_pubkey = args.mint;
+    let member_mint_pubkey = args.asset_mint;
     let keypair_pubkey = keypair.pubkey();
 
     let group = derive_group_account(&group_mint_pubkey);

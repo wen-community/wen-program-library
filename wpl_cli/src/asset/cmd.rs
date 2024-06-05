@@ -3,6 +3,7 @@ use crate::Context;
 use super::burn::{run as burn_mint_account, BurnArgs};
 use super::create::{run as create_mint_account, CreateArgs};
 use super::freeze::{run as freeze_mint_account, FreezeArgs};
+use super::get::{run as get_mint_account, GetArgs};
 use super::metadata::{metadata_subcommand, MetadataSubCommand};
 use super::royalty::{royalty_subcommand, RoyaltySubCommand};
 use super::thaw::{run as thaw_mint_account, ThawArgs};
@@ -21,6 +22,9 @@ pub enum Commands {
     #[clap(name = "create")]
     /// Create a new asset
     Create(CreateArgs),
+    #[clap(name = "get")]
+    /// Fetch an asset
+    Get(GetArgs),
     #[clap(name = "freeze")]
     /// Freeze an asset
     Freeze(FreezeArgs),
@@ -43,11 +47,8 @@ pub async fn subcommand(context: Context, subcommand: AssetSubcommand) -> Result
         Commands::Create(args) => {
             create_mint_account(context, args).await?;
         }
-        Commands::Royalty(subcommand) => {
-            royalty_subcommand(context, subcommand).await?;
-        }
-        Commands::Metadata(subcommand) => {
-            metadata_subcommand(context, subcommand).await?;
+        Commands::Get(args) => {
+            get_mint_account(context, args).await?;
         }
         Commands::Freeze(args) => {
             freeze_mint_account(context, args).await?;
@@ -57,6 +58,12 @@ pub async fn subcommand(context: Context, subcommand: AssetSubcommand) -> Result
         }
         Commands::Burn(args) => {
             burn_mint_account(context, args).await?;
+        }
+        Commands::Royalty(subcommand) => {
+            royalty_subcommand(context, subcommand).await?;
+        }
+        Commands::Metadata(subcommand) => {
+            metadata_subcommand(context, subcommand).await?;
         }
     }
 

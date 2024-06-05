@@ -99,7 +99,7 @@ pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
     let signature = client.send_and_confirm_transaction(&transaction).await?;
 
     log::info!(
-        "Collection created successfully! Collection PDA: {:?}\nCollection: {:?}\nSignature: {:?}",
+        "Collection created successfully! Collection PDA: {:?}\nCollection Mint: {:?}\nSignature: {:?}",
         group.to_string(),
         mint_pubkey.to_string(),
         signature

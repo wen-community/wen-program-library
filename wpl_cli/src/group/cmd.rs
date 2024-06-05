@@ -2,6 +2,7 @@ use crate::Context;
 
 use super::asset::{collection_asset_subcommand, CollectionAssetSubCommand};
 use super::create::{run as create_group_account, CreateArgs};
+use super::get::{run as get_group_account, GetArgs};
 use super::update::{run as update_group_account, UpdateArgs};
 
 use anyhow::Result;
@@ -15,14 +16,17 @@ pub struct GroupSubCommand {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Commands {
-    #[clap(name = "create")]
     /// Create a collection
+    #[clap(name = "create")]
     Create(CreateArgs),
-    #[clap(name = "update")]
     /// Update a collection
+    #[clap(name = "update")]
     Update(UpdateArgs),
-    #[clap(name = "asset")]
+    /// Fetch a collection
+    #[clap(name = "get")]
+    Get(GetArgs),
     /// Asset grouping related instructions
+    #[clap(name = "asset")]
     Asset(CollectionAssetSubCommand),
 }
 
@@ -33,6 +37,9 @@ pub async fn subcommand(context: Context, subcommand: GroupSubCommand) -> Result
         }
         Commands::Update(args) => {
             update_group_account(context, args).await?;
+        }
+        Commands::Get(args) => {
+            get_group_account(context, args).await?;
         }
         Commands::Asset(subcommand) => {
             collection_asset_subcommand(context, subcommand).await?;
