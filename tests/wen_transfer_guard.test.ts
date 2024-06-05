@@ -11,7 +11,7 @@ import {
   createInitializeMintInstruction,
   createInitializeTransferHookInstruction,
   createMintToInstruction,
-  createTransferCheckedInstruction,
+  createTransferCheckedWithTransferHookInstruction,
   getAssociatedTokenAddressSync,
   getExtraAccountMetaAddress,
   getMintLen,
@@ -55,7 +55,9 @@ const createMint = async (
 ) => {
   const extensions = [ExtensionType.TransferHook];
   const mintLen = getMintLen(extensions);
-  const lamports = 2e9;
+  const lamports = (
+    await provider.context.banksClient.getRent()
+  ).minimumBalance(BigInt(mintLen));
 
   const sourceAta = getAssociatedTokenAddressSync(
     mint.keypair.publicKey,
@@ -70,19 +72,22 @@ const createMint = async (
     TOKEN_2022_PROGRAM_ID
   );
   const ixs = [
+    // TX: Allocate mint account
     web3.SystemProgram.createAccount({
       fromPubkey: payer.publicKey,
       newAccountPubkey: mint.keypair.publicKey,
       space: mintLen,
-      lamports,
+      lamports: Number(lamports),
       programId: TOKEN_2022_PROGRAM_ID,
     }),
+    // TX: Init transfer hook on mint
     createInitializeTransferHookInstruction(
       mint.keypair.publicKey,
       mint.mintAuthority.publicKey,
       programId,
       TOKEN_2022_PROGRAM_ID
     ),
+    // TX: Init mint
     createInitializeMintInstruction(
       mint.keypair.publicKey,
       mint.decimals,
@@ -90,26 +95,31 @@ const createMint = async (
       mint.mintAuthority.publicKey,
       TOKEN_2022_PROGRAM_ID
     ),
+    // TX: Create Source ATA
     createAssociatedTokenAccountInstruction(
       payer.publicKey,
       sourceAta,
       sourceAuthority.publicKey,
       mint.keypair.publicKey,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
     ),
+    // TX: Create Destination ATA
     createAssociatedTokenAccountInstruction(
       payer.publicKey,
       destinationAta,
       destinationAuthority.publicKey,
       mint.keypair.publicKey,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID
     ),
+    // TX: Mint to Source ATA some tokens
     createMintToInstruction(
       mint.keypair.publicKey,
       sourceAta,
       mint.mintAuthority.publicKey,
       mint.mintAmount,
-      [],
+      undefined,
       TOKEN_2022_PROGRAM_ID
     ),
   ];
@@ -128,7 +138,7 @@ const createMint = async (
   };
 };
 
-describe("wen_transfer_guard", () => {
+describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
   // Anchor + Bankrun Tooling
   let context: ProgramTestContext;
   let provider: BankrunProvider;
@@ -154,6 +164,9 @@ describe("wen_transfer_guard", () => {
   };
   let kGuardOriginalCpiRule: { deny: { 0: anchor.web3.PublicKey[] } };
   let kGuardUpdatedCpiRule: { deny: { 0: anchor.web3.PublicKey[] } };
+  const kGuardDenyNonCpiTransfersRule = {
+    deny: { 0: [TOKEN_2022_PROGRAM_ID] },
+  };
 
   before(async () => {
     context = await startAnchor(
@@ -220,7 +233,7 @@ describe("wen_transfer_guard", () => {
     kGuardUpdatedCpiRule = { deny: { 0: [program.programId] } };
   });
 
-  it("[Transfer Guards] - Initializes a Transfer Guard", async () => {
+  it("[Transfer Guards] - Initializes a transfer guard.", async () => {
     let builder = program.methods.createGuard({
       ...kGuardMetadata,
       additionFieldsRule: [],
@@ -253,7 +266,7 @@ describe("wen_transfer_guard", () => {
     expect(denyRules[1].toString()).to.be.eq(web3.PublicKey.default.toString());
   });
 
-  it("[Transfer Guards] - Updates a Transfer Guard", async () => {
+  it("[Transfer Guards] - Updates a transfer guard.", async () => {
     let builder = program.methods.updateGuard({
       additionFieldsRule: [],
       transferAmountRule: null,
@@ -278,7 +291,7 @@ describe("wen_transfer_guard", () => {
     expect(denyRules[0].toString()).to.be.eq(program.programId.toString());
   });
 
-  it("[Transfer Hook] - Assigns guard to Mint via Init", async () => {
+  it("[Transfer Hook] - Assigns guard to mint via init.", async () => {
     let builder = program.methods.initialize();
 
     builder = builder.accountsStrict({
@@ -299,28 +312,18 @@ describe("wen_transfer_guard", () => {
       ix
     );
   });
-  it("[Transfer Hook] - Executes correctly during transfer", async () => {
-    let ix = createTransferCheckedInstruction(
+  it("[Transfer Hook] - Executes correctly during transfer.", async () => {
+    let ix = await createTransferCheckedWithTransferHookInstruction(
+      provider.connection,
       kSourceAta,
       kMint.keypair.publicKey,
       kDestinationAta,
       kSourceAuthority.publicKey,
-      1e8,
+      BigInt(1e8),
       kMint.decimals,
       undefined,
+      undefined,
       TOKEN_2022_PROGRAM_ID
-    );
-
-    let nonSignerNonWritable = {
-      isSigner: false,
-      isWritable: false,
-    };
-
-    ix.keys.push(
-      { ...nonSignerNonWritable, pubkey: kGuard },
-      { ...nonSignerNonWritable, pubkey: web3.SYSVAR_INSTRUCTIONS_PUBKEY },
-      { ...nonSignerNonWritable, pubkey: program.programId },
-      { ...nonSignerNonWritable, pubkey: kExtraMetasAddress }
     );
 
     await sendSignedVtx(
@@ -329,5 +332,52 @@ describe("wen_transfer_guard", () => {
       [kSourceAuthority, context.payer],
       ix
     );
+  });
+  it("[Transfer Guards] - Adds TOKEN_2022_PROGRAM_ID to deny list, non-cpi calls should fail.", async () => {
+    await sendSignedVtx(
+      provider,
+      context.payer.publicKey,
+      [kGuardOwner],
+      await program.methods
+        .updateGuard({
+          additionFieldsRule: [],
+          transferAmountRule: null,
+          cpiRule: kGuardDenyNonCpiTransfersRule,
+        })
+        .accounts({
+          mint: kGuardMint.publicKey,
+          tokenAccount: kGuardMintAta,
+          guardAuthority: kGuardOwner.publicKey,
+        })
+        .instruction()
+    );
+    const guard = await program.account.guardV1.fetch(kGuard);
+    const denyRules = guard.cpiRule.deny[0];
+    expect(denyRules.length).to.be.eq(1);
+    expect(denyRules[0].toString()).to.be.eq(TOKEN_2022_PROGRAM_ID.toString());
+
+    let ix = await createTransferCheckedWithTransferHookInstruction(
+      provider.connection,
+      kSourceAta,
+      kMint.keypair.publicKey,
+      kDestinationAta,
+      kSourceAuthority.publicKey,
+      BigInt(2e8),
+      kMint.decimals,
+      undefined,
+      undefined,
+      TOKEN_2022_PROGRAM_ID
+    );
+
+    try {
+      await sendSignedVtx(
+        provider,
+        context.payer.publicKey,
+        [kSourceAuthority, context.payer],
+        ix
+      );
+    } catch (error) {
+      expect(error.message).to.include("0x1770");
+    }
   });
 });

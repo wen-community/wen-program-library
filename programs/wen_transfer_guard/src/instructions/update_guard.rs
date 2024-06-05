@@ -14,11 +14,7 @@ use crate::{
 pub struct UpdateGuard<'info> {
     #[account(
         mut,
-        seeds = [
-            WEN_TOKEN_GUARD.as_ref(),
-            GUARD_V1.as_ref(),
-            mint.key().as_ref()
-        ],
+        seeds = [WEN_TOKEN_GUARD.as_ref(), GUARD_V1.as_ref(), mint.key().as_ref()],
         bump = guard.bump,
     )]
     pub guard: Account<'info, GuardV1>,

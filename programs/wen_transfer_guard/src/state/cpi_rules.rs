@@ -2,7 +2,8 @@ use anchor_lang::prelude::*;
 
 use crate::error::WenTransferGuardError;
 
-// Control which protocols can interact with a mint's tokens. eg only allow royalty respecting protocols to facilitate transfers.
+/// Controls which protocols can interact with the token by
+/// enforcing Allow and Deny lists.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum CpiRule {
     Allow(Vec<Pubkey>),
@@ -11,23 +12,36 @@ pub enum CpiRule {
 
 impl CpiRule {
     pub fn size_of(vec: Vec<Pubkey>) -> usize {
-        1 +                             // Enum size
+        1 + // Enum size
         4 + (vec.len() * 32) // Vec size
     }
 
+    /// Enforces the CPI rule set in the guard by
+    /// checking if the caller program id is in the allow
+    /// list or in the deny list, depending on the ruleset.
+    ///
+    /// ### Arguments
+    ///
+    /// * `caller_program_id` - The program id of the caller program.
+    ///
+    /// ### Errors
+    ///
+    /// * `CpiRuleEnforcementFailed` - The caller program id is not in the allow list or is in the deny list.
+    ///
     pub fn enforce_rule(&self, caller_program_id: &Pubkey) -> Result<()> {
         require!(
             match self {
                 CpiRule::Allow(allow_vec) => allow_vec.contains(caller_program_id),
                 CpiRule::Deny(deny_vec) => !deny_vec.contains(caller_program_id),
             },
-            WenTransferGuardError::CpiRuleEnforceFailed
+            WenTransferGuardError::CpiRuleEnforcementFailed
         );
         Ok(())
     }
 }
 
-// Enforce the transfer amount is above, below, equal to, or within a range set my the mint authority.
+/// Enforces rules on the amount of tokens being transferred.
+/// The rules can be above, below, equal to, or within a range.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum TransferAmountRule {
     Above(u64),
@@ -39,10 +53,21 @@ pub enum TransferAmountRule {
 impl TransferAmountRule {
     pub fn size_of() -> usize {
         1 + // Enum size
-        8 + // u64 size
-        8 // u64 size
+        (8 + 8) // (u64, u64) size (Largest enum variant)
     }
 
+    /// Enforces the transfer amount rule set in the guard.
+    /// The rule can be above, below, equal to, or within a range.
+    /// If the rule is not met, an error is returned.
+    ///
+    /// ### Arguments
+    ///
+    /// * `amount` - The amount of tokens being transferred.
+    ///
+    /// ### Errors
+    ///
+    /// * `TransferAmountRuleEnforceFailed` - The transfer amount rule was not met.
+    ///
     pub fn enforce_rule(&self, amount: u64) -> Result<()> {
         match self {
             TransferAmountRule::Above(above) => {
@@ -74,6 +99,9 @@ impl TransferAmountRule {
     }
 }
 
+/// Inner enum for the MetadataAdditionalFieldRestriction enum.
+/// * Includes - The field must include one of the values in the vector.
+/// * Excludes - The field must not include any of the values in the vector.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub enum MetadataAdditionalFieldRestriction {
     Includes(Vec<String>),
@@ -83,11 +111,12 @@ pub enum MetadataAdditionalFieldRestriction {
 impl MetadataAdditionalFieldRestriction {
     pub fn size_of(vec: Vec<String>) -> usize {
         1 + // Enum size
-        4 + vec.iter().map(|s| s.len() + 4).sum::<usize>()
+        4 + vec.iter().map(|s| s.len() + 4).sum::<usize>() // 4 bytes for vector, plus each string is also a vector so + 4 and length of string
     }
 }
 
-// Ensure a field exists and if desired is equal to some value. If multiple rules are set then all must pass.
+/// Enforces rules on a single additional field in the mint metadata.
+/// The field must exist and the value must pass the restriction.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
 pub struct MetadataAdditionalFieldRule {
     field: String,
@@ -105,9 +134,11 @@ impl MetadataAdditionalFieldRule {
         if let Some(restriction) = value_restrictions {
             match restriction {
                 MetadataAdditionalFieldRestriction::Includes(includes) => {
+                    // Add size of includes
                     size += MetadataAdditionalFieldRestriction::size_of(includes);
                 }
                 MetadataAdditionalFieldRestriction::Excludes(excludes) => {
+                    // Add size of excludes
                     size += MetadataAdditionalFieldRestriction::size_of(excludes);
                 }
             }
@@ -115,6 +146,20 @@ impl MetadataAdditionalFieldRule {
         size
     }
 
+    /// Enforces the additional field rule set in the guard by
+    /// checking if the field exists and if the value passes the restriction.
+    ///
+    /// If the restrictions vector is empty, the only requirement is that the field exists.
+    ///
+    /// ### Arguments
+    ///
+    /// * `metadata` - The mint metadata.
+    ///
+    /// ### Errors
+    ///
+    /// * `MetadataFieldDoesNotExist` - The field does not exist in the metadata.
+    /// * `MetadataFieldDoesNotPass` - The field value does not pass the restriction.
+    ///
     pub fn enforce_rule(&self, metadata: &Vec<(String, String)>) -> Result<()> {
         let mut field_exists = false;
         let mut field_value_passes = false;
@@ -161,18 +206,23 @@ impl MetadataAdditionalFieldRule {
 
 #[account]
 pub struct GuardV1 {
+    /// Mint token representing the guard, do not confuse with the mint of the token being transferred.
     pub mint: Pubkey,
+    /// Bump seed for the guard account.
     pub bump: u8,
+    /// CPI ruleset for the guard.
     pub cpi_rule: Option<CpiRule>,
+    /// Transfer amount ruleset for the guard.
     pub transfer_amount_rule: Option<TransferAmountRule>,
-    pub addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+    /// Additional fields ruleset for the guard.
+    pub additional_fields_rule: Vec<MetadataAdditionalFieldRule>,
 }
 
 impl GuardV1 {
     pub fn size_of(
         cpi_rule: Option<CpiRule>,
         transfer_amount_rule: Option<TransferAmountRule>,
-        addition_fields_rule: Vec<MetadataAdditionalFieldRule>,
+        additional_fields_rule: Vec<MetadataAdditionalFieldRule>,
     ) -> usize {
         let mut size: usize = 0;
         size += 8; // Discriminator
@@ -200,10 +250,10 @@ impl GuardV1 {
             size += TransferAmountRule::size_of();
         }
 
-        size += 4; // Vec length
+        size += 4; // addition_fields_rules vec length
 
         // Additional fields rule size
-        size += addition_fields_rule
+        size += additional_fields_rule
             .iter()
             .map(|rule| {
                 MetadataAdditionalFieldRule::size_of(
@@ -228,7 +278,7 @@ impl GuardV1 {
             bump,
             cpi_rule,
             transfer_amount_rule,
-            addition_fields_rule,
+            additional_fields_rule: addition_fields_rule,
         }
     }
 
@@ -240,25 +290,24 @@ impl GuardV1 {
     ) {
         self.cpi_rule = cpi_rule;
         self.transfer_amount_rule = transfer_amount_rule;
-        self.addition_fields_rule = addition_fields_rule;
+        self.additional_fields_rule = addition_fields_rule;
     }
 
     /// Enforce all rules set in the guard.
     ///
     /// ### Arguments
-    ///
-    /// * `caller_program_id` - The program id of the caller program.
-    /// * `amount` - The amount of tokens being transferred.
+    /// 
     /// * `metadata` - The mint metadata.
-    ///
+    /// * `amount` - The amount of tokens being transferred.
+    /// * `caller_program_id` - The program id of the caller program.
+    /// 
     /// ### Errors
-    ///
-    /// * `CallerProgramIdNotPassedAsArgument` - The caller program id was not passed as an argument. This is required for CPI rules.
-    /// * `AmountNotPassedAsArgument` - The amount was not passed as an argument. This is required for transfer amount rules.
-    ///
-    /// ### Returns
-    ///
-    /// * `Ok(())` - If all rules pass.
+    /// 
+    /// * `CpiRuleEnforcementFailed` - The caller program id is not in the allow list or is in the deny list.
+    /// * `TransferAmountRuleEnforceFailed` - The transfer amount rule was not met.
+    /// * `MetadataFieldDoesNotExist` - The field does not exist in the metadata.
+    /// * `MetadataFieldDoesNotPass` - The field value does not pass the restriction.
+    /// 
     pub fn enforce_rules(
         &self,
         metadata: &Vec<(String, String)>,
@@ -273,7 +322,7 @@ impl GuardV1 {
             rule.enforce_rule(amount)?;
         }
 
-        for rule in &self.addition_fields_rule {
+        for rule in &self.additional_fields_rule {
             rule.enforce_rule(metadata)?;
         }
 

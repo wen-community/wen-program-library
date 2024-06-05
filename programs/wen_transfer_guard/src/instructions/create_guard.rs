@@ -6,8 +6,11 @@ use anchor_spl::{
 };
 
 use crate::{
-    tools::update_account_lamports_to_minimum_balance, CpiRule, GuardV1,
-    MetadataAdditionalFieldRule, TransferAmountRule, GUARD_V1, WEN_TOKEN_GUARD,
+    tools::{
+        update_account_lamports_to_minimum_balance,
+        UpdateAccountLamportsToMinimumBalanceAccountInfos,
+    },
+    CpiRule, GuardV1, MetadataAdditionalFieldRule, TransferAmountRule, GUARD_V1, WEN_TOKEN_GUARD,
 };
 
 #[derive(Accounts)]
@@ -15,11 +18,7 @@ use crate::{
 pub struct CreateGuard<'info> {
     #[account(
         init,
-        seeds = [
-            WEN_TOKEN_GUARD.as_ref(),
-            GUARD_V1.as_ref(),
-            mint.key().as_ref()
-        ],
+        seeds = [WEN_TOKEN_GUARD.as_ref(), GUARD_V1.as_ref(), mint.key().as_ref()],
         bump,
         payer = payer,
         space = GuardV1::size_of(args.cpi_rule, args.transfer_amount_rule, args.addition_fields_rule),
@@ -74,8 +73,6 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
     let guard = &mut ctx.accounts.guard;
     let bump = ctx.bumps.guard;
 
-    msg!("wen_transfer_guard: Initializing guard token metadata");
-    /* Initialize token metadata */
     token_metadata_initialize(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -92,7 +89,6 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
         args.uri,
     )?;
 
-    msg!("wen_transfer_guard: Minting guard token to payer");
     mint_to(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -105,7 +101,6 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
         1,
     )?;
 
-    msg!("wen_transfer_guard: Storing guard data in account");
     guard.set_inner(GuardV1::new(
         ctx.accounts.mint.key(),
         bump,
@@ -114,11 +109,12 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
         args.addition_fields_rule,
     ));
 
-    msg!("wen_transfer_guard: Updating mint account balance to minimum balance");
     update_account_lamports_to_minimum_balance(
-        ctx.accounts.mint.to_account_info(),
-        ctx.accounts.payer.to_account_info(),
-        ctx.accounts.system_program.to_account_info(),
+        UpdateAccountLamportsToMinimumBalanceAccountInfos {
+            account: ctx.accounts.guard.to_account_info(),
+            payer: ctx.accounts.payer.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+        },
     )?;
     Ok(())
 }

@@ -22,11 +22,7 @@ pub struct Initialize<'info> {
     pub extra_metas_account: UncheckedAccount<'info>,
 
     #[account(
-        seeds = [
-            WEN_TOKEN_GUARD.as_ref(),
-            GUARD_V1.as_ref(),
-            guard.mint.as_ref()
-        ],
+        seeds = [WEN_TOKEN_GUARD.as_ref(), GUARD_V1.as_ref(), guard.mint.as_ref()],
         bump = guard.bump,
     )]
     pub guard: Account<'info, GuardV1>,
@@ -44,6 +40,9 @@ pub struct Initialize<'info> {
     pub payer: Signer<'info>,
 }
 
+/// IX: Initialize
+/// Initializes the ExtraMetasAccount set up with the Guard and System Instruction accounts,
+/// assigning the Guard to the current Mint in the process.
 pub fn processor(ctx: Context<Initialize>) -> Result<()> {
     let extra_metas_account = &ctx.accounts.extra_metas_account;
     let mint = &ctx.accounts.mint;
@@ -60,25 +59,14 @@ pub fn processor(ctx: Context<Initialize>) -> Result<()> {
         ))?;
     }
 
-    let metas: Vec<ExtraAccountMeta> = vec![
-        // Guard to be assigned to
-        ExtraAccountMeta {
-            discriminator: 1, // 1 As in PDA for current program.
-            is_signer: false.into(),
-            is_writable: false.into(),
-            address_config: guard.key().to_bytes(),
-        },
-        // Instructions sysvar to check for caller program
-        ExtraAccountMeta {
-            discriminator: 0, // 0 As in static pubkey (Sysvar).
-            is_signer: false.into(),
-            is_writable: false.into(),
-            address_config: sysvar::instructions::id().to_bytes(),
-        },
-    ];
-
     let mut data = extra_metas_account.try_borrow_mut_data()?;
-    ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
+    ExtraAccountMetaList::init::<ExecuteInstruction>(
+        &mut data,
+        &(vec![
+            ExtraAccountMeta::new_with_pubkey(&guard.key(), false, false)?,
+            ExtraAccountMeta::new_with_pubkey(&sysvar::instructions::id(), false, false)?,
+        ]),
+    )?;
 
     Ok(())
 }
