@@ -10,9 +10,9 @@ use solana_sdk::{
     transaction::VersionedTransaction,
 };
 use spl_associated_token_account::{
-    get_associated_token_address_with_program_id, ID as ASSOCIATED_TOKEN_PROGRAM_ID,
+    get_associated_token_address_with_program_id, ID as ASSOCIATED_TOKEN_2022_PROGRAM_ID,
 };
-use spl_token_2022::ID as TOKEN_PROGRAM_ID;
+use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
 use wen_new_standard::{
     instructions::{CreateGroupAccount, CreateGroupAccountInstructionArgs},
     types::CreateGroupAccountArgs,
@@ -57,8 +57,11 @@ pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
         keypair_pubkey
     };
 
-    let mint_token_account =
-        get_associated_token_address_with_program_id(&receiver, &mint_pubkey, &TOKEN_PROGRAM_ID);
+    let mint_token_account = get_associated_token_address_with_program_id(
+        &receiver,
+        &mint_pubkey,
+        &TOKEN_2022_PROGRAM_ID,
+    );
 
     let group = derive_group_account(&mint_pubkey);
     let manager = derive_manager_account();
@@ -71,8 +74,8 @@ pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
         mint: mint_pubkey,
         receiver,
         mint_token_account,
-        associated_token_program: ASSOCIATED_TOKEN_PROGRAM_ID,
-        token_program: TOKEN_PROGRAM_ID,
+        associated_token_program: ASSOCIATED_TOKEN_2022_PROGRAM_ID,
+        token_program: TOKEN_2022_PROGRAM_ID,
         system_program: SYSTEM_PROGRAM_ID,
     };
 

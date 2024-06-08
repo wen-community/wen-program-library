@@ -6,7 +6,7 @@ use solana_sdk::{
     signer::Signer,
     transaction::VersionedTransaction,
 };
-use spl_token_2022::ID as TOKEN_PROGRAM_ID;
+use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
 use wen_new_standard::instructions::{RemoveMetadata, RemoveMetadataInstructionArgs};
 
 use crate::{asset::{parse_remove_metadata_pairs, MetadataArgs}, Context};
@@ -23,7 +23,7 @@ pub async fn run(context: Context, args: MetadataArgs) -> Result<()> {
         payer: keypair_pubkey,
         authority: keypair_pubkey,
         mint: mint_pubkey,
-        token_program: TOKEN_PROGRAM_ID,
+        token_program: TOKEN_2022_PROGRAM_ID,
         system_program: SYSTEM_PROGRAM_ID,
     };
 

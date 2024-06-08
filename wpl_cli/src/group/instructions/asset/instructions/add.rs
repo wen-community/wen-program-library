@@ -6,7 +6,7 @@ use solana_sdk::{
     signer::Signer,
     transaction::VersionedTransaction,
 };
-use spl_token_2022::ID as TOKEN_PROGRAM_ID;
+use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
 use wen_new_standard::instructions::AddMintToGroup;
 
 use crate::{group::AssetArgs, utils::*, Context};
@@ -31,7 +31,7 @@ pub async fn run(context: Context, args: AssetArgs) -> Result<()> {
         manager,
         member,
         mint: member_mint_pubkey,
-        token_program: TOKEN_PROGRAM_ID,
+        token_program: TOKEN_2022_PROGRAM_ID,
         system_program: SYSTEM_PROGRAM_ID,
     };
 

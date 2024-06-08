@@ -8,7 +8,7 @@ use solana_sdk::{
     transaction::VersionedTransaction,
 };
 use spl_associated_token_account::get_associated_token_address_with_program_id;
-use spl_token_2022::{instruction::approve_checked, ID as TOKEN_PROGRAM_ID};
+use spl_token_2022::{instruction::approve_checked, ID as TOKEN_2022_PROGRAM_ID};
 use wen_new_standard::instructions::FreezeMintAccount;
 
 use crate::{utils::derive_manager_account, Context};
@@ -34,7 +34,7 @@ pub async fn run(context: Context, args: FreezeArgs) -> Result<()> {
     let mint_token_account = get_associated_token_address_with_program_id(
         &keypair_pubkey,
         &mint_pubkey,
-        &TOKEN_PROGRAM_ID,
+        &TOKEN_2022_PROGRAM_ID,
     );
     let manager = derive_manager_account();
 
@@ -42,7 +42,7 @@ pub async fn run(context: Context, args: FreezeArgs) -> Result<()> {
 
     if !args.is_delegate {
         instructions.push(approve_checked(
-            &TOKEN_PROGRAM_ID,
+            &TOKEN_2022_PROGRAM_ID,
             &mint_token_account,
             &mint_pubkey,
             &keypair_pubkey,
@@ -59,7 +59,7 @@ pub async fn run(context: Context, args: FreezeArgs) -> Result<()> {
         manager,
         mint: mint_pubkey,
         mint_token_account,
-        token_program: TOKEN_PROGRAM_ID,
+        token_program: TOKEN_2022_PROGRAM_ID,
     };
 
     let freeze_mint_account_ix = freeze_mint_account.instruction();
