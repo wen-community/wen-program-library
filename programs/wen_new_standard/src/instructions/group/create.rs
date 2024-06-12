@@ -2,8 +2,7 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to, set_authority,
-        spl_token_2022::instruction::AuthorityType,
+        mint_to, set_authority, spl_token_2022::instruction::AuthorityType,
         token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
         TokenMetadataInitialize,
     },
@@ -71,7 +70,6 @@ pub struct CreateGroupAccount<'info> {
     )]
     pub manager: Account<'info, Manager>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
 }

@@ -57,6 +57,11 @@ pub mod wen_new_standard {
         instructions::mint::group::add::handler(ctx)
     }
 
+    /// remove mint from group
+    pub fn remove_mint_from_group(ctx: Context<RemoveGroup>) -> Result<()> {
+        instructions::mint::group::remove::handler(ctx)
+    }
+
     /// add royalties to mint
     pub fn add_royalties(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
         instructions::mint::royalties::add::handler(ctx, args)
@@ -109,4 +114,25 @@ pub mod wen_new_standard {
     pub fn approve_transfer(ctx: Context<ApproveTransfer>, buy_amount: u64) -> Result<()> {
         instructions::royalty::approve::handler(ctx, buy_amount)
     }
+
+    /* Resize instructions */
+    pub fn resize_manager(ctx: Context<ResizeManager>) -> Result<()> {
+        instructions::resize::manager::handler(ctx)
+    }
+
+    pub fn resize_group(ctx: Context<ResizeGroup>) -> Result<()> {
+        instructions::resize::group::handler(ctx)
+    }
+
+    pub fn resize_group_member(ctx: Context<ResizeGroupMember>) -> Result<()> {
+        instructions::resize::group_member::handler(ctx)
+    }
+
+    pub fn resize_approve(ctx: Context<ResizeApprove>) -> Result<()> {
+        instructions::resize::approve::handler(ctx)
+    }
+    /**/
+
+    /* Assign bump instructions (upcoming) */
+    /**/
 }

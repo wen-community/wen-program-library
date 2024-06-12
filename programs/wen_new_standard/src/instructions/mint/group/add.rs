@@ -5,7 +5,7 @@ use anchor_spl::token_interface::{
 };
 
 use crate::{
-    get_bump_in_seed_form, Manager, TokenGroup, TokenGroupMember, MANAGER_SEED,
+    get_bump_in_seed_form, Manager, TokenGroup, TokenGroupMember, GROUP_ACCOUNT_SEED, MANAGER_SEED,
     MEMBER_ACCOUNT_SEED, TOKEN22,
 };
 
@@ -14,11 +14,13 @@ use crate::{
 pub struct AddGroup<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    #[account(mut)]
+    #[account()]
     pub authority: Signer<'info>,
     #[account(
         mut,
         constraint = group.update_authority == authority.key(),
+        seeds = [GROUP_ACCOUNT_SEED, group.mint.as_ref()],
+        bump,
     )]
     pub group: Account<'info, TokenGroup>,
     #[account(
@@ -30,7 +32,6 @@ pub struct AddGroup<'info> {
     )]
     pub member: Account<'info, TokenGroupMember>,
     #[account(
-        mut,
         mint::token_program = TOKEN22
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,

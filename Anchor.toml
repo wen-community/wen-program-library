@@ -5,6 +5,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
+wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
+wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
+wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
+wen_transfer_guard = "4MrF8SuFtwGg53bL6KziCe7suvKqUoBg7o7Lnix1Ton5"
+
+[programs.devnet]
+wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
 wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
 wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
 wen_transfer_guard = "4MrF8SuFtwGg53bL6KziCe7suvKqUoBg7o7Lnix1Ton5"
@@ -13,7 +20,7 @@ wen_transfer_guard = "4MrF8SuFtwGg53bL6KziCe7suvKqUoBg7o7Lnix1Ton5"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

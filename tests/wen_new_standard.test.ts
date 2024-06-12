@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 import { expect } from "chai";
 import { faker } from "@faker-js/faker";
@@ -7,16 +7,11 @@ import { WenNewStandard } from "../target/types/wen_new_standard";
 
 import {
   Keypair,
-  Connection,
   AccountInfo,
   PublicKey,
   SystemProgram,
-  VersionedTransaction,
-  TransactionMessage,
   LAMPORTS_PER_SOL,
-  SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
-  Signer,
 } from "@solana/web3.js";
 import {
   TOKEN_2022_PROGRAM_ID,
@@ -32,107 +27,21 @@ import {
   createApproveCheckedInstruction,
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
-  TYPE_SIZE,
-  LENGTH_SIZE,
-  getMintLen,
-  ExtensionType,
 } from "@solana/spl-token";
 import {
   Field,
   TokenMetadata,
   createUpdateFieldInstruction,
-  pack,
 } from "@solana/spl-token-metadata";
-
-const MANAGER_SEED = Buffer.from("manager");
-const GROUP_ACCOUNT_SEED = Buffer.from("group");
-const MEMBER_ACCOUNT_SEED = Buffer.from("member");
-
-export const getExtraMetasAccountPda = (mint: string, programId: PublicKey) => {
-  const [extraMetasAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("extra-account-metas"), new PublicKey(mint).toBuffer()],
-    programId
-  );
-  return extraMetasAccount;
-};
-
-export const getApproveAccountPda = (mint: string, programId: PublicKey) => {
-  const [approveAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("approve-account"), new PublicKey(mint).toBuffer()],
-    programId
-  );
-
-  return approveAccount;
-};
-
-export async function getMinRentForWNSMint(
-  connection: Connection,
-  metaData: TokenMetadata,
-  type: string
-) {
-  // Size of MetadataExtension 2 bytes for type, 2 bytes for length
-  const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
-  // Size of metadata
-  const metadataLen = pack(metaData).length;
-
-  // Size of Mint Account with extensions
-  const mintLen = getMintLen(
-    [
-      ExtensionType.MintCloseAuthority,
-      ExtensionType.MetadataPointer,
-      ExtensionType.TransferHook,
-      ExtensionType.PermanentDelegate,
-    ].concat(
-      type === "member"
-        ? [ExtensionType.GroupMemberPointer]
-        : [ExtensionType.GroupPointer]
-    )
-  );
-
-  // Minimum lamports required for Mint Account
-  return connection.getMinimumBalanceForRentExemption(
-    mintLen + metadataExtension + metadataLen
-  );
-}
-
-export async function sendAndConfirmWNSTransaction(
-  connection: Connection,
-  instructions: TransactionInstruction[],
-  provider: AnchorProvider,
-  skipPreflight = true,
-  additionalSigners: Signer[] = []
-): Promise<{ signature: string; feeEstimate: number }> {
-  const transaction = new VersionedTransaction(
-    new TransactionMessage({
-      instructions,
-      payerKey: provider.wallet.publicKey,
-      recentBlockhash: (await connection.getLatestBlockhash("confirmed"))
-        .blockhash,
-    }).compileToV0Message()
-  );
-  const signedTx = await provider.wallet.signTransaction(transaction);
-  signedTx.sign(additionalSigners);
-
-  try {
-    const signature = await connection.sendTransaction(signedTx, {
-      preflightCommitment: "confirmed",
-      skipPreflight,
-    });
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash("confirmed");
-    await connection.confirmTransaction(
-      {
-        signature,
-        lastValidBlockHeight,
-        blockhash,
-      },
-      "confirmed"
-    );
-    return { signature, feeEstimate: 0 };
-  } catch (err) {
-    throw err;
-  }
-}
+import {
+  MANAGER_SEED,
+  getMinRentForWNSMint,
+  sendAndConfirmWNSTransaction,
+  getExtraMetasAccountPda,
+  getApproveAccountPda,
+  GROUP_ACCOUNT_SEED,
+  MEMBER_ACCOUNT_SEED,
+} from "./utils";
 
 describe("wen_new_standard", () => {
   const provider = anchor.AnchorProvider.env();
@@ -167,7 +76,9 @@ describe("wen_new_standard", () => {
       });
 
       it("should be owned by the program", async () => {
-        expect(account.owner).to.eql(program.programId);
+        expect((account.owner as PublicKey).toBase58()).to.eql(
+          program.programId.toBase58()
+        );
       });
     });
   });
@@ -217,7 +128,7 @@ describe("wen_new_standard", () => {
             payer: mintAuthPublicKey,
             receiver: mintAuthPublicKey,
             manager,
-            rent: SYSVAR_RENT_PUBKEY,
+
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -247,11 +158,15 @@ describe("wen_new_standard", () => {
       });
 
       it("should be owned by the token extensions program", async () => {
-        expect(mintAccountInfo.owner).to.eql(TOKEN_2022_PROGRAM_ID);
+        expect(mintAccountInfo.owner.toBase58()).to.eql(
+          TOKEN_2022_PROGRAM_ID.toBase58()
+        );
       });
 
       it("should have metadata pointer", async () => {
-        expect(metadataPointer.metadataAddress).to.eql(mintPublicKey);
+        expect(metadataPointer.metadataAddress.toBase58()).to.eql(
+          mintPublicKey.toBase58()
+        );
       });
 
       it("should have right name set", async () => {
@@ -327,7 +242,7 @@ describe("wen_new_standard", () => {
       const creator2 = Keypair.generate();
 
       const extraMetasAccount = getExtraMetasAccountPda(
-        mintPublicKey.toString(),
+        mintPublicKey,
         wnsProgramId
       );
 
@@ -403,7 +318,6 @@ describe("wen_new_standard", () => {
             delegateAuthority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
-            payer: mintAuthPublicKey,
             user: mintAuthPublicKey,
             manager,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -455,19 +369,13 @@ describe("wen_new_standard", () => {
 
           transferIx.keys.push(
             {
-              pubkey: getApproveAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getApproveAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: true,
             },
             { pubkey: wnsProgramId, isSigner: false, isWritable: false },
             {
-              pubkey: getExtraMetasAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getExtraMetasAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: false,
             }
@@ -512,7 +420,6 @@ describe("wen_new_standard", () => {
             delegateAuthority: mintAuthPublicKey,
             mint: mintPublicKey,
             mintTokenAccount,
-            payer: mintAuthPublicKey,
             user: mintAuthPublicKey,
             manager,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -565,19 +472,13 @@ describe("wen_new_standard", () => {
 
           transferIx.keys.push(
             {
-              pubkey: getApproveAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getApproveAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: true,
             },
             { pubkey: wnsProgramId, isSigner: false, isWritable: false },
             {
-              pubkey: getExtraMetasAccountPda(
-                mintPublicKey.toString(),
-                wnsProgramId
-              ),
+              pubkey: getExtraMetasAccountPda(mintPublicKey, wnsProgramId),
               isSigner: false,
               isWritable: false,
             }
@@ -613,7 +514,9 @@ describe("wen_new_standard", () => {
         });
 
         it("should be owned by the new owner", async () => {
-          expect(receiverTokenAccountData.owner).to.eql(receiver.publicKey);
+          expect(receiverTokenAccountData.owner.toBase58()).to.eql(
+            receiver.publicKey.toBase58()
+          );
         });
       });
     });
@@ -707,6 +610,9 @@ describe("wen_new_standard", () => {
     const groupMintKeyPair = Keypair.generate();
     const groupMintPublicKey = groupMintKeyPair.publicKey;
 
+    const mintKeyPair = Keypair.generate();
+    const mintPublicKey = mintKeyPair.publicKey;
+
     const [group] = PublicKey.findProgramAddressSync(
       [GROUP_ACCOUNT_SEED, groupMintPublicKey.toBuffer()],
       program.programId
@@ -743,7 +649,6 @@ describe("wen_new_standard", () => {
           tokenProgram: TOKEN_2022_PROGRAM_ID,
           payer,
           manager,
-          rent: SYSVAR_RENT_PUBKEY,
           systemProgram: SystemProgram.programId,
         })
         .signers([groupMintKeyPair, groupAuthorityKeyPair])
@@ -762,15 +667,21 @@ describe("wen_new_standard", () => {
 
     describe("after creating", () => {
       it("should be an account owned by the program", async () => {
-        expect(groupAccountInfo.owner).to.eql(program.programId);
+        expect(groupAccountInfo.owner.toBase58()).to.eql(
+          program.programId.toBase58()
+        );
       });
 
       it("should have an update authority", async () => {
-        expect(groupAccount.updateAuthority).to.eql(groupAuthorityPublicKey);
+        expect((groupAccount.updateAuthority as PublicKey).toBase58()).to.eql(
+          groupAuthorityPublicKey.toBase58()
+        );
       });
 
       it("should reference the group mint", async () => {
-        expect(groupAccount.mint).to.eql(groupMintPublicKey);
+        expect((groupAccount.mint as PublicKey).toBase58()).to.eql(
+          groupMintPublicKey.toBase58()
+        );
       });
 
       it("should have a max size", async () => {
@@ -844,10 +755,7 @@ describe("wen_new_standard", () => {
     });
 
     describe("after adding a mint as a member", () => {
-      const mintKeyPair = Keypair.generate();
-
       const mintAuthPublicKey = wallet.publicKey;
-      const mintPublicKey = mintKeyPair.publicKey;
       const mintTokenAccount = getAssociatedTokenAddressSync(
         mintPublicKey,
         mintAuthPublicKey,
@@ -880,7 +788,7 @@ describe("wen_new_standard", () => {
               receiver: mintAuthPublicKey,
               associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
               manager,
-              rent: SYSVAR_RENT_PUBKEY,
+
               systemProgram: SystemProgram.programId,
               tokenProgram: TOKEN_2022_PROGRAM_ID,
             })
@@ -915,16 +823,22 @@ describe("wen_new_standard", () => {
         });
 
         it("should be an account owned by the program", async () => {
-          expect(memberAccountInfo.owner).to.eql(program.programId);
+          expect((memberAccountInfo.owner as PublicKey).toBase58()).to.eql(
+            program.programId.toBase58()
+          );
         });
         it("should point back to the group", async () => {
-          expect(memberAccount.group).to.eql(group);
+          expect((memberAccount.group as PublicKey).toBase58()).to.eql(
+            group.toBase58()
+          );
         });
         it("should have the right member number", async () => {
           expect(memberAccount.memberNumber.toString()).to.eql("1");
         });
         it("should have the right member mint", async () => {
-          expect(memberAccount.mint).to.eql(mintPublicKey);
+          expect((memberAccount.mint as PublicKey).toBase58()).to.eql(
+            mintPublicKey.toBase58()
+          );
         });
       });
 
@@ -977,7 +891,7 @@ describe("wen_new_standard", () => {
             receiver: mintAuthPublicKey,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             manager,
-            rent: SYSVAR_RENT_PUBKEY,
+
             systemProgram: SystemProgram.programId,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
@@ -1022,13 +936,54 @@ describe("wen_new_standard", () => {
       });
     });
 
-    describe.skip("after removing mint as a member", () => {
+    describe("after removing mint as a member", () => {
+      const mintAuthPublicKey = wallet.publicKey;
+      const [member] = PublicKey.findProgramAddressSync(
+        [MEMBER_ACCOUNT_SEED, mintPublicKey.toBuffer()],
+        program.programId
+      );
+
+      let memberAccountInfo: AccountInfo<Buffer>;
       describe("the mint", () => {
-        it.skip("should not point back to the group", async () => {});
+        before(async () => {
+          await program.methods
+            .removeMintFromGroup()
+            .accountsStrict({
+              authority: groupAuthorityPublicKey,
+              group,
+              mint: mintPublicKey,
+              payer: mintAuthPublicKey,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .signers([groupAuthorityKeyPair])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+
+          memberAccountInfo =
+            await program.account.tokenGroupMember.getAccountInfo(member);
+        });
+        it("should not point back to the group", async () => {
+          expect(memberAccountInfo).to.be.null;
+        });
       });
 
       describe("the group", () => {
-        it.skip("should have a size of 0", async () => {});
+        let groupAccount;
+        before(async () => {
+          groupAccount = await program.account.tokenGroup.fetch(
+            group,
+            "confirmed"
+          );
+        });
+        it("should be a size of 0", async () => {
+          expect(groupAccount.size).to.eql(0);
+        });
       });
     });
   });

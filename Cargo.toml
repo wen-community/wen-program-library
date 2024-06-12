@@ -2,6 +2,19 @@
 members = ["programs/*"]
 resolver = "2"
 
+[workspace.dependencies]
+anchor-lang = { git = "https://github.com/coral-xyz/anchor", sha = "827c986618358c177a50c22ff8eb08bae6943784", features = [
+  "init-if-needed",
+  "interface-instructions",
+] }
+anchor-spl = { git = "https://github.com/coral-xyz/anchor", sha = "827c986618358c177a50c22ff8eb08bae6943784" }
+wen_new_standard = { path = "programs/wen_new_standard", features = ["cpi"] }
+wen_royalty_distribution = { path = "programs/wen_royalty_distribution", features = [
+  "cpi",
+] }
+spl-transfer-hook-interface = "0.5.1"
+spl-tlv-account-resolution = "0.4.0"
+
 [profile.release]
 overflow-checks = true
 lto = "fat"

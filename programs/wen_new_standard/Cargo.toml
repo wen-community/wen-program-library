@@ -1,6 +1,6 @@
 [package]
 name = "wen_new_standard"
-version = "0.3.2-alpha"
+version = "0.4.0-alpha"
 description = "An open and composable NFT standard on Solana."
 edition = "2021"
 
@@ -26,13 +26,8 @@ idl-build = [
 ]
 
 [dependencies]
-anchor-lang = { version = "0.30.0", features = [
-  "init-if-needed",
-  "interface-instructions",
-] }
-anchor-spl = "0.30.0"
-spl-transfer-hook-interface = { version = "0.5.0" }
-spl-tlv-account-resolution = "0.4.0"
-wen_royalty_distribution = { path = "../wen_royalty_distribution", features = [
-  "cpi",
-] }
+anchor-lang.workspace = true
+anchor-spl.workspace = true
+wen_royalty_distribution.workspace = true
+spl-transfer-hook-interface.workspace = true
+spl-tlv-account-resolution.workspace = true

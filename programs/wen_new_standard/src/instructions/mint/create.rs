@@ -3,8 +3,7 @@ use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        mint_to, set_authority,
-        spl_token_2022::instruction::AuthorityType,
+        mint_to, set_authority, spl_token_2022::instruction::AuthorityType,
         token_metadata_initialize, Mint, MintTo, SetAuthority, Token2022, TokenAccount,
         TokenMetadataInitialize,
     },
@@ -25,7 +24,7 @@ pub struct CreateMintAccountArgs {
 pub struct CreateMintAccount<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    #[account(mut)]
+    #[account()]
     /// CHECK: can be any account
     pub authority: Signer<'info>,
     #[account()]
@@ -62,7 +61,6 @@ pub struct CreateMintAccount<'info> {
     )]
     pub manager: Account<'info, Manager>,
     pub system_program: Program<'info, System>,
-    pub rent: Sysvar<'info, Rent>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
 }
@@ -110,16 +108,17 @@ impl<'info> CreateMintAccount<'info> {
     }
 
     fn set_default_permanent_delegate(&self, bump: u8) -> Result<()> {
-        let seeds: &[&[u8]; 2] = &[
-            MANAGER_SEED,
-            &[bump],
-        ];
+        let seeds: &[&[u8]; 2] = &[MANAGER_SEED, &[bump]];
         let signer_seeds = &[&seeds[..]];
         let cpi_accounts = SetAuthority {
             current_authority: self.manager.to_account_info(),
             account_or_mint: self.mint.to_account_info(),
         };
-        let cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            self.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
         set_authority(cpi_ctx, AuthorityType::PermanentDelegate, None)?;
         Ok(())
     }
@@ -127,7 +126,8 @@ impl<'info> CreateMintAccount<'info> {
 
 pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
     if args.permanent_delegate.is_none() {
-        ctx.accounts.set_default_permanent_delegate(ctx.bumps.manager)?;
+        ctx.accounts
+            .set_default_permanent_delegate(ctx.bumps.manager)?;
     }
 
     // initialize token metadata

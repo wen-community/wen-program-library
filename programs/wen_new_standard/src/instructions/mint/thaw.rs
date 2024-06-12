@@ -9,15 +9,12 @@ use crate::{Manager, MintErrors, MANAGER_SEED};
 
 #[derive(Accounts)]
 pub struct ThawDelegatedAccount<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
     #[account()]
     /// CHECK: can be any account
     pub user: UncheckedAccount<'info>,
     #[account(mut)]
     pub delegate_authority: Signer<'info>,
     #[account(
-        mut,
         constraint = mint.freeze_authority == COption::Some(manager.key()) @MintErrors::InvalidFreezeAuthority
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
