@@ -33,6 +33,8 @@ The Wen Transfer Guard Program secures token transfers on the Solana blockchain 
 
 ### Example Flow (Anchor Based)
 
+#### Creating a guard
+
 ```ts
 const guardMint = web3.Keypair.generate();
 
@@ -70,7 +72,7 @@ const txId = await sendSignedVtx(
 );
 ```
 
-### Updating a guard
+#### Updating a guard
 
 ```ts
 const ix = await program.methods
@@ -91,7 +93,7 @@ const ix = await program.methods
 const txId = await sendSignedVtx(provider, payer, [guardAuthority], ix);
 ```
 
-### Initializing (Assign guard to mint)
+#### Initializing (Assign guard to mint)
 
 ```ts
 const [guardAddress] = web3.PublicKey.findProgramAddressSync(
@@ -123,7 +125,7 @@ const ix = await program.methods
 await sendSignedVtx(provider, payer.publicKey, [payer, mintAuthority], ix);
 ```
 
-### Executing a transfer
+#### Executing a transfer
 
 ```ts
 let ix = await createTransferCheckedWithTransferHookInstruction(
