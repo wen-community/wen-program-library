@@ -17,9 +17,8 @@ no-log-ix-name = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
-anchor-lang = { version = "0.30.0", features = ["interface-instructions"] }
-anchor-spl = "0.30.0"
-spl-pod = "0.2.2"
-spl-transfer-hook-interface = { version = "0.5.0" }
-spl-tlv-account-resolution = "0.4.0"
-
+anchor-lang.workspace = true
+anchor-spl.workspace = true
+spl-pod.workspace = true
+spl-transfer-hook-interface.workspace = true
+spl-tlv-account-resolution.workspace = true

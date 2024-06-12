@@ -7,7 +7,7 @@ The [`package.json`](./package.json) file at the root folder contains dependenci
 To install the required dependencies, run:
 
 ```bash
-pnpm install
+yarn install
 ```
 
 ### Installing Anchor CLI
@@ -36,7 +36,7 @@ Each client has its own README with instructions on how to get started. You can 
 To generate the clients, run the following command:
 
 ```bash
-pnpm clients
+yarn clients
 ```
 
-You will need to run `pnpm clients` again to re-generate the clients whenever there are changes in the program(s).
+You will need to run `yarn clients` again to re-generate the clients whenever there are changes in the program(s).

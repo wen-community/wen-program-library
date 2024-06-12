@@ -14,4 +14,4 @@ cargo build
 cargo test-sbf --sbf-out-dir ../../programs/.bin
 ```
 
-When something changes in the program(s), make sure to run `pnpm clients` in the root directory, to re-generate the clients accordingly.
+When something changes in the program(s), make sure to run `yarn clients` in the root directory, to re-generate the clients accordingly.
