@@ -1,36 +1,37 @@
 # Wen Transfer Guard Program
 
-The Wen Transfer Guard Program is a program that allows users to set up
-a transfer guard for their different mints so they can enforce a set of rules during a token transfer as enforced by the token_2022 program transfer hook interface.
+The Wen Transfer Guard Program secures token transfers on the Solana blockchain by enforcing customizable rules using the token_2022 program transfer hook interface.
 
-## How it works
+## How It Works
 
-To begin, a user must create a transfer guard account, a specialized account containing a generic ruleset. The ownership model follows the WNS specification, making the guard human-identifiable with details like name, image, URL, description, and attributes. This account governs the update authority on the guard. Whoever owns the asset associated with the transfer guard account has the rights to update it. If the token account is burned, the guard becomes immutable and cannot be updated or further modified, as no one will have ownership rights.
+### Overview
 
-Transfer guards are updateable and can be updated by the owner of the transfer guard account, the update process is done by sending a single instruction to the transfer guard program, which will update the ruleset of the transfer guard account.
+1. **Create a Transfer Guard Account:**
+   - Set up an account with a ruleset and identifiable metadata.
+   
+2. **Update the Guard:**
+   - Modify the ruleset of the guard account.
+   
+3. **Initialize the Guard:**
+   - Link the guard to a specific mint.
+   
+4. **Execute Transfer Rules:**
+   - Enforce the ruleset during token transfers.
 
-Assigning a transfer guard to a mint is done by sending a single instruction called `Initialize`, which will store the `extra_metas_account` needed for the `Execute` instruction to work. During this phase, the guard will be assigned to the mint by the mint authority by adding itself to the extra metas account.
+### Instructions Summary
 
-The `Execute` instruction is the one that enforces the ruleset of the transfer guard account, it will check if the transfer is allowed by the ruleset and will either allow or deny the transfer.
+- `create_guard`: Creates a new transfer guard account.
+- `update_guard`: Updates the ruleset of a transfer guard account.
+- `initialize`: Assigns extra metas to a given mint, linking the guard to it.
+- `execute`: Enforces the ruleset during a token transfer.
 
-## Instructions summary
+### Guard Ruleset Modes
 
-- `create_guard` - Creates a new transfer guard account.
-- `update_guard` - Updates the ruleset of a transfer guard account.
-- `initialize` - SPL_2022 Initialize interface to assign extra metas to a given mint. These metas are constrained to be a transfer guard account and an instructions sysvar account, so no args are required for this instruction.
-- `execute` - SPL_2022 Execute interface that enforces the ruleset of a transfer guard account.
+- **Metadata Rules:** Validate against custom metadata fields.
+- **Amount Rules:** Enforce limits on the amount of tokens being transferred.
+- **CPI Rules:** Control which programs can interact with the mint’s tokens.
 
-## Guard Ruleset modes
-
-There are three types of rules for each guard, which can be executed at the same time at the instruction level; these are:
-
-- `Metadata rules`: These can happen over the mint additional metadata custom fields.
-- `Amount rules`: These are rules that can happen over the amount of tokens being transferred, IE, greater than or equal to the rule.
-- `Cpi rules`: These can happen over the CPI calls being made during the transfer, IE: Program allowed or not allowed to call the transfer via CPI.
-
-## Example flow - Anchor based
-
-### Creating a guard
+### Example Flow (Anchor Based)
 
 ```ts
 const guardMint = web3.Keypair.generate();
