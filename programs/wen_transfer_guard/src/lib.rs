@@ -10,7 +10,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("4MrF8SuFtwGg53bL6KziCe7suvKqUoBg7o7Lnix1Ton5");
+declare_id!("LoCKABe3tyHveDsdSASdyrLrdHfbtDs3uDCFDmp48yf");
 
 #[program]
 pub mod wen_transfer_guard {

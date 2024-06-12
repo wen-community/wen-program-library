@@ -41,6 +41,7 @@ const kMint = {
   decimals: 9,
   mintAmount: 1e9,
   mintAuthority: web3.Keypair.generate(),
+  transferHookAuthority: web3.Keypair.generate(),
 };
 const kSourceAuthority = web3.Keypair.generate();
 const kDestinationAuthority = web3.Keypair.generate();
@@ -83,7 +84,7 @@ const createMint = async (
     // TX: Init transfer hook on mint
     createInitializeTransferHookInstruction(
       mint.keypair.publicKey,
-      mint.mintAuthority.publicKey,
+      mint.transferHookAuthority.publicKey,
       programId,
       TOKEN_2022_PROGRAM_ID
     ),
@@ -151,12 +152,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
   let kGuard: web3.PublicKey | null = null;
   let kGuardOwner = web3.Keypair.generate();
   let kGuardMint = web3.Keypair.generate();
-  let kGuardMintAta = getAssociatedTokenAddressSync(
-    kGuardMint.publicKey,
-    kGuardOwner.publicKey,
-    false,
-    TOKEN_2022_PROGRAM_ID
-  );
+
   let kGuardMetadata = {
     name: "Test Guard",
     symbol: "TG",
@@ -219,7 +215,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
 
     const [guardAddress] = web3.PublicKey.findProgramAddressSync(
       [
-        Buffer.from("wen_token_guard"),
+        Buffer.from("wen_token_transfer_guard"),
         Buffer.from("guard_v1"),
         kGuardMint.publicKey.toBuffer(),
       ],
@@ -243,7 +239,6 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       })
       .accounts({
         mint: kGuardMint.publicKey,
-        mintTokenAccount: kGuardMintAta,
         guardAuthority: kGuardOwner.publicKey,
         payer: context.payer.publicKey,
       })
@@ -274,7 +269,6 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       })
       .accounts({
         mint: kGuardMint.publicKey,
-        tokenAccount: kGuardMintAta,
         guardAuthority: kGuardOwner.publicKey,
       })
       .instruction();
@@ -294,7 +288,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       .accountsStrict({
         guard: kGuard,
         mint: kMint.keypair.publicKey,
-        mintAuthority: kMint.mintAuthority.publicKey,
+        transferHookAuthority: kMint.transferHookAuthority.publicKey,
         payer: context.payer.publicKey,
         extraMetasAccount: kExtraMetasAddress,
         systemProgram: web3.SystemProgram.programId,
@@ -304,10 +298,11 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
     await sendSignedVtx(
       provider,
       context.payer.publicKey,
-      [context.payer, kMint.mintAuthority],
+      [context.payer, kMint.transferHookAuthority],
       ix
     );
   });
+
   it("[Transfer Hook] - Executes correctly during transfer.", async () => {
     let ix = await createTransferCheckedWithTransferHookInstruction(
       provider.connection,
@@ -329,6 +324,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       ix
     );
   });
+
   it("[Transfer Guards] - Adds TOKEN_2022_PROGRAM_ID to deny list, non-cpi calls should fail.", async () => {
     await sendSignedVtx(
       provider,
@@ -342,7 +338,6 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         })
         .accounts({
           mint: kGuardMint.publicKey,
-          tokenAccount: kGuardMintAta,
           guardAuthority: kGuardOwner.publicKey,
         })
         .instruction()
@@ -376,4 +371,98 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       expect(error.message).to.include("0x1770");
     }
   });
+
+  it("[Transfer Guards] - Shouldn't initialize with a mint using a wrong transfer guard program id.", async () => {
+    const wrongProgramId = web3.Keypair.generate();
+    const wrongProgramMint = {
+      keypair: web3.Keypair.generate(),
+      decimals: 9,
+      mintAmount: 1e9,
+      mintAuthority: web3.Keypair.generate(),
+      transferHookAuthority: web3.Keypair.generate(),
+    };
+    const extraMetasAddress = getExtraAccountMetaAddress(
+      wrongProgramMint.keypair.publicKey,
+      program.programId // Purposefully using right program id here to simulate wrong sdk usage.
+    );
+
+    await createMint(
+      wrongProgramId.publicKey,
+      context.payer,
+      provider,
+      wrongProgramMint
+    );
+
+    const ix = await program.methods
+      .initialize()
+      .accountsStrict({
+        guard: kGuard, // Reuse the same guard.
+        mint: wrongProgramMint.keypair.publicKey,
+        transferHookAuthority: wrongProgramMint.transferHookAuthority.publicKey,
+        payer: context.payer.publicKey,
+        extraMetasAccount: extraMetasAddress,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .instruction();
+
+    try {
+      await sendSignedVtx(
+        provider,
+        context.payer.publicKey,
+        [context.payer, wrongProgramMint.transferHookAuthority],
+        ix
+      );
+    } catch (error) {
+      console.log({ error });
+      expect(error.message).to.include("0x1777");
+    }
+  });
+
+  it("[Transfer Guards] - Shouldn't initialize with a mint using a wrong transfer guard program id.", async () => {
+    const wrongProgramId = web3.Keypair.generate();
+    const wrongProgramMint = {
+      keypair: web3.Keypair.generate(),
+      decimals: 9,
+      mintAmount: 1e9,
+      mintAuthority: web3.Keypair.generate(),
+      transferHookAuthority: web3.Keypair.generate(),
+    };
+    const extraMetasAddress = getExtraAccountMetaAddress(
+      wrongProgramMint.keypair.publicKey,
+      program.programId // Purposefully using right program id here to simulate wrong sdk usage.
+    );
+
+    await createMint(
+      wrongProgramId.publicKey,
+      context.payer,
+      provider,
+      wrongProgramMint
+    );
+
+    const ix = await program.methods
+      .initialize()
+      .accountsStrict({
+        guard: kGuard, // Reuse the same guard.
+        mint: wrongProgramMint.keypair.publicKey,
+        transferHookAuthority: wrongProgramMint.transferHookAuthority.publicKey,
+        payer: context.payer.publicKey,
+        extraMetasAccount: extraMetasAddress,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .instruction();
+
+    try {
+      await sendSignedVtx(
+        provider,
+        context.payer.publicKey,
+        [context.payer, wrongProgramMint.transferHookAuthority],
+        ix
+      );
+    } catch (error) {
+      console.log({ error });
+      expect(error.message).to.include("0x1777");
+    }
+  });
+
+  // TODO: Add additional tests for the rest of the guard rules.
 });

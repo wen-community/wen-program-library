@@ -14,4 +14,8 @@ pub enum WenTransferGuardError {
     GuardTokenAmountShouldBeAtLeastOne,
     #[msg("Not owned by token 2022 program")]
     NotOwnedByToken2022Program,
+    #[msg("Must be initialized by Transfer Hook Authority")]
+    MustBeInitializedByTransferHookAuthority,
+    #[msg("Mint's assigned Transfer Hook Program is not this one")]
+    MintAssignedTransferHookProgramIsNotThisOne,
 }

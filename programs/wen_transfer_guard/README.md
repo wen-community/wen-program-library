@@ -95,7 +95,7 @@ const txId = await sendSignedVtx(provider, payer, [guardAuthority], ix);
 ```ts
 const [guardAddress] = web3.PublicKey.findProgramAddressSync(
   [
-    Buffer.from("wen_token_guard"),
+    Buffer.from("wen_token_transfer_guard"),
     Buffer.from("guard_v1"),
     // Not to be confused with the actual mint for the guard to be assigned to.
     guardMint.publicKey.toBuffer(),
