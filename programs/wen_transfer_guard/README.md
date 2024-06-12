@@ -5,7 +5,7 @@ a transfer guard for their different mints so they can enforce a set of rules du
 
 ## How it works
 
-First, a user must create a transfer guard account, which is a special account that holds a generic ruleset, the ownership model behind the transfer guard account is that of a simple mint with a single token issued during the creation of the account, this allows for the user to transfer ownership of the transfer guard account to another user.
+To begin, a user must create a transfer guard account, a specialized account containing a generic ruleset. The ownership model follows the WNS specification, making the guard human-identifiable with details like name, image, URL, description, and attributes. This account governs the update authority on the guard. Whoever owns the asset associated with the transfer guard account has the rights to update it. If the token account is burned, the guard becomes immutable and cannot be updated or further modified, as no one will have ownership rights.
 
 Transfer guards are updateable and can be updated by the owner of the transfer guard account, the update process is done by sending a single instruction to the transfer guard program, which will update the ruleset of the transfer guard account.
 
