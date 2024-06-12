@@ -237,7 +237,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
     const ix = await program.methods
       .createGuard({
         ...kGuardMetadata,
-        additionFieldsRule: [],
+        additionalFieldsRule: [],
         transferAmountRule: null,
         cpiRule: kGuardOriginalCpiRule,
       })
@@ -268,7 +268,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
   it("[Transfer Guards] - Updates a transfer guard.", async () => {
     const ix = await program.methods
       .updateGuard({
-        additionFieldsRule: [],
+        additionalFieldsRule: [],
         transferAmountRule: null,
         cpiRule: kGuardUpdatedCpiRule,
       })
@@ -336,7 +336,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       [kGuardOwner],
       await program.methods
         .updateGuard({
-          additionFieldsRule: [],
+          additionalFieldsRule: [],
           transferAmountRule: null,
           cpiRule: kGuardDenyNonCpiTransfersRule,
         })

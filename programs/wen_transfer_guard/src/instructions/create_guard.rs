@@ -111,7 +111,7 @@ pub fn processor(ctx: Context<CreateGuard>, args: CreateGuardArgs) -> Result<()>
 
     update_account_lamports_to_minimum_balance(
         UpdateAccountLamportsToMinimumBalanceAccountInfos {
-            account: ctx.accounts.guard.to_account_info(),
+            account: ctx.accounts.mint.to_account_info(),
             payer: ctx.accounts.payer.to_account_info(),
             system_program: ctx.accounts.system_program.to_account_info(),
         },
