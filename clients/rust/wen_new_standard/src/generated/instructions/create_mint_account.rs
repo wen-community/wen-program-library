@@ -5,9 +5,9 @@
 //! <https://github.com/kinobi-so/kinobi>
 //!
 
-use crate::generated::types::CreateMintAccountArgs;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use solana_program::pubkey::Pubkey;
 
 /// Accounts.
 pub struct CreateMintAccount {
@@ -115,7 +115,10 @@ impl Default for CreateMintAccountInstructionData {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CreateMintAccountInstructionArgs {
-    pub args: CreateMintAccountArgs,
+    pub name: String,
+    pub symbol: String,
+    pub uri: String,
+    pub permanent_delegate: Option<Pubkey>,
 }
 
 /// Instruction builder for `CreateMintAccount`.
@@ -142,7 +145,10 @@ pub struct CreateMintAccountBuilder {
     system_program: Option<solana_program::pubkey::Pubkey>,
     associated_token_program: Option<solana_program::pubkey::Pubkey>,
     token_program: Option<solana_program::pubkey::Pubkey>,
-    args: Option<CreateMintAccountArgs>,
+    name: Option<String>,
+    symbol: Option<String>,
+    uri: Option<String>,
+    permanent_delegate: Option<Pubkey>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -205,8 +211,24 @@ impl CreateMintAccountBuilder {
         self
     }
     #[inline(always)]
-    pub fn args(&mut self, args: CreateMintAccountArgs) -> &mut Self {
-        self.args = Some(args);
+    pub fn name(&mut self, name: String) -> &mut Self {
+        self.name = Some(name);
+        self
+    }
+    #[inline(always)]
+    pub fn symbol(&mut self, symbol: String) -> &mut Self {
+        self.symbol = Some(symbol);
+        self
+    }
+    #[inline(always)]
+    pub fn uri(&mut self, uri: String) -> &mut Self {
+        self.uri = Some(uri);
+        self
+    }
+    /// `[optional argument]`
+    #[inline(always)]
+    pub fn permanent_delegate(&mut self, permanent_delegate: Pubkey) -> &mut Self {
+        self.permanent_delegate = Some(permanent_delegate);
         self
     }
     /// Add an aditional account to the instruction.
@@ -249,7 +271,10 @@ impl CreateMintAccountBuilder {
             )),
         };
         let args = CreateMintAccountInstructionArgs {
-            args: self.args.clone().expect("args is not set"),
+            name: self.name.clone().expect("name is not set"),
+            symbol: self.symbol.clone().expect("symbol is not set"),
+            uri: self.uri.clone().expect("uri is not set"),
+            permanent_delegate: self.permanent_delegate.clone(),
         };
 
         accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
@@ -465,7 +490,10 @@ impl<'a, 'b> CreateMintAccountCpiBuilder<'a, 'b> {
             system_program: None,
             associated_token_program: None,
             token_program: None,
-            args: None,
+            name: None,
+            symbol: None,
+            uri: None,
+            permanent_delegate: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -537,8 +565,24 @@ impl<'a, 'b> CreateMintAccountCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn args(&mut self, args: CreateMintAccountArgs) -> &mut Self {
-        self.instruction.args = Some(args);
+    pub fn name(&mut self, name: String) -> &mut Self {
+        self.instruction.name = Some(name);
+        self
+    }
+    #[inline(always)]
+    pub fn symbol(&mut self, symbol: String) -> &mut Self {
+        self.instruction.symbol = Some(symbol);
+        self
+    }
+    #[inline(always)]
+    pub fn uri(&mut self, uri: String) -> &mut Self {
+        self.instruction.uri = Some(uri);
+        self
+    }
+    /// `[optional argument]`
+    #[inline(always)]
+    pub fn permanent_delegate(&mut self, permanent_delegate: Pubkey) -> &mut Self {
+        self.instruction.permanent_delegate = Some(permanent_delegate);
         self
     }
     /// Add an additional account to the instruction.
@@ -583,7 +627,10 @@ impl<'a, 'b> CreateMintAccountCpiBuilder<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
         let args = CreateMintAccountInstructionArgs {
-            args: self.instruction.args.clone().expect("args is not set"),
+            name: self.instruction.name.clone().expect("name is not set"),
+            symbol: self.instruction.symbol.clone().expect("symbol is not set"),
+            uri: self.instruction.uri.clone().expect("uri is not set"),
+            permanent_delegate: self.instruction.permanent_delegate.clone(),
         };
         let instruction = CreateMintAccountCpi {
             __program: self.instruction.__program,
@@ -638,7 +685,10 @@ struct CreateMintAccountCpiBuilderInstruction<'a, 'b> {
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     associated_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    args: Option<CreateMintAccountArgs>,
+    name: Option<String>,
+    symbol: Option<String>,
+    uri: Option<String>,
+    permanent_delegate: Option<Pubkey>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

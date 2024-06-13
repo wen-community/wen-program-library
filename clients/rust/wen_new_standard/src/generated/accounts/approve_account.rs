@@ -16,6 +16,8 @@ pub struct ApproveAccount {
 }
 
 impl ApproveAccount {
+    pub const LEN: usize = 16;
+
     #[inline(always)]
     pub fn from_bytes(data: &[u8]) -> Result<Self, std::io::Error> {
         let mut data = data;
@@ -31,5 +33,22 @@ impl<'a> TryFrom<&solana_program::account_info::AccountInfo<'a>> for ApproveAcco
     ) -> Result<Self, Self::Error> {
         let mut data: &[u8] = &(*account_info.data).borrow();
         Self::deserialize(&mut data)
+    }
+}
+
+#[cfg(feature = "anchor")]
+impl anchor_lang::AccountDeserialize for ApproveAccount {
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
+        Ok(Self::deserialize(buf)?)
+    }
+}
+
+#[cfg(feature = "anchor")]
+impl anchor_lang::AccountSerialize for ApproveAccount {}
+
+#[cfg(feature = "anchor")]
+impl anchor_lang::Owner for ApproveAccount {
+    fn owner() -> Pubkey {
+        crate::WEN_NEW_STANDARD_ID
     }
 }

@@ -7,17 +7,6 @@
  */
 
 import {
-  Account,
-  Address,
-  Codec,
-  Decoder,
-  EncodedAccount,
-  Encoder,
-  FetchAccountConfig,
-  FetchAccountsConfig,
-  MaybeAccount,
-  MaybeEncodedAccount,
-  ReadonlyUint8Array,
   assertAccountExists,
   assertAccountsExist,
   combineCodec,
@@ -35,6 +24,17 @@ import {
   getU32Decoder,
   getU32Encoder,
   transformEncoder,
+  type Account,
+  type Address,
+  type Codec,
+  type Decoder,
+  type EncodedAccount,
+  type Encoder,
+  type FetchAccountConfig,
+  type FetchAccountsConfig,
+  type MaybeAccount,
+  type MaybeEncodedAccount,
+  type ReadonlyUint8Array,
 } from '@solana/web3.js';
 
 export type TokenGroup = {
@@ -147,4 +147,8 @@ export async function fetchAllMaybeTokenGroup(
 ): Promise<MaybeAccount<TokenGroup>[]> {
   const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
   return maybeAccounts.map((maybeAccount) => decodeTokenGroup(maybeAccount));
+}
+
+export function getTokenGroupSize(): number {
+  return 80;
 }

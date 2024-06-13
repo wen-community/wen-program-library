@@ -7,21 +7,8 @@
  */
 
 import {
-  Address,
-  Codec,
-  Decoder,
-  Encoder,
-  IAccountMeta,
-  IAccountSignerMeta,
-  IInstruction,
-  IInstructionWithAccounts,
-  IInstructionWithData,
-  ReadonlyAccount,
-  ReadonlySignerAccount,
-  ReadonlyUint8Array,
-  TransactionSigner,
-  WritableAccount,
-  WritableSignerAccount,
+  addDecoderSizePrefix,
+  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
@@ -29,16 +16,29 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
+  getUtf8Decoder,
+  getUtf8Encoder,
   transformEncoder,
+  type Address,
+  type Codec,
+  type Decoder,
+  type Encoder,
+  type IAccountMeta,
+  type IAccountSignerMeta,
+  type IInstruction,
+  type IInstructionWithAccounts,
+  type IInstructionWithData,
+  type ReadonlyAccount,
+  type ReadonlySignerAccount,
+  type ReadonlyUint8Array,
+  type TransactionSigner,
+  type WritableAccount,
+  type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { ResolvedAccount, getAccountMetaFactory } from '../shared';
-import {
-  CreateGroupAccountArgs,
-  CreateGroupAccountArgsArgs,
-  getCreateGroupAccountArgsDecoder,
-  getCreateGroupAccountArgsEncoder,
-} from '../types';
+import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export type CreateGroupAccountInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -101,18 +101,27 @@ export type CreateGroupAccountInstruction<
 
 export type CreateGroupAccountInstructionData = {
   discriminator: ReadonlyUint8Array;
-  args: CreateGroupAccountArgs;
+  name: string;
+  symbol: string;
+  uri: string;
+  maxSize: number;
 };
 
 export type CreateGroupAccountInstructionDataArgs = {
-  args: CreateGroupAccountArgsArgs;
+  name: string;
+  symbol: string;
+  uri: string;
+  maxSize: number;
 };
 
 export function getCreateGroupAccountInstructionDataEncoder(): Encoder<CreateGroupAccountInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['args', getCreateGroupAccountArgsEncoder()],
+      ['name', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['symbol', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['maxSize', getU32Encoder()],
     ]),
     (value) => ({
       ...value,
@@ -124,7 +133,10 @@ export function getCreateGroupAccountInstructionDataEncoder(): Encoder<CreateGro
 export function getCreateGroupAccountInstructionDataDecoder(): Decoder<CreateGroupAccountInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['args', getCreateGroupAccountArgsDecoder()],
+    ['name', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['symbol', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['uri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['maxSize', getU32Decoder()],
   ]);
 }
 
@@ -160,7 +172,10 @@ export type CreateGroupAccountInput<
   systemProgram?: Address<TAccountSystemProgram>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   tokenProgram?: Address<TAccountTokenProgram>;
-  args: CreateGroupAccountInstructionDataArgs['args'];
+  name: CreateGroupAccountInstructionDataArgs['name'];
+  symbol: CreateGroupAccountInstructionDataArgs['symbol'];
+  uri: CreateGroupAccountInstructionDataArgs['uri'];
+  maxSize: CreateGroupAccountInstructionDataArgs['maxSize'];
 };
 
 export function getCreateGroupAccountInstruction<
