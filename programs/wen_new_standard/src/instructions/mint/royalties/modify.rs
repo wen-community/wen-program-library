@@ -50,13 +50,13 @@ impl<'info> ModifyRoyalties<'info> {
     }
 
     // ToDo: Create a macro for it
-    fn remove_token_metadata_field(&self, field: String) -> Result<()> {
+    fn remove_token_metadata_field(&self, field: &str) -> Result<()> {
         invoke(
             &remove_key(
                 &self.token_program.key(),
                 &self.mint.key(),
                 &self.authority.key(),
-                field,
+                field.to_string(),
                 false,
             ),
             &[
@@ -70,10 +70,12 @@ impl<'info> ModifyRoyalties<'info> {
 }
 
 pub fn handler(ctx: Context<ModifyRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
-    let mint_account = ctx.accounts.mint.to_account_info().clone();
-    let mint_account_data = mint_account.try_borrow_mut_data()?;
-    let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
-    let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
+    let metadata = {
+        let mint_account = ctx.accounts.mint.to_account_info().clone();
+        let mint_account_data = mint_account.try_borrow_data()?;
+        let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
+        mint_data.get_variable_len_extension::<TokenMetadata>()?
+    };
 
     // validate that the fee_basis_point is less than 10000 (100%)
     require!(
@@ -106,12 +108,18 @@ pub fn handler(ctx: Context<ModifyRoyalties>, args: UpdateRoyaltiesArgs) -> Resu
 
     // for all the keys in metadata.additional_metadata, if the key is not in the args, remove it
     let creators = args.creators;
-    for key in metadata.additional_metadata {
+    let creators_additional_metadata: Vec<&(String, String)> = metadata
+        .additional_metadata
+        .iter()
+        .filter(|(key, _)| !key.starts_with("royalty"))
+        .collect();
+
+    for (key, _) in creators_additional_metadata {
         if !creators
             .iter()
-            .any(|creator| creator.address == Pubkey::from_str(&key.0).unwrap())
+            .any(|creator| creator.address == Pubkey::from_str(&key).unwrap())
         {
-            ctx.accounts.remove_token_metadata_field(key.0)?;
+            ctx.accounts.remove_token_metadata_field(key)?;
         }
     }
 

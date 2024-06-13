@@ -29,6 +29,7 @@ pub struct UpdateGroupAccount<'info> {
     )]
     pub group: Account<'info, TokenGroup>,
     #[account(
+        mut,
         mint::token_program = token_program,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,

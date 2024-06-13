@@ -12,7 +12,7 @@ use anchor_spl::token_interface::{
         state::Mint as BaseStateMint,
     },
     spl_token_metadata_interface::state::TokenMetadata,
-    Mint, Token2022, TokenAccount,
+    Mint, Token2022, TokenAccount, TokenInterface,
 };
 use wen_royalty_distribution::{
     cpi::{accounts::UpdateDistribution, update_distribution},
@@ -47,14 +47,14 @@ pub struct ApproveTransfer<'info> {
         mut,
         token::authority = distribution_account,
         token::mint = payment_mint,
-        token::token_program = token_program,
+        token::token_program = payment_token_program,
     )]
     pub distribution_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(
         mut,
         token::authority = authority,
         token::mint = payment_mint,
-        token::token_program = token_program,
+        token::token_program = payment_token_program,
     )]
     pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(mut)]
@@ -63,6 +63,7 @@ pub struct ApproveTransfer<'info> {
     pub system_program: Program<'info, System>,
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,
     pub token_program: Program<'info, Token2022>,
+    pub payment_token_program: Option<Interface<'info, TokenInterface>>,
 }
 
 impl ApproveTransfer<'_> {
@@ -77,6 +78,11 @@ impl ApproveTransfer<'_> {
             .as_ref()
             .map(|a| a.to_account_info());
 
+        let payment_token_program_account_info = self
+            .payment_token_program
+            .as_ref()
+            .map(|a| a.to_account_info());
+
         let cpi_accounts = UpdateDistribution {
             authority: self.authority.to_account_info(),
             mint: self.mint.to_account_info(),
@@ -86,6 +92,7 @@ impl ApproveTransfer<'_> {
             authority_token_account: authority_token_account_info,
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
+            payment_token_program: payment_token_program_account_info,
         };
         let cpi_ctx = CpiContext::new(self.distribution_program.to_account_info(), cpi_accounts);
         update_distribution(cpi_ctx, UpdateDistributionArgs { amount })

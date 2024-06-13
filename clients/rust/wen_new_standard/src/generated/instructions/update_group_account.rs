@@ -48,7 +48,7 @@ impl UpdateGroupAccount {
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.group, false,
         ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+        accounts.push(solana_program::instruction::AccountMeta::new(
             self.mint, false,
         ));
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
@@ -106,7 +106,7 @@ pub struct UpdateGroupAccountInstructionArgs {
 ///   0. `[writable, signer]` payer
 ///   1. `[]` authority
 ///   2. `[writable]` group
-///   3. `[]` mint
+///   3. `[writable]` mint
 ///   4. `[optional]` system_program (default to `11111111111111111111111111111111`)
 ///   5. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
 #[derive(Clone, Debug, Default)]
@@ -300,7 +300,7 @@ impl<'a, 'b> UpdateGroupAccountCpi<'a, 'b> {
             *self.group.key,
             false,
         ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+        accounts.push(solana_program::instruction::AccountMeta::new(
             *self.mint.key,
             false,
         ));
@@ -357,7 +357,7 @@ impl<'a, 'b> UpdateGroupAccountCpi<'a, 'b> {
 ///   0. `[writable, signer]` payer
 ///   1. `[]` authority
 ///   2. `[writable]` group
-///   3. `[]` mint
+///   3. `[writable]` mint
 ///   4. `[]` system_program
 ///   5. `[]` token_program
 #[derive(Clone, Debug)]

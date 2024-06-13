@@ -68,7 +68,7 @@ export type AddMintToGroupInstruction<
         ? WritableAccount<TAccountMember>
         : TAccountMember,
       TAccountMint extends string
-        ? ReadonlyAccount<TAccountMint>
+        ? WritableAccount<TAccountMint>
         : TAccountMint,
       TAccountManager extends string
         ? ReadonlyAccount<TAccountManager>
@@ -175,7 +175,7 @@ export function getAddMintToGroupInstruction<
     authority: { value: input.authority ?? null, isWritable: false },
     group: { value: input.group ?? null, isWritable: true },
     member: { value: input.member ?? null, isWritable: true },
-    mint: { value: input.mint ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: true },
     manager: { value: input.manager ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
