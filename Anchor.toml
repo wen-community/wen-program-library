@@ -8,13 +8,13 @@ skip-lint = false
 wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
 wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
 wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
-wen_transfer_guard = "LoCKABe3tyHveDsdSASdyrLrdHfbtDs3uDCFDmp48yf"
+wen_transfer_guard = "LockdqYQ9X2kwtWB99ioSbxubAmEi8o9jqYwbXgrrRw"
 
 [programs.devnet]
 wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
 wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
 wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
-wen_transfer_guard = "LoCKABe3tyHveDsdSASdyrLrdHfbtDs3uDCFDmp48yf"
+wen_transfer_guard = "LockdqYQ9X2kwtWB99ioSbxubAmEi8o9jqYwbXgrrRw"
 
 [registry]
 url = "https://api.apr.dev"

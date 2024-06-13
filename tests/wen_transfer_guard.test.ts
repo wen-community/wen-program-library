@@ -459,7 +459,6 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         ix
       );
     } catch (error) {
-      console.log({ error });
       expect(error.message).to.include("0x1777");
     }
   });
