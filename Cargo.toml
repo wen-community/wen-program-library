@@ -6,6 +6,7 @@ resolver = "2"
 anchor-lang = { git = "https://github.com/coral-xyz/anchor", sha = "827c986618358c177a50c22ff8eb08bae6943784", features = [
   "init-if-needed",
   "interface-instructions",
+  "allow-missing-optionals",
 ] }
 anchor-spl = { git = "https://github.com/coral-xyz/anchor", sha = "827c986618358c177a50c22ff8eb08bae6943784" }
 wen_new_standard = { path = "programs/wen_new_standard", features = ["cpi"] }
