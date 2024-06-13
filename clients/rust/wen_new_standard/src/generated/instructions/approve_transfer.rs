@@ -31,6 +31,8 @@ pub struct ApproveTransfer {
     pub distribution_program: solana_program::pubkey::Pubkey,
 
     pub token_program: solana_program::pubkey::Pubkey,
+
+    pub payment_token_program: Option<solana_program::pubkey::Pubkey>,
 }
 
 impl ApproveTransfer {
@@ -46,7 +48,7 @@ impl ApproveTransfer {
         args: ApproveTransferInstructionArgs,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.payer, true,
         ));
@@ -103,6 +105,17 @@ impl ApproveTransfer {
             self.token_program,
             false,
         ));
+        if let Some(payment_token_program) = self.payment_token_program {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                payment_token_program,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::WEN_NEW_STANDARD_ID,
+                false,
+            ));
+        }
         accounts.extend_from_slice(remaining_accounts);
         let mut data = ApproveTransferInstructionData::new().try_to_vec().unwrap();
         let mut args = args.try_to_vec().unwrap();
@@ -156,6 +169,7 @@ pub struct ApproveTransferInstructionArgs {
 ///   8. `[optional]` system_program (default to `11111111111111111111111111111111`)
 ///   9. `[optional]` distribution_program (default to `diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay`)
 ///   10. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
+///   11. `[optional]` payment_token_program
 #[derive(Clone, Debug, Default)]
 pub struct ApproveTransferBuilder {
     payer: Option<solana_program::pubkey::Pubkey>,
@@ -169,6 +183,7 @@ pub struct ApproveTransferBuilder {
     system_program: Option<solana_program::pubkey::Pubkey>,
     distribution_program: Option<solana_program::pubkey::Pubkey>,
     token_program: Option<solana_program::pubkey::Pubkey>,
+    payment_token_program: Option<solana_program::pubkey::Pubkey>,
     buy_amount: Option<u64>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
@@ -252,6 +267,15 @@ impl ApproveTransferBuilder {
         self.token_program = Some(token_program);
         self
     }
+    /// `[optional account]`
+    #[inline(always)]
+    pub fn payment_token_program(
+        &mut self,
+        payment_token_program: Option<solana_program::pubkey::Pubkey>,
+    ) -> &mut Self {
+        self.payment_token_program = payment_token_program;
+        self
+    }
     #[inline(always)]
     pub fn buy_amount(&mut self, buy_amount: u64) -> &mut Self {
         self.buy_amount = Some(buy_amount);
@@ -297,6 +321,7 @@ impl ApproveTransferBuilder {
             token_program: self.token_program.unwrap_or(solana_program::pubkey!(
                 "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
             )),
+            payment_token_program: self.payment_token_program,
         };
         let args = ApproveTransferInstructionArgs {
             buy_amount: self.buy_amount.clone().expect("buy_amount is not set"),
@@ -329,6 +354,8 @@ pub struct ApproveTransferCpiAccounts<'a, 'b> {
     pub distribution_program: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
+
+    pub payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
 }
 
 /// `approve_transfer` CPI instruction.
@@ -357,6 +384,8 @@ pub struct ApproveTransferCpi<'a, 'b> {
     pub distribution_program: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
+
+    pub payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// The arguments for the instruction.
     pub __args: ApproveTransferInstructionArgs,
 }
@@ -380,6 +409,7 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             system_program: accounts.system_program,
             distribution_program: accounts.distribution_program,
             token_program: accounts.token_program,
+            payment_token_program: accounts.payment_token_program,
             __args: args,
         }
     }
@@ -416,7 +446,7 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.payer.key,
             true,
@@ -475,6 +505,17 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             *self.token_program.key,
             false,
         ));
+        if let Some(payment_token_program) = self.payment_token_program {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                *payment_token_program.key,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::WEN_NEW_STANDARD_ID,
+                false,
+            ));
+        }
         remaining_accounts.iter().for_each(|remaining_account| {
             accounts.push(solana_program::instruction::AccountMeta {
                 pubkey: *remaining_account.0.key,
@@ -491,7 +532,7 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(11 + 1 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(12 + 1 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.payer.clone());
         account_infos.push(self.authority.clone());
@@ -508,6 +549,9 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
         account_infos.push(self.system_program.clone());
         account_infos.push(self.distribution_program.clone());
         account_infos.push(self.token_program.clone());
+        if let Some(payment_token_program) = self.payment_token_program {
+            account_infos.push(payment_token_program.clone());
+        }
         remaining_accounts
             .iter()
             .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
@@ -535,6 +579,7 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
 ///   8. `[]` system_program
 ///   9. `[]` distribution_program
 ///   10. `[]` token_program
+///   11. `[optional]` payment_token_program
 #[derive(Clone, Debug)]
 pub struct ApproveTransferCpiBuilder<'a, 'b> {
     instruction: Box<ApproveTransferCpiBuilderInstruction<'a, 'b>>,
@@ -555,6 +600,7 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
             system_program: None,
             distribution_program: None,
             token_program: None,
+            payment_token_program: None,
             buy_amount: None,
             __remaining_accounts: Vec::new(),
         });
@@ -642,6 +688,15 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
         token_program: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
         self.instruction.token_program = Some(token_program);
+        self
+    }
+    /// `[optional account]`
+    #[inline(always)]
+    pub fn payment_token_program(
+        &mut self,
+        payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    ) -> &mut Self {
+        self.instruction.payment_token_program = payment_token_program;
         self
     }
     #[inline(always)]
@@ -739,6 +794,8 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
                 .instruction
                 .token_program
                 .expect("token_program is not set"),
+
+            payment_token_program: self.instruction.payment_token_program,
             __args: args,
         };
         instruction.invoke_signed_with_remaining_accounts(
@@ -762,6 +819,7 @@ struct ApproveTransferCpiBuilderInstruction<'a, 'b> {
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     distribution_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     buy_amount: Option<u64>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(

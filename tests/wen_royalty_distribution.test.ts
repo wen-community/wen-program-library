@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { faker } from "@faker-js/faker";
 import { WenNewStandard } from "../target/types/wen_new_standard";
 import { WenWnsMarketplace } from "./../target/types/wen_wns_marketplace";
-import { WenRoyaltyDistribution } from "./../clients/wns-sdk/src/programs/types/wen_royalty_distribution";
+import { WenRoyaltyDistribution } from "./../target/types/wen_royalty_distribution";
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -15,7 +15,7 @@ import {
 
 import {
   airdrop,
-  createMint2022Ix,
+  createMintTokenKegIx,
   getApproveAccountPda,
   getDistributionAccountPda,
   getExtraMetasAccountPda,
@@ -30,6 +30,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Account,
   TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   getAccount,
   getAssociatedTokenAddressSync,
@@ -395,7 +396,7 @@ describe("wen_royalty_distribution", () => {
             .buy({
               buyAmount: listingAmount,
             })
-            .accountsPartial({
+            .accountsStrict({
               approveAccount,
               extraMetasAccount,
               distribution,
@@ -415,6 +416,7 @@ describe("wen_royalty_distribution", () => {
               distributionProgram: wenDistributionProgramId,
               associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
               tokenProgram: TOKEN_2022_PROGRAM_ID,
+              paymentTokenProgram: null,
               systemProgram: SystemProgram.programId,
             })
             .preInstructions([
@@ -607,7 +609,7 @@ describe("wen_royalty_distribution", () => {
         paymentMintPublickey,
         seller.publicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
 
       const buyerMemberMintTokenAccount = getAssociatedTokenAddressSync(
@@ -621,7 +623,7 @@ describe("wen_royalty_distribution", () => {
         paymentMintPublickey,
         buyer.publicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_PROGRAM_ID
       );
 
       const group = getGroupAccountPda(groupMintPublicKey, wnsProgramId);
@@ -658,7 +660,7 @@ describe("wen_royalty_distribution", () => {
       let distributionAccountData;
 
       before(async () => {
-        const { ixs: createMintIxs } = await createMint2022Ix(
+        const { ixs: createMintIxs } = await createMintTokenKegIx(
           connection,
           paymentMintPublickey,
           paymentMintAuthPublicKey,
@@ -893,14 +895,14 @@ describe("wen_royalty_distribution", () => {
           paymentMintPublickey,
           buyer.publicKey,
           false,
-          TOKEN_2022_PROGRAM_ID
+          TOKEN_PROGRAM_ID
         );
 
         const sellerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
           paymentMintPublickey,
           seller.publicKey,
           false,
-          TOKEN_2022_PROGRAM_ID
+          TOKEN_PROGRAM_ID
         );
 
         const distributionPaymentMintTokenAccount =
@@ -908,7 +910,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             distribution,
             true,
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_PROGRAM_ID
           );
 
         let sellerPreBalance: number;
@@ -927,7 +929,7 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 buyerPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_2022_PROGRAM_ID
+                TOKEN_PROGRAM_ID
               )
             ).amount.toString()
           );
@@ -937,7 +939,7 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 sellerPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_2022_PROGRAM_ID
+                TOKEN_PROGRAM_ID
               )
             ).amount.toString()
           );
@@ -967,6 +969,7 @@ describe("wen_royalty_distribution", () => {
               distributionProgram: wenDistributionProgramId,
               associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
               tokenProgram: TOKEN_2022_PROGRAM_ID,
+              paymentTokenProgram: TOKEN_PROGRAM_ID,
               systemProgram: SystemProgram.programId,
             })
             .preInstructions([
@@ -976,7 +979,7 @@ describe("wen_royalty_distribution", () => {
                 distributionPaymentMintTokenAccount,
                 distribution,
                 paymentMintPublickey,
-                TOKEN_2022_PROGRAM_ID
+                TOKEN_PROGRAM_ID
               ),
             ])
             .signers([buyer])
@@ -992,7 +995,7 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 distributionPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_2022_PROGRAM_ID
+                TOKEN_PROGRAM_ID
               )
             ).amount.toString()
           );
@@ -1002,7 +1005,7 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 buyerPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_2022_PROGRAM_ID
+                TOKEN_PROGRAM_ID
               )
             ).amount.toString()
           );
@@ -1013,7 +1016,7 @@ describe("wen_royalty_distribution", () => {
                   connection,
                   sellerPaymentMintTokenAccount,
                   "confirmed",
-                  TOKEN_2022_PROGRAM_ID
+                  TOKEN_PROGRAM_ID
                 )
               ).amount.toString()
             ) - sellerPreBalance;
@@ -1068,7 +1071,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             distribution,
             true,
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_PROGRAM_ID
           );
 
         describe("creator 1", () => {
@@ -1076,7 +1079,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             creator1.publicKey,
             true,
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_PROGRAM_ID
           );
 
           let creator1PostBalance: number;
@@ -1097,7 +1100,7 @@ describe("wen_royalty_distribution", () => {
                   distributionPaymentMintTokenAccount,
                 wenDistributionProgram: wenDistributionProgramId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                tokenProgram: TOKEN_2022_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
               })
               .preInstructions([
@@ -1106,7 +1109,7 @@ describe("wen_royalty_distribution", () => {
                   creator1PaymentMintTokenAccount,
                   creator1.publicKey,
                   paymentMintPublickey,
-                  TOKEN_2022_PROGRAM_ID
+                  TOKEN_PROGRAM_ID
                 ),
               ])
               .signers([creator1])
@@ -1122,7 +1125,7 @@ describe("wen_royalty_distribution", () => {
                   connection,
                   creator1PaymentMintTokenAccount,
                   "confirmed",
-                  TOKEN_2022_PROGRAM_ID
+                  TOKEN_PROGRAM_ID
                 )
               ).amount.toString()
             );
@@ -1138,7 +1141,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             creator2.publicKey,
             true,
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_PROGRAM_ID
           );
 
           let creator2PostBalance: number;
@@ -1159,7 +1162,7 @@ describe("wen_royalty_distribution", () => {
                   distributionPaymentMintTokenAccount,
                 wenDistributionProgram: wenDistributionProgramId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                tokenProgram: TOKEN_2022_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
               })
               .preInstructions([
@@ -1168,7 +1171,7 @@ describe("wen_royalty_distribution", () => {
                   creator2PaymentMintTokenAccount,
                   creator2.publicKey,
                   paymentMintPublickey,
-                  TOKEN_2022_PROGRAM_ID
+                  TOKEN_PROGRAM_ID
                 ),
               ])
               .signers([creator2])
@@ -1184,7 +1187,7 @@ describe("wen_royalty_distribution", () => {
                   connection,
                   creator2PaymentMintTokenAccount,
                   "confirmed",
-                  TOKEN_2022_PROGRAM_ID
+                  TOKEN_PROGRAM_ID
                 )
               ).amount.toString()
             );

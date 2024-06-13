@@ -8,6 +8,8 @@ pub enum DistributionErrors {
     InvalidCreatorPctAmount,
     #[msg("Invalid payment token account")]
     InvalidPaymentTokenAccount,
+    #[msg("Invalid payment token program")]
+    InvalidPaymentTokenProgram,
     #[msg("Arithmetic overflow")]
     ArithmeticOverflow,
 }

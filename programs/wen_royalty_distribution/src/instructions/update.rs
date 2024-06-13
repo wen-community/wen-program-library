@@ -54,24 +54,30 @@ pub struct UpdateDistribution<'info> {
     #[account(
         mut,
         token::authority = distribution_account,
-        token::token_program = token_program,
         token::mint = payment_mint,
+        token::token_program = payment_token_program,
     )]
     pub distribution_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-
     #[account(
         mut,
         token::authority = authority,
         token::mint = payment_mint,
-        token::token_program = token_program,
+        token::token_program = payment_token_program,
     )]
     pub authority_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     pub token_program: Interface<'info, TokenInterface>,
+    pub payment_token_program: Option<Interface<'info, TokenInterface>>,
     pub system_program: Program<'info, System>,
 }
 
 impl UpdateDistribution<'_> {
     pub fn transfer_royalty_amount(&self, amount: u64) -> Result<()> {
+        if self.payment_token_program.is_none() {
+            return err!(DistributionErrors::InvalidPaymentTokenProgram);
+        }
+
+        let cpi_program = self.payment_token_program.clone().unwrap();
+
         let mint_data = self.payment_mint.try_borrow_data()?;
         let mint_decimals = if self.token_program.key.eq(&token_keg_program_id) {
             TokenMint::unpack(&mint_data)?.decimals
@@ -97,8 +103,8 @@ impl UpdateDistribution<'_> {
             to: distribution_token_account.to_account_info(),
             authority: self.authority.to_account_info(),
         };
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+
+        let cpi_ctx = CpiContext::new(cpi_program.to_account_info(), cpi_accounts);
         transfer_checked(cpi_ctx, amount, mint_decimals)?;
         Ok(())
     }
