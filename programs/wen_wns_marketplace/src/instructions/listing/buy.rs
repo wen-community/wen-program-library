@@ -230,7 +230,7 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
                 approve_account: ctx.accounts.approve_account.to_account_info(),
                 distribution_program: ctx.accounts.distribution_program.to_account_info(),
                 token_program: ctx.accounts.token_program.to_account_info(),
-                payment_token_program: payment_token_program,
+                payment_token_program,
                 system_program: ctx.accounts.system_program.to_account_info(),
             },
         ),

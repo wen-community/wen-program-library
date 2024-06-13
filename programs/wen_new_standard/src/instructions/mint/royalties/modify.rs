@@ -117,7 +117,7 @@ pub fn handler(ctx: Context<ModifyRoyalties>, args: UpdateRoyaltiesArgs) -> Resu
     for (key, _) in creators_additional_metadata {
         if !creators
             .iter()
-            .any(|creator| creator.address == Pubkey::from_str(&key).unwrap())
+            .any(|creator| creator.address == Pubkey::from_str(key).unwrap())
         {
             ctx.accounts.remove_token_metadata_field(key)?;
         }

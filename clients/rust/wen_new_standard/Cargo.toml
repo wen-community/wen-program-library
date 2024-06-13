@@ -3,6 +3,14 @@ description = "An open and composable NFT standard on Solana."
 name = "wen_new_standard"
 version = "0.4.1-alpha"
 edition = "2021"
+authors = ["Balmy Gazebo <balmy@wencoinfoundation.com>"]
+license = "MIT"
+repository = "https://github.com/wen-community/wen-program-library/clients/rust/wen_new_standard"
+documentation = "https://docs.wenwencoin.com"
+homepage = "https://wenwencoin.com"
+keywords = ["wen", "wns"]
+categories = ["nft", "solana", "blockchain"]
+readme = "README.md"
 
 [workspace]
 

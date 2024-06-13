@@ -25,7 +25,7 @@ pub struct DistributionAccount {
 
 impl DistributionAccount {
     pub const VERSION: u8 = 1;
-    pub fn new(&mut self, group_mint: Pubkey, payment_mint: Pubkey) {
+    pub fn initialize_account_data(&mut self, group_mint: Pubkey, payment_mint: Pubkey) {
         self.version = Self::VERSION;
         self.group_mint = group_mint;
         self.payment_mint = payment_mint;
