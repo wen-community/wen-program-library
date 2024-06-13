@@ -7,9 +7,6 @@
  */
 
 import {
-  Codec,
-  Decoder,
-  Encoder,
   combineCodec,
   getArrayDecoder,
   getArrayEncoder,
@@ -17,12 +14,15 @@ import {
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
 } from '@solana/web3.js';
 import {
-  CreatorWithShare,
-  CreatorWithShareArgs,
   getCreatorWithShareDecoder,
   getCreatorWithShareEncoder,
+  type CreatorWithShare,
+  type CreatorWithShareArgs,
 } from '.';
 
 export type UpdateRoyaltiesArgs = {

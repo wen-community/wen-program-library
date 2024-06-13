@@ -4,7 +4,7 @@ import {
   renderRustVisitor,
   renderJavaScriptVisitor,
 } from "@kinobi-so/renderers";
-import { rootNodeFromAnchorWithoutDefaultVisitor } from "@kinobi-so/nodes-from-anchor";
+import { rootNodeFromAnchor } from "@kinobi-so/nodes-from-anchor";
 import { readJson } from "@kinobi-so/renderers-core";
 import { visit } from "@kinobi-so/visitors-core";
 import fs from "fs/promises";
@@ -19,7 +19,7 @@ for (const idlFile of idlFiles) {
   const idlPath = path.join(idlDir, idlFile);
   const idl = readJson(idlPath);
 
-  const node = rootNodeFromAnchorWithoutDefaultVisitor(idl);
+  const node = rootNodeFromAnchor(idl);
 
   const sdkName = idl.metadata.name;
 

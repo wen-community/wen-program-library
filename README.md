@@ -7,7 +7,6 @@ A collection of Solana programs maintained by the WEN developer community.
 - [Building](#building)
 - [Programs](#programs)
 - [Testing](#testing)
-- [Programs](#programs)
 - [Clients](#clients)
 - [CLI](#cli)
 - [License](#license)
@@ -27,7 +26,7 @@ WEN Royalty Distribution is a specification for royalties on WNS assets, which a
 To build the programs from the root directory of the repository:
 
 ```bash
-pnpm install
+yarn install
 ```
 to install the required libraries, then:
 ```bash

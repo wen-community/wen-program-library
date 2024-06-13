@@ -7,16 +7,6 @@
  */
 
 import {
-  Address,
-  Codec,
-  Decoder,
-  Encoder,
-  IAccountMeta,
-  IInstruction,
-  IInstructionWithAccounts,
-  IInstructionWithData,
-  ReadonlyAccount,
-  ReadonlyUint8Array,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
@@ -27,9 +17,19 @@ import {
   getU64Decoder,
   getU64Encoder,
   transformEncoder,
+  type Address,
+  type Codec,
+  type Decoder,
+  type Encoder,
+  type IAccountMeta,
+  type IInstruction,
+  type IInstructionWithAccounts,
+  type IInstructionWithData,
+  type ReadonlyAccount,
+  type ReadonlyUint8Array,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { ResolvedAccount, getAccountMetaFactory } from '../shared';
+import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export type ExecuteInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,

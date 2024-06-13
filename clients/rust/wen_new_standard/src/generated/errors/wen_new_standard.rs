@@ -10,15 +10,30 @@ use thiserror::Error;
 
 #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
 pub enum WenNewStandardError {
-    /// 6000 - Invalid freeze authority.
-    #[error("Invalid freeze authority.")]
-    InvalidFreezeAuthority = 0x1770,
-    /// 6001 - Invalid delegate authority.
-    #[error("Invalid delegate authority.")]
-    InvalidDelegateAuthority = 0x1771,
-    /// 6002 - Invalid Token group member mint
-    #[error("Invalid Token group member mint")]
-    InvalidTokenGroupMemberMint = 0x1772,
+    /// 6000 - Collection size exceeds max size.
+    #[error("Collection size exceeds max size.")]
+    SizeExceedsMaxSize = 0x1770,
+    /// 6001 - Max size cannot be reduced below current size.
+    #[error("Max size cannot be reduced below current size.")]
+    MaxSizeBelowCurrentSize = 0x1771,
+    /// 6002 - Creators shares must add up to 100.
+    #[error("Creators shares must add up to 100.")]
+    CreatorShareInvalid = 0x1772,
+    /// 6003 - Missing approve account.
+    #[error("Missing approve account.")]
+    MissingApproveAccount = 0x1773,
+    /// 6004 - Approve account has expired.
+    #[error("Approve account has expired.")]
+    ExpiredApproveAccount = 0x1774,
+    /// 6005 - Invalid field. You cannot use a public key as a field.
+    #[error("Invalid field. You cannot use a public key as a field.")]
+    InvalidField = 0x1775,
+    /// 6006 - The Address you provided is invalid. Please provide a valid address.
+    #[error("The Address you provided is invalid. Please provide a valid address.")]
+    CreatorAddressInvalid = 0x1776,
+    /// 6007 - Royalty basis points must be less than or equal to 10000.
+    #[error("Royalty basis points must be less than or equal to 10000.")]
+    RoyaltyBasisPointsInvalid = 0x1777,
 }
 
 impl solana_program::program_error::PrintProgramError for WenNewStandardError {
