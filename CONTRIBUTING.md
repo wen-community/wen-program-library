@@ -40,3 +40,16 @@ yarn clients
 ```
 
 You will need to run `yarn clients` again to re-generate the clients whenever there are changes in the program(s).
+
+## Releasing
+
+Versions are determined by the [`package.json`](/package.json).
+
+1. Run `anchor build` to generate IDLs for the programs `/target/idls`.
+2. Increment the package version `<MAJOR>.<MINOR>.<PATCH>`
+3. Run `yarn clients` to re-generate program rust and js SDKs.
+4. Increment [`programs`](/programs) and [`clients`](/clients) based on the programs changed.
+5. Commit the version bumps to git.
+6. Run `yarn version`. This will create a changelog based on the git history of the repository.
+
+After reach out in the WNS Developer Telegram group to publish SDKs. In the future this will be automated using github actions.

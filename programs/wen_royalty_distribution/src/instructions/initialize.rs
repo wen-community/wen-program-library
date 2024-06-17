@@ -27,6 +27,6 @@ pub struct InitializeDistribution<'info> {
 pub fn handler(ctx: Context<InitializeDistribution>, payment_mint: Pubkey) -> Result<()> {
     ctx.accounts
         .distribution_account
-        .new(ctx.accounts.group_mint.key(), payment_mint);
+        .initialize_account_data(ctx.accounts.group_mint.key(), payment_mint);
     Ok(())
 }

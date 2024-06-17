@@ -31,6 +31,8 @@ pub struct TokenGroupMember {
 }
 
 impl TokenGroupMember {
+    pub const LEN: usize = 76;
+
     #[inline(always)]
     pub fn from_bytes(data: &[u8]) -> Result<Self, std::io::Error> {
         let mut data = data;
@@ -46,5 +48,22 @@ impl<'a> TryFrom<&solana_program::account_info::AccountInfo<'a>> for TokenGroupM
     ) -> Result<Self, Self::Error> {
         let mut data: &[u8] = &(*account_info.data).borrow();
         Self::deserialize(&mut data)
+    }
+}
+
+#[cfg(feature = "anchor")]
+impl anchor_lang::AccountDeserialize for TokenGroupMember {
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
+        Ok(Self::deserialize(buf)?)
+    }
+}
+
+#[cfg(feature = "anchor")]
+impl anchor_lang::AccountSerialize for TokenGroupMember {}
+
+#[cfg(feature = "anchor")]
+impl anchor_lang::Owner for TokenGroupMember {
+    fn owner() -> Pubkey {
+        crate::WEN_NEW_STANDARD_ID
     }
 }

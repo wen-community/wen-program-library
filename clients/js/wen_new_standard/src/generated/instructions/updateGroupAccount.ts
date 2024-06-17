@@ -7,20 +7,8 @@
  */
 
 import {
-  Address,
-  Codec,
-  Decoder,
-  Encoder,
-  IAccountMeta,
-  IAccountSignerMeta,
-  IInstruction,
-  IInstructionWithAccounts,
-  IInstructionWithData,
-  ReadonlyAccount,
-  ReadonlyUint8Array,
-  TransactionSigner,
-  WritableAccount,
-  WritableSignerAccount,
+  addDecoderSizePrefix,
+  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
@@ -28,16 +16,28 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
+  getUtf8Decoder,
+  getUtf8Encoder,
   transformEncoder,
+  type Address,
+  type Codec,
+  type Decoder,
+  type Encoder,
+  type IAccountMeta,
+  type IAccountSignerMeta,
+  type IInstruction,
+  type IInstructionWithAccounts,
+  type IInstructionWithData,
+  type ReadonlyAccount,
+  type ReadonlyUint8Array,
+  type TransactionSigner,
+  type WritableAccount,
+  type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { ResolvedAccount, getAccountMetaFactory } from '../shared';
-import {
-  UpdateGroupAccountArgs,
-  UpdateGroupAccountArgsArgs,
-  getUpdateGroupAccountArgsDecoder,
-  getUpdateGroupAccountArgsEncoder,
-} from '../types';
+import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export type UpdateGroupAccountInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -67,7 +67,7 @@ export type UpdateGroupAccountInstruction<
         ? WritableAccount<TAccountGroup>
         : TAccountGroup,
       TAccountMint extends string
-        ? ReadonlyAccount<TAccountMint>
+        ? WritableAccount<TAccountMint>
         : TAccountMint,
       TAccountSystemProgram extends string
         ? ReadonlyAccount<TAccountSystemProgram>
@@ -81,18 +81,27 @@ export type UpdateGroupAccountInstruction<
 
 export type UpdateGroupAccountInstructionData = {
   discriminator: ReadonlyUint8Array;
-  args: UpdateGroupAccountArgs;
+  name: string;
+  symbol: string;
+  uri: string;
+  maxSize: number;
 };
 
 export type UpdateGroupAccountInstructionDataArgs = {
-  args: UpdateGroupAccountArgsArgs;
+  name: string;
+  symbol: string;
+  uri: string;
+  maxSize: number;
 };
 
 export function getUpdateGroupAccountInstructionDataEncoder(): Encoder<UpdateGroupAccountInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['args', getUpdateGroupAccountArgsEncoder()],
+      ['name', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['symbol', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['uri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['maxSize', getU32Encoder()],
     ]),
     (value) => ({
       ...value,
@@ -104,7 +113,10 @@ export function getUpdateGroupAccountInstructionDataEncoder(): Encoder<UpdateGro
 export function getUpdateGroupAccountInstructionDataDecoder(): Decoder<UpdateGroupAccountInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['args', getUpdateGroupAccountArgsDecoder()],
+    ['name', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['symbol', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['uri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['maxSize', getU32Decoder()],
   ]);
 }
 
@@ -132,7 +144,10 @@ export type UpdateGroupAccountInput<
   mint: Address<TAccountMint>;
   systemProgram?: Address<TAccountSystemProgram>;
   tokenProgram?: Address<TAccountTokenProgram>;
-  args: UpdateGroupAccountInstructionDataArgs['args'];
+  name: UpdateGroupAccountInstructionDataArgs['name'];
+  symbol: UpdateGroupAccountInstructionDataArgs['symbol'];
+  uri: UpdateGroupAccountInstructionDataArgs['uri'];
+  maxSize: UpdateGroupAccountInstructionDataArgs['maxSize'];
 };
 
 export function getUpdateGroupAccountInstruction<
@@ -168,7 +183,7 @@ export function getUpdateGroupAccountInstruction<
     payer: { value: input.payer ?? null, isWritable: true },
     authority: { value: input.authority ?? null, isWritable: false },
     group: { value: input.group ?? null, isWritable: true },
-    mint: { value: input.mint ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
   };

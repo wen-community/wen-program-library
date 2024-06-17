@@ -7,7 +7,6 @@ A collection of Solana programs maintained by the WEN developer community.
 - [Building](#building)
 - [Programs](#programs)
 - [Testing](#testing)
-- [Programs](#programs)
 - [Clients](#clients)
 - [CLI](#cli)
 - [License](#license)

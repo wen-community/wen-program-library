@@ -7,21 +7,6 @@
  */
 
 import {
-  Address,
-  Codec,
-  Decoder,
-  Encoder,
-  IAccountMeta,
-  IAccountSignerMeta,
-  IInstruction,
-  IInstructionWithAccounts,
-  IInstructionWithData,
-  ReadonlyAccount,
-  ReadonlySignerAccount,
-  ReadonlyUint8Array,
-  TransactionSigner,
-  WritableAccount,
-  WritableSignerAccount,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
@@ -30,9 +15,24 @@ import {
   getStructDecoder,
   getStructEncoder,
   transformEncoder,
+  type Address,
+  type Codec,
+  type Decoder,
+  type Encoder,
+  type IAccountMeta,
+  type IAccountSignerMeta,
+  type IInstruction,
+  type IInstructionWithAccounts,
+  type IInstructionWithData,
+  type ReadonlyAccount,
+  type ReadonlySignerAccount,
+  type ReadonlyUint8Array,
+  type TransactionSigner,
+  type WritableAccount,
+  type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { ResolvedAccount, getAccountMetaFactory } from '../shared';
+import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export type AddMintToGroupInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -68,7 +68,7 @@ export type AddMintToGroupInstruction<
         ? WritableAccount<TAccountMember>
         : TAccountMember,
       TAccountMint extends string
-        ? ReadonlyAccount<TAccountMint>
+        ? WritableAccount<TAccountMint>
         : TAccountMint,
       TAccountManager extends string
         ? ReadonlyAccount<TAccountManager>
@@ -175,7 +175,7 @@ export function getAddMintToGroupInstruction<
     authority: { value: input.authority ?? null, isWritable: false },
     group: { value: input.group ?? null, isWritable: true },
     member: { value: input.member ?? null, isWritable: true },
-    mint: { value: input.mint ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: true },
     manager: { value: input.manager ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },

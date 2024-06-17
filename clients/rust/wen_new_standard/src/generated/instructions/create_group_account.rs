@@ -5,7 +5,6 @@
 //! <https://github.com/kinobi-so/kinobi>
 //!
 
-use crate::generated::types::CreateGroupAccountArgs;
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 
@@ -120,7 +119,10 @@ impl Default for CreateGroupAccountInstructionData {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CreateGroupAccountInstructionArgs {
-    pub args: CreateGroupAccountArgs,
+    pub name: String,
+    pub symbol: String,
+    pub uri: String,
+    pub max_size: u32,
 }
 
 /// Instruction builder for `CreateGroupAccount`.
@@ -149,7 +151,10 @@ pub struct CreateGroupAccountBuilder {
     system_program: Option<solana_program::pubkey::Pubkey>,
     associated_token_program: Option<solana_program::pubkey::Pubkey>,
     token_program: Option<solana_program::pubkey::Pubkey>,
-    args: Option<CreateGroupAccountArgs>,
+    name: Option<String>,
+    symbol: Option<String>,
+    uri: Option<String>,
+    max_size: Option<u32>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -217,8 +222,23 @@ impl CreateGroupAccountBuilder {
         self
     }
     #[inline(always)]
-    pub fn args(&mut self, args: CreateGroupAccountArgs) -> &mut Self {
-        self.args = Some(args);
+    pub fn name(&mut self, name: String) -> &mut Self {
+        self.name = Some(name);
+        self
+    }
+    #[inline(always)]
+    pub fn symbol(&mut self, symbol: String) -> &mut Self {
+        self.symbol = Some(symbol);
+        self
+    }
+    #[inline(always)]
+    pub fn uri(&mut self, uri: String) -> &mut Self {
+        self.uri = Some(uri);
+        self
+    }
+    #[inline(always)]
+    pub fn max_size(&mut self, max_size: u32) -> &mut Self {
+        self.max_size = Some(max_size);
         self
     }
     /// Add an aditional account to the instruction.
@@ -262,7 +282,10 @@ impl CreateGroupAccountBuilder {
             )),
         };
         let args = CreateGroupAccountInstructionArgs {
-            args: self.args.clone().expect("args is not set"),
+            name: self.name.clone().expect("name is not set"),
+            symbol: self.symbol.clone().expect("symbol is not set"),
+            uri: self.uri.clone().expect("uri is not set"),
+            max_size: self.max_size.clone().expect("max_size is not set"),
         };
 
         accounts.instruction_with_remaining_accounts(args, &self.__remaining_accounts)
@@ -490,7 +513,10 @@ impl<'a, 'b> CreateGroupAccountCpiBuilder<'a, 'b> {
             system_program: None,
             associated_token_program: None,
             token_program: None,
-            args: None,
+            name: None,
+            symbol: None,
+            uri: None,
+            max_size: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -567,8 +593,23 @@ impl<'a, 'b> CreateGroupAccountCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn args(&mut self, args: CreateGroupAccountArgs) -> &mut Self {
-        self.instruction.args = Some(args);
+    pub fn name(&mut self, name: String) -> &mut Self {
+        self.instruction.name = Some(name);
+        self
+    }
+    #[inline(always)]
+    pub fn symbol(&mut self, symbol: String) -> &mut Self {
+        self.instruction.symbol = Some(symbol);
+        self
+    }
+    #[inline(always)]
+    pub fn uri(&mut self, uri: String) -> &mut Self {
+        self.instruction.uri = Some(uri);
+        self
+    }
+    #[inline(always)]
+    pub fn max_size(&mut self, max_size: u32) -> &mut Self {
+        self.instruction.max_size = Some(max_size);
         self
     }
     /// Add an additional account to the instruction.
@@ -613,7 +654,14 @@ impl<'a, 'b> CreateGroupAccountCpiBuilder<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
         let args = CreateGroupAccountInstructionArgs {
-            args: self.instruction.args.clone().expect("args is not set"),
+            name: self.instruction.name.clone().expect("name is not set"),
+            symbol: self.instruction.symbol.clone().expect("symbol is not set"),
+            uri: self.instruction.uri.clone().expect("uri is not set"),
+            max_size: self
+                .instruction
+                .max_size
+                .clone()
+                .expect("max_size is not set"),
         };
         let instruction = CreateGroupAccountCpi {
             __program: self.instruction.__program,
@@ -671,7 +719,10 @@ struct CreateGroupAccountCpiBuilderInstruction<'a, 'b> {
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     associated_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    args: Option<CreateGroupAccountArgs>,
+    name: Option<String>,
+    symbol: Option<String>,
+    uri: Option<String>,
+    max_size: Option<u32>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

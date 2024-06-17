@@ -4,9 +4,11 @@ use anchor_lang::{
 };
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token_2022::spl_token_2022::{extension::StateWithExtensions, state::Mint as StateMint},
-    token_2022::{transfer_checked, Token2022, TransferChecked},
-    token_interface::{Mint, TokenAccount},
+    token_2022::{
+        spl_token_2022::{extension::StateWithExtensions, state::Mint as StateMint},
+        transfer_checked, Token2022, TransferChecked,
+    },
+    token_interface::{Mint, TokenAccount, TokenInterface},
 };
 use wen_new_standard::{
     cpi::{
@@ -90,6 +92,7 @@ pub struct FulfillListing<'info> {
     pub distribution_program: Program<'info, WenRoyaltyDistribution>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
+    pub payment_token_program: Option<Interface<'info, TokenInterface>>,
     pub system_program: Program<'info, System>,
 
     /* Optional accounts */
@@ -97,21 +100,21 @@ pub struct FulfillListing<'info> {
         mut,
         token::authority = seller,
         token::mint = payment_mint,
-        token::token_program = token_program
+        token::token_program = payment_token_program
     )]
     pub seller_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(
         mut,
         token::authority = buyer,
         token::mint = payment_mint,
-        token::token_program = token_program
+        token::token_program = payment_token_program
     )]
     pub buyer_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(
         mut,
         token::authority = distribution,
         token::mint = payment_mint,
-        token::token_program = token_program
+        token::token_program = payment_token_program
     )]
     pub distribution_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
@@ -169,7 +172,11 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
 
         transfer_checked(
             CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts
+                    .payment_token_program
+                    .clone()
+                    .unwrap()
+                    .to_account_info(),
                 TransferChecked {
                     authority: ctx.accounts.buyer.to_account_info(),
                     from: buyer_payment_token_account.to_account_info(),
@@ -203,6 +210,12 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
         .as_ref()
         .map(|d| d.to_account_info());
 
+    let payment_token_program = ctx
+        .accounts
+        .payment_token_program
+        .as_ref()
+        .map(|d| d.to_account_info());
+
     approve_transfer(
         CpiContext::new(
             ctx.accounts.wns_program.to_account_info(),
@@ -217,6 +230,7 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
                 approve_account: ctx.accounts.approve_account.to_account_info(),
                 distribution_program: ctx.accounts.distribution_program.to_account_info(),
                 token_program: ctx.accounts.token_program.to_account_info(),
+                payment_token_program,
                 system_program: ctx.accounts.system_program.to_account_info(),
             },
         ),

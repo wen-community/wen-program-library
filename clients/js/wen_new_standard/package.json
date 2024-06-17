@@ -1,7 +1,7 @@
 {
-  "name": "@wen-community/wen-new-standard",
-  "version": "0.4.0-alpha",
-  "description": "An open and composable NFT standard on Solana.",
+  "name": "@wen-foundation/wen-new-standard",
+  "version": "0.4.1-alpha",
+  "description": "An SDK for developing on the Open Source NFT Standard built on Solana Token Extensions.",
   "main": "dist/src/index.js",
   "types": "dist/src/types/index.d.ts",
   "scripts": {
@@ -17,8 +17,8 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "homepage": "https://https://wns.wenwencoin.com",
-  "repository": "https://github.com/wen-community/wen-new-standard.git",
+  "homepage": "https://wenwencoin.com",
+  "repository": "https://github.com/wen-community/wen-program-libarary.git",
   "author": "wen community",
   "license": "MIT",
   "keywords": [

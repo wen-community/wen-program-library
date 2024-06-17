@@ -19,6 +19,8 @@ import {
   createInitializeMint2Instruction,
   createMintToCheckedInstruction,
   createAssociatedTokenAccountInstruction,
+  getMinimumBalanceForRentExemptMint,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
   TokenMetadata,
@@ -35,7 +37,10 @@ export const MARKETPLACE = Buffer.from("marketplace");
 export const SALE = Buffer.from("sale");
 export const LISTING = Buffer.from("listing");
 
-export const getExtraMetasAccountPda = (mint: PublicKey, programId: PublicKey) => {
+export const getExtraMetasAccountPda = (
+  mint: PublicKey,
+  programId: PublicKey
+) => {
   const [extraMetasAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("extra-account-metas"), mint.toBuffer()],
     programId
@@ -107,9 +112,8 @@ export async function airdrop(
   commitment: Commitment = "confirmed"
 ) {
   const signature = await connection.requestAirdrop(address, airdropLamports);
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(
-    commitment
-  );
+  const { blockhash, lastValidBlockHeight } =
+    await connection.getLatestBlockhash(commitment);
 
   await connection.confirmTransaction(
     {
@@ -149,6 +153,32 @@ export async function getMinRentForWNSMint(
   return connection.getMinimumBalanceForRentExemption(
     mintLen + metadataExtension + metadataLen
   );
+}
+
+export async function createMintTokenKegIx(
+  connection: Connection,
+  mint: PublicKey,
+  authority: PublicKey,
+  payer: PublicKey
+) {
+  const space = getMintLen([]);
+  const rent = await getMinimumBalanceForRentExemptMint(
+    connection,
+    "confirmed"
+  );
+
+  return {
+    ixs: [
+      SystemProgram.createAccount({
+        fromPubkey: payer,
+        newAccountPubkey: mint,
+        programId: TOKEN_PROGRAM_ID,
+        space,
+        lamports: rent,
+      }),
+      createInitializeMint2Instruction(mint, 6, authority, authority),
+    ],
+  };
 }
 
 export async function createMint2022Ix(
@@ -219,7 +249,8 @@ export function mintToBuyerSellerIx(
   buyer: PublicKey,
   buyerTokenAccount: PublicKey,
   seller: PublicKey,
-  sellerTokenAccount: PublicKey
+  sellerTokenAccount: PublicKey,
+  tokenProgram: PublicKey = TOKEN_PROGRAM_ID
 ) {
   return {
     ixs: [
@@ -228,7 +259,7 @@ export function mintToBuyerSellerIx(
         buyerTokenAccount,
         buyer,
         mint,
-        TOKEN_2022_PROGRAM_ID,
+        tokenProgram,
         ASSOCIATED_PROGRAM_ID
       ),
       createMintToCheckedInstruction(
@@ -238,14 +269,14 @@ export function mintToBuyerSellerIx(
         10_000 * 10 ** 6,
         6,
         [],
-        TOKEN_2022_PROGRAM_ID
+        tokenProgram
       ),
       createAssociatedTokenAccountInstruction(
         payer,
         sellerTokenAccount,
         seller,
         mint,
-        TOKEN_2022_PROGRAM_ID,
+        tokenProgram,
         ASSOCIATED_PROGRAM_ID
       ),
       createMintToCheckedInstruction(
@@ -255,7 +286,7 @@ export function mintToBuyerSellerIx(
         10_000 * 10 ** 6,
         6,
         [],
-        TOKEN_2022_PROGRAM_ID
+        tokenProgram
       ),
     ],
   };
@@ -272,7 +303,8 @@ export async function sendAndConfirmWNSTransaction(
     new TransactionMessage({
       instructions,
       payerKey: provider.wallet.publicKey,
-      recentBlockhash: (await connection.getLatestBlockhash("confirmed")).blockhash,
+      recentBlockhash: (await connection.getLatestBlockhash("confirmed"))
+        .blockhash,
     }).compileToV0Message()
   );
   const signedTx = await provider.wallet.signTransaction(transaction);
@@ -283,9 +315,8 @@ export async function sendAndConfirmWNSTransaction(
       preflightCommitment: "confirmed",
       skipPreflight,
     });
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(
-      "confirmed"
-    );
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash("confirmed");
     await connection.confirmTransaction(
       {
         signature,
