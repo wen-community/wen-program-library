@@ -39,7 +39,7 @@ To generate the clients, run the following command:
 yarn clients
 ```
 
-You will need to run `pnpm clients` again to re-generate the clients whenever there are changes in the program(s).
+You will need to run `yarn clients` again to re-generate the clients whenever there are changes in the program(s).
 
 ## Releasing
 
