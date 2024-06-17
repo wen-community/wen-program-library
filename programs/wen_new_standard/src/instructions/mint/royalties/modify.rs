@@ -70,11 +70,12 @@ impl<'info> ModifyRoyalties<'info> {
 }
 
 pub fn handler(ctx: Context<ModifyRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
-    let mint_account = ctx.accounts.mint.to_account_info().clone();
-    let mint_account_data = mint_account.try_borrow_data()?;
-    let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
-    let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
-    drop(mint_account_data);
+    let metadata = {
+        let mint_account = ctx.accounts.mint.to_account_info().clone();
+        let mint_account_data = mint_account.try_borrow_data()?;
+        let mint_data = StateWithExtensions::<BaseStateMint>::unpack(&mint_account_data)?;
+        mint_data.get_variable_len_extension::<TokenMetadata>()?
+    };
 
     // validate that the fee_basis_point is less than 10000 (100%)
     require!(
@@ -116,7 +117,7 @@ pub fn handler(ctx: Context<ModifyRoyalties>, args: UpdateRoyaltiesArgs) -> Resu
     for (key, _) in creators_additional_metadata {
         if !creators
             .iter()
-            .any(|creator| creator.address == Pubkey::from_str(&key).unwrap())
+            .any(|creator| creator.address == Pubkey::from_str(key).unwrap())
         {
             ctx.accounts.remove_token_metadata_field(key)?;
         }

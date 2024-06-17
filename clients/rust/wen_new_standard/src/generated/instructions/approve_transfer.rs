@@ -20,6 +20,10 @@ pub struct ApproveTransfer {
 
     pub payment_mint: solana_program::pubkey::Pubkey,
 
+    pub distribution_token_account: Option<solana_program::pubkey::Pubkey>,
+
+    pub authority_token_account: Option<solana_program::pubkey::Pubkey>,
+
     pub distribution_account: solana_program::pubkey::Pubkey,
 
     pub system_program: solana_program::pubkey::Pubkey,
@@ -28,9 +32,7 @@ pub struct ApproveTransfer {
 
     pub token_program: solana_program::pubkey::Pubkey,
 
-    pub distribution_token_account: Option<solana_program::pubkey::Pubkey>,
-
-    pub authority_token_account: Option<solana_program::pubkey::Pubkey>,
+    pub payment_token_program: Option<solana_program::pubkey::Pubkey>,
 }
 
 impl ApproveTransfer {
@@ -46,7 +48,7 @@ impl ApproveTransfer {
         args: ApproveTransferInstructionArgs,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.payer, true,
         ));
@@ -65,6 +67,28 @@ impl ApproveTransfer {
             self.payment_mint,
             false,
         ));
+        if let Some(distribution_token_account) = self.distribution_token_account {
+            accounts.push(solana_program::instruction::AccountMeta::new(
+                distribution_token_account,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::WEN_NEW_STANDARD_ID,
+                false,
+            ));
+        }
+        if let Some(authority_token_account) = self.authority_token_account {
+            accounts.push(solana_program::instruction::AccountMeta::new(
+                authority_token_account,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::WEN_NEW_STANDARD_ID,
+                false,
+            ));
+        }
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.distribution_account,
             false,
@@ -81,20 +105,9 @@ impl ApproveTransfer {
             self.token_program,
             false,
         ));
-        if let Some(distribution_token_account) = self.distribution_token_account {
-            accounts.push(solana_program::instruction::AccountMeta::new(
-                distribution_token_account,
-                false,
-            ));
-        } else {
+        if let Some(payment_token_program) = self.payment_token_program {
             accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-                crate::WEN_NEW_STANDARD_ID,
-                false,
-            ));
-        }
-        if let Some(authority_token_account) = self.authority_token_account {
-            accounts.push(solana_program::instruction::AccountMeta::new(
-                authority_token_account,
+                payment_token_program,
                 false,
             ));
         } else {
@@ -150,12 +163,13 @@ pub struct ApproveTransferInstructionArgs {
 ///   2. `[]` mint
 ///   3. `[writable]` approve_account
 ///   4. `[]` payment_mint
-///   5. `[writable]` distribution_account
-///   6. `[optional]` system_program (default to `11111111111111111111111111111111`)
-///   7. `[optional]` distribution_program (default to `diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay`)
-///   8. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
-///   9. `[writable, optional]` distribution_token_account
-///   10. `[writable, optional]` authority_token_account
+///   5. `[writable, optional]` distribution_token_account
+///   6. `[writable, optional]` authority_token_account
+///   7. `[writable]` distribution_account
+///   8. `[optional]` system_program (default to `11111111111111111111111111111111`)
+///   9. `[optional]` distribution_program (default to `diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay`)
+///   10. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
+///   11. `[optional]` payment_token_program
 #[derive(Clone, Debug, Default)]
 pub struct ApproveTransferBuilder {
     payer: Option<solana_program::pubkey::Pubkey>,
@@ -163,12 +177,13 @@ pub struct ApproveTransferBuilder {
     mint: Option<solana_program::pubkey::Pubkey>,
     approve_account: Option<solana_program::pubkey::Pubkey>,
     payment_mint: Option<solana_program::pubkey::Pubkey>,
+    distribution_token_account: Option<solana_program::pubkey::Pubkey>,
+    authority_token_account: Option<solana_program::pubkey::Pubkey>,
     distribution_account: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
     distribution_program: Option<solana_program::pubkey::Pubkey>,
     token_program: Option<solana_program::pubkey::Pubkey>,
-    distribution_token_account: Option<solana_program::pubkey::Pubkey>,
-    authority_token_account: Option<solana_program::pubkey::Pubkey>,
+    payment_token_program: Option<solana_program::pubkey::Pubkey>,
     buy_amount: Option<u64>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
@@ -205,6 +220,24 @@ impl ApproveTransferBuilder {
         self.payment_mint = Some(payment_mint);
         self
     }
+    /// `[optional account]`
+    #[inline(always)]
+    pub fn distribution_token_account(
+        &mut self,
+        distribution_token_account: Option<solana_program::pubkey::Pubkey>,
+    ) -> &mut Self {
+        self.distribution_token_account = distribution_token_account;
+        self
+    }
+    /// `[optional account]`
+    #[inline(always)]
+    pub fn authority_token_account(
+        &mut self,
+        authority_token_account: Option<solana_program::pubkey::Pubkey>,
+    ) -> &mut Self {
+        self.authority_token_account = authority_token_account;
+        self
+    }
     #[inline(always)]
     pub fn distribution_account(
         &mut self,
@@ -236,20 +269,11 @@ impl ApproveTransferBuilder {
     }
     /// `[optional account]`
     #[inline(always)]
-    pub fn distribution_token_account(
+    pub fn payment_token_program(
         &mut self,
-        distribution_token_account: Option<solana_program::pubkey::Pubkey>,
+        payment_token_program: Option<solana_program::pubkey::Pubkey>,
     ) -> &mut Self {
-        self.distribution_token_account = distribution_token_account;
-        self
-    }
-    /// `[optional account]`
-    #[inline(always)]
-    pub fn authority_token_account(
-        &mut self,
-        authority_token_account: Option<solana_program::pubkey::Pubkey>,
-    ) -> &mut Self {
-        self.authority_token_account = authority_token_account;
+        self.payment_token_program = payment_token_program;
         self
     }
     #[inline(always)]
@@ -283,6 +307,8 @@ impl ApproveTransferBuilder {
             mint: self.mint.expect("mint is not set"),
             approve_account: self.approve_account.expect("approve_account is not set"),
             payment_mint: self.payment_mint.expect("payment_mint is not set"),
+            distribution_token_account: self.distribution_token_account,
+            authority_token_account: self.authority_token_account,
             distribution_account: self
                 .distribution_account
                 .expect("distribution_account is not set"),
@@ -295,8 +321,7 @@ impl ApproveTransferBuilder {
             token_program: self.token_program.unwrap_or(solana_program::pubkey!(
                 "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
             )),
-            distribution_token_account: self.distribution_token_account,
-            authority_token_account: self.authority_token_account,
+            payment_token_program: self.payment_token_program,
         };
         let args = ApproveTransferInstructionArgs {
             buy_amount: self.buy_amount.clone().expect("buy_amount is not set"),
@@ -318,6 +343,10 @@ pub struct ApproveTransferCpiAccounts<'a, 'b> {
 
     pub payment_mint: &'b solana_program::account_info::AccountInfo<'a>,
 
+    pub distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+
+    pub authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+
     pub distribution_account: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
@@ -326,9 +355,7 @@ pub struct ApproveTransferCpiAccounts<'a, 'b> {
 
     pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
 
-    pub distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-
-    pub authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    pub payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
 }
 
 /// `approve_transfer` CPI instruction.
@@ -346,6 +373,10 @@ pub struct ApproveTransferCpi<'a, 'b> {
 
     pub payment_mint: &'b solana_program::account_info::AccountInfo<'a>,
 
+    pub distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+
+    pub authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+
     pub distribution_account: &'b solana_program::account_info::AccountInfo<'a>,
 
     pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
@@ -354,9 +385,7 @@ pub struct ApproveTransferCpi<'a, 'b> {
 
     pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
 
-    pub distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-
-    pub authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    pub payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// The arguments for the instruction.
     pub __args: ApproveTransferInstructionArgs,
 }
@@ -374,12 +403,13 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             mint: accounts.mint,
             approve_account: accounts.approve_account,
             payment_mint: accounts.payment_mint,
+            distribution_token_account: accounts.distribution_token_account,
+            authority_token_account: accounts.authority_token_account,
             distribution_account: accounts.distribution_account,
             system_program: accounts.system_program,
             distribution_program: accounts.distribution_program,
             token_program: accounts.token_program,
-            distribution_token_account: accounts.distribution_token_account,
-            authority_token_account: accounts.authority_token_account,
+            payment_token_program: accounts.payment_token_program,
             __args: args,
         }
     }
@@ -416,7 +446,7 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(11 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(12 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.payer.key,
             true,
@@ -435,22 +465,6 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
         ));
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             *self.payment_mint.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new(
-            *self.distribution_account.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.system_program.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.distribution_program.key,
-            false,
-        ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
-            *self.token_program.key,
             false,
         ));
         if let Some(distribution_token_account) = self.distribution_token_account {
@@ -475,6 +489,33 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
                 false,
             ));
         }
+        accounts.push(solana_program::instruction::AccountMeta::new(
+            *self.distribution_account.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            *self.system_program.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            *self.distribution_program.key,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            *self.token_program.key,
+            false,
+        ));
+        if let Some(payment_token_program) = self.payment_token_program {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                *payment_token_program.key,
+                false,
+            ));
+        } else {
+            accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+                crate::WEN_NEW_STANDARD_ID,
+                false,
+            ));
+        }
         remaining_accounts.iter().for_each(|remaining_account| {
             accounts.push(solana_program::instruction::AccountMeta {
                 pubkey: *remaining_account.0.key,
@@ -491,22 +532,25 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(11 + 1 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(12 + 1 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.payer.clone());
         account_infos.push(self.authority.clone());
         account_infos.push(self.mint.clone());
         account_infos.push(self.approve_account.clone());
         account_infos.push(self.payment_mint.clone());
-        account_infos.push(self.distribution_account.clone());
-        account_infos.push(self.system_program.clone());
-        account_infos.push(self.distribution_program.clone());
-        account_infos.push(self.token_program.clone());
         if let Some(distribution_token_account) = self.distribution_token_account {
             account_infos.push(distribution_token_account.clone());
         }
         if let Some(authority_token_account) = self.authority_token_account {
             account_infos.push(authority_token_account.clone());
+        }
+        account_infos.push(self.distribution_account.clone());
+        account_infos.push(self.system_program.clone());
+        account_infos.push(self.distribution_program.clone());
+        account_infos.push(self.token_program.clone());
+        if let Some(payment_token_program) = self.payment_token_program {
+            account_infos.push(payment_token_program.clone());
         }
         remaining_accounts
             .iter()
@@ -529,12 +573,13 @@ impl<'a, 'b> ApproveTransferCpi<'a, 'b> {
 ///   2. `[]` mint
 ///   3. `[writable]` approve_account
 ///   4. `[]` payment_mint
-///   5. `[writable]` distribution_account
-///   6. `[]` system_program
-///   7. `[]` distribution_program
-///   8. `[]` token_program
-///   9. `[writable, optional]` distribution_token_account
-///   10. `[writable, optional]` authority_token_account
+///   5. `[writable, optional]` distribution_token_account
+///   6. `[writable, optional]` authority_token_account
+///   7. `[writable]` distribution_account
+///   8. `[]` system_program
+///   9. `[]` distribution_program
+///   10. `[]` token_program
+///   11. `[optional]` payment_token_program
 #[derive(Clone, Debug)]
 pub struct ApproveTransferCpiBuilder<'a, 'b> {
     instruction: Box<ApproveTransferCpiBuilderInstruction<'a, 'b>>,
@@ -549,12 +594,13 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
             mint: None,
             approve_account: None,
             payment_mint: None,
+            distribution_token_account: None,
+            authority_token_account: None,
             distribution_account: None,
             system_program: None,
             distribution_program: None,
             token_program: None,
-            distribution_token_account: None,
-            authority_token_account: None,
+            payment_token_program: None,
             buy_amount: None,
             __remaining_accounts: Vec::new(),
         });
@@ -594,6 +640,24 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
         self.instruction.payment_mint = Some(payment_mint);
         self
     }
+    /// `[optional account]`
+    #[inline(always)]
+    pub fn distribution_token_account(
+        &mut self,
+        distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    ) -> &mut Self {
+        self.instruction.distribution_token_account = distribution_token_account;
+        self
+    }
+    /// `[optional account]`
+    #[inline(always)]
+    pub fn authority_token_account(
+        &mut self,
+        authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    ) -> &mut Self {
+        self.instruction.authority_token_account = authority_token_account;
+        self
+    }
     #[inline(always)]
     pub fn distribution_account(
         &mut self,
@@ -628,20 +692,11 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
     }
     /// `[optional account]`
     #[inline(always)]
-    pub fn distribution_token_account(
+    pub fn payment_token_program(
         &mut self,
-        distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+        payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     ) -> &mut Self {
-        self.instruction.distribution_token_account = distribution_token_account;
-        self
-    }
-    /// `[optional account]`
-    #[inline(always)]
-    pub fn authority_token_account(
-        &mut self,
-        authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    ) -> &mut Self {
-        self.instruction.authority_token_account = authority_token_account;
+        self.instruction.payment_token_program = payment_token_program;
         self
     }
     #[inline(always)]
@@ -716,6 +771,10 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
                 .payment_mint
                 .expect("payment_mint is not set"),
 
+            distribution_token_account: self.instruction.distribution_token_account,
+
+            authority_token_account: self.instruction.authority_token_account,
+
             distribution_account: self
                 .instruction
                 .distribution_account
@@ -736,9 +795,7 @@ impl<'a, 'b> ApproveTransferCpiBuilder<'a, 'b> {
                 .token_program
                 .expect("token_program is not set"),
 
-            distribution_token_account: self.instruction.distribution_token_account,
-
-            authority_token_account: self.instruction.authority_token_account,
+            payment_token_program: self.instruction.payment_token_program,
             __args: args,
         };
         instruction.invoke_signed_with_remaining_accounts(
@@ -756,12 +813,13 @@ struct ApproveTransferCpiBuilderInstruction<'a, 'b> {
     mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     approve_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     payment_mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     distribution_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     distribution_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    authority_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    payment_token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     buy_amount: Option<u64>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(

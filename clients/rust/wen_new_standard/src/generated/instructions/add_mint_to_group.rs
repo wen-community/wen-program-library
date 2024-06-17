@@ -104,7 +104,7 @@ impl Default for AddMintToGroupInstructionData {
 ///   1. `[signer]` authority
 ///   2. `[writable]` group
 ///   3. `[writable]` member
-///   4. `[]` mint
+///   4. `[writable]` mint
 ///   5. `[]` manager
 ///   6. `[optional]` system_program (default to `11111111111111111111111111111111`)
 ///   7. `[optional]` token_program (default to `TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`)
@@ -314,7 +314,7 @@ impl<'a, 'b> AddMintToGroupCpi<'a, 'b> {
             *self.member.key,
             false,
         ));
-        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+        accounts.push(solana_program::instruction::AccountMeta::new(
             *self.mint.key,
             false,
         ));
@@ -374,7 +374,7 @@ impl<'a, 'b> AddMintToGroupCpi<'a, 'b> {
 ///   1. `[signer]` authority
 ///   2. `[writable]` group
 ///   3. `[writable]` member
-///   4. `[]` mint
+///   4. `[writable]` mint
 ///   5. `[]` manager
 ///   6. `[]` system_program
 ///   7. `[]` token_program

@@ -22,12 +22,12 @@
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
     "@faker-js/faker": "^8.4.1",
-    "@kinobi-so/nodes": "^0.20.2",
-    "@kinobi-so/nodes-from-anchor": "^0.20.5",
-    "@kinobi-so/renderers": "^0.20.3",
-    "@kinobi-so/renderers-core": "^0.20.1",
-    "@kinobi-so/visitors": "^0.20.2",
-    "@kinobi-so/visitors-core": "^0.20.1",
+    "@kinobi-so/nodes": "^0.20.4",
+    "@kinobi-so/nodes-from-anchor": "^0.20.6",
+    "@kinobi-so/renderers": "^0.20.9",
+    "@kinobi-so/renderers-core": "^0.20.4",
+    "@kinobi-so/visitors": "^0.20.4",
+    "@kinobi-so/visitors-core": "^0.20.4",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
@@ -37,6 +37,8 @@
     "mocha": "^9.0.3",
     "prettier": "^2.6.2",
     "ts-mocha": "^10.0.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "solana-bankrun": "^0.3.0",
+    "anchor-bankrun": "^0.3.0"
   }
 }
