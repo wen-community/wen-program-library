@@ -13,10 +13,7 @@ use spl_associated_token_account::{
     get_associated_token_address_with_program_id, ID as ASSOCIATED_TOKEN_2022_PROGRAM_ID,
 };
 use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
-use wen_new_standard::{
-    instructions::{CreateGroupAccount, CreateGroupAccountInstructionArgs},
-    types::CreateGroupAccountArgs,
-};
+use wen_new_standard::instructions::{CreateGroupAccount, CreateGroupAccountInstructionArgs};
 
 use crate::{
     utils::{derive_group_account, derive_manager_account},
@@ -81,12 +78,10 @@ pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
 
     let create_group_account_ix =
         create_group_account.instruction(CreateGroupAccountInstructionArgs {
-            args: CreateGroupAccountArgs {
-                name: args.name,
-                max_size: args.size,
-                symbol: args.symbol,
-                uri: args.uri,
-            },
+            name: args.name,
+            max_size: args.size,
+            symbol: args.symbol,
+            uri: args.uri,
         });
 
     let transaction_message = VersionedMessage::V0(TransactionMessage::try_compile(

@@ -13,10 +13,7 @@ use spl_associated_token_account::{
     get_associated_token_address_with_program_id, ID as ASSOCIATED_TOKEN_2022_PROGRAM_ID,
 };
 use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
-use wen_new_standard::{
-    instructions::{CreateMintAccount, CreateMintAccountInstructionArgs},
-    types::CreateMintAccountArgs,
-};
+use wen_new_standard::instructions::{CreateMintAccount, CreateMintAccountInstructionArgs};
 
 use crate::{utils::derive_manager_account, Context};
 
@@ -54,8 +51,11 @@ pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
         keypair_pubkey
     };
 
-    let mint_token_account =
-        get_associated_token_address_with_program_id(&receiver, &mint_pubkey, &TOKEN_2022_PROGRAM_ID);
+    let mint_token_account = get_associated_token_address_with_program_id(
+        &receiver,
+        &mint_pubkey,
+        &TOKEN_2022_PROGRAM_ID,
+    );
     let manager = derive_manager_account();
 
     let create_mint_account = CreateMintAccount {
@@ -72,12 +72,10 @@ pub async fn run(context: Context, args: CreateArgs) -> Result<()> {
 
     let create_mint_account_ix =
         create_mint_account.instruction(CreateMintAccountInstructionArgs {
-            args: CreateMintAccountArgs {
-                name: args.name,
-                symbol: args.symbol,
-                uri: args.uri,
-                permanent_delegate: args.permanent_delegate,
-            },
+            name: args.name,
+            symbol: args.symbol,
+            uri: args.uri,
+            permanent_delegate: args.permanent_delegate,
         });
 
     let transaction_message = VersionedMessage::V0(TransactionMessage::try_compile(

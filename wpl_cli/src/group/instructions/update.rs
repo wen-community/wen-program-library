@@ -9,10 +9,7 @@ use solana_sdk::{
     transaction::VersionedTransaction,
 };
 use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
-use wen_new_standard::{
-    instructions::{UpdateGroupAccount, UpdateGroupAccountInstructionArgs},
-    types::UpdateGroupAccountArgs,
-};
+use wen_new_standard::instructions::{UpdateGroupAccount, UpdateGroupAccountInstructionArgs};
 
 use crate::{utils::derive_group_account, Context};
 
@@ -56,12 +53,10 @@ pub async fn run(context: Context, args: UpdateArgs) -> Result<()> {
 
     let update_group_account_ix =
         update_group_account.instruction(UpdateGroupAccountInstructionArgs {
-            args: UpdateGroupAccountArgs {
-                name: args.name,
-                max_size: args.size,
-                symbol: args.symbol,
-                uri: args.uri,
-            },
+            name: args.name,
+            max_size: args.size,
+            symbol: args.symbol,
+            uri: args.uri,
         });
 
     let transaction_message = VersionedMessage::V0(TransactionMessage::try_compile(
