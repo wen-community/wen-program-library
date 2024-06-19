@@ -16,16 +16,19 @@ pub struct TokenGroup {
     pub size: u32,
     /// The maximum number of group members
     pub max_size: u32,
+    /// Token PDA bump
+    pub bump: u8,
 }
 
 impl TokenGroup {
     /// Creates a new `TokenGroup` state
-    pub fn new(mint: &Pubkey, update_authority: Pubkey, max_size: u32) -> Self {
+    pub fn new(mint: &Pubkey, update_authority: Pubkey, max_size: u32, bump: u8) -> Self {
         Self {
             mint: *mint,
             update_authority,
             size: 0,
             max_size,
+            bump,
         }
     }
 

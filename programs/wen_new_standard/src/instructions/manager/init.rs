@@ -17,3 +17,8 @@ pub struct InitManagerAccount<'info> {
     pub manager: Account<'info, Manager>,
     pub system_program: Program<'info, System>,
 }
+
+pub fn handler(ctx: Context<InitManagerAccount>) -> Result<()> {
+    ctx.accounts.manager.bump = ctx.bumps.manager;
+    Ok(())
+}
