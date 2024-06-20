@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
+use serde::Serialize;
 
-#[derive(Clone, AnchorSerialize, AnchorDeserialize, InitSpace)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize, InitSpace, Debug, Serialize)]
 pub struct Creator {
     /// creator address
     pub address: Pubkey,
@@ -22,6 +23,8 @@ pub struct DistributionAccount {
     #[max_len(1)] // initial length
     pub claim_data: Vec<Creator>,
 }
+
+pub const CLAIM_DATA_OFFSET: usize = 8 + 1 + 32 + 32;
 
 impl DistributionAccount {
     pub const VERSION: u8 = 1;
