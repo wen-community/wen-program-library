@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{cmp::Ordering, str::FromStr};
 
 use anchor_lang::{
     prelude::*,
@@ -48,7 +48,7 @@ pub struct UpdateDistribution<'info> {
         mut,
         has_one = payment_mint,
         seeds = [distribution_account.group_mint.as_ref(), payment_mint.key().as_ref()],
-        bump
+        bump,
     )]
     pub distribution_account: Account<'info, DistributionAccount>,
     #[account(
@@ -144,6 +144,7 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
 
     // update creator amounts in distribution account. add creator if not present, else update amount (amount * pct / 100)
     let current_data = ctx.accounts.distribution_account.claim_data.clone();
+
     let mut new_data = vec![];
     // Incoming creator updates
     for creator in creators.iter() {
@@ -197,7 +198,51 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         }
     }
 
+    // get data length difference before and after data updated
+    let original_data_size = ctx
+        .accounts
+        .distribution_account
+        .to_account_info()
+        .data_len();
     ctx.accounts.distribution_account.claim_data = new_data;
+    let new_data_size = ctx
+        .accounts
+        .distribution_account
+        .to_account_info()
+        .data_len();
+
+    match new_data_size.cmp(&original_data_size) {
+        Ordering::Greater => {
+            // sol to add
+            let space_increase = new_data_size - original_data_size;
+            let rent_increase = Rent::get()?.minimum_balance(space_increase);
+            // transfer to PDA
+            ctx.accounts.transfer_sol(rent_increase)?;
+            // increase allocated space
+            ctx.accounts
+                .distribution_account
+                .to_account_info()
+                .realloc(new_data_size, false)?;
+        }
+        Ordering::Less => {
+            // sol to remove
+            let space_decrease = original_data_size - new_data_size;
+            let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
+            // transfer from PDA
+            ctx.accounts
+                .distribution_account
+                .sub_lamports(rent_decrease)?;
+            ctx.accounts.authority.add_lamports(rent_decrease)?;
+            // decrease allocated space
+            ctx.accounts
+                .distribution_account
+                .to_account_info()
+                .realloc(new_data_size, false)?;
+        }
+        Ordering::Equal => {
+            // Do Nothing
+        }
+    }
 
     let payment_mint = &ctx.accounts.payment_mint;
     let payment_mint_pubkey = payment_mint.key();

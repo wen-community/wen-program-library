@@ -102,8 +102,25 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
             .transfer_tokens(claim_amount, &[&signer_seeds[..]])?;
     }
 
+    // get data length difference before and after data updated
+    let original_data_size = ctx.accounts.distribution.to_account_info().data_len();
     // update distribution account
     ctx.accounts.distribution.claim_data = claim_data;
+    let new_data_size = ctx.accounts.distribution.to_account_info().data_len();
+
+    if new_data_size < original_data_size {
+        // sol to remove
+        let space_decrease = original_data_size - new_data_size;
+        let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
+        // transfer from PDA
+        ctx.accounts.distribution.sub_lamports(rent_decrease)?;
+        ctx.accounts.creator.add_lamports(rent_decrease)?;
+        // decrease allocated space
+        ctx.accounts
+            .distribution
+            .to_account_info()
+            .realloc(new_data_size, false)?;
+    }
 
     Ok(())
 }
