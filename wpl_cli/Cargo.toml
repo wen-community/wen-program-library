@@ -1,5 +1,5 @@
 [package]
-name = "wpl-cli"
+name = "wpl"
 version = "0.4.1-alpha"
 edition = "2021"
 

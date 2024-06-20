@@ -89,7 +89,7 @@ Check out the [Contributing Guide](./CONTRIBUTING.md) the learn more about how t
 
 ## CLI
 
-The Wen New Standard, now has a CLI allowing users to create collections and asset related operations. Click [here](./wpl_cli/README.md) to learn more about the commands present.
+The Wen Program Library, now has a CLI allowing users to create collections and asset related operations. Click [here](./wpl_cli/README.md) to learn more about the commands present.
 
 ## License
 

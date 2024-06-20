@@ -5326,7 +5326,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wpl-cli"
+name = "wpl"
 version = "0.4.1-alpha"
 dependencies = [
  "anyhow",
