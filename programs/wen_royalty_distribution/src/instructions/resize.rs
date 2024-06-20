@@ -22,23 +22,27 @@ pub fn handler(ctx: Context<ResizeDistribution>) -> Result<()> {
     require_eq!(distribution_account.owner.key(), crate::id());
 
     let new_length = 8 + DistributionAccount::INIT_SPACE + 1;
-    let rent_required = Rent::get()?.minimum_balance(new_length);
-
     // Account already resized if data_len == new_length
     if distribution_account.data_len() == new_length {
         return Ok(());
     }
 
-    transfer(
-        CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            Transfer {
-                from: ctx.accounts.payer.to_account_info(),
-                to: ctx.accounts.distribution_account.to_account_info(),
-            },
-        ),
-        rent_required,
-    )?;
+    let new_rent = Rent::get()?.minimum_balance(new_length);
+    let old_rent = distribution_account.lamports();
+
+    if old_rent < new_rent {
+        let rent_required = new_rent.saturating_sub(old_rent);
+        transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                Transfer {
+                    from: ctx.accounts.payer.to_account_info(),
+                    to: ctx.accounts.distribution_account.to_account_info(),
+                },
+            ),
+            rent_required,
+        )?;
+    }
 
     distribution_account.realloc(new_length, false)?;
     Ok(())
