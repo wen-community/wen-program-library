@@ -1,0 +1,27 @@
+[package]
+name = "wpl"
+version = "0.4.1-alpha"
+edition = "2021"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+
+[dependencies]
+anyhow = "1.0.86"
+bs58 = "0.5.1"
+clap = { version = "4.5.4", features = ["derive", "cargo", "env"] }
+env_logger = "0.11.3"
+log = "0.4.21"
+serde_json = "1.0.117"
+solana-cli-config = "1.18.14"
+solana-client = "1.18.14"
+solana-program = "1.18.14"
+solana-sdk = "1.18.14"
+spl-associated-token-account = "3.0.2"
+spl-token-2022 = "3.0.2"
+spl-token-metadata-interface = "0.3.3"
+tokio = { version = "1.37.0", features = ["full"] }
+wen_new_standard = { path = "../clients/rust/wen_new_standard", features = [
+  "serde",
+] }
