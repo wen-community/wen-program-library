@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{cmp::Ordering, str::FromStr};
 
 use anchor_lang::{
     prelude::*,
@@ -17,7 +17,9 @@ use anchor_spl::{
     },
 };
 
-use crate::{Creator, DistributionAccount, DistributionErrors, ROYALTY_BASIS_POINTS_FIELD};
+use crate::{
+    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET, ROYALTY_BASIS_POINTS_FIELD,
+};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct CreatorShare {
@@ -48,7 +50,7 @@ pub struct UpdateDistribution<'info> {
         mut,
         has_one = payment_mint,
         seeds = [distribution_account.group_mint.as_ref(), payment_mint.key().as_ref()],
-        bump
+        bump,
     )]
     pub distribution_account: Account<'info, DistributionAccount>,
     #[account(
@@ -120,6 +122,34 @@ impl UpdateDistribution<'_> {
         )?;
         Ok(())
     }
+
+    pub fn realloc_distribution_account(&self, new_data_size: usize) -> Result<()> {
+        let account_info = self.distribution_account.to_account_info();
+        let current_len = account_info.data_len();
+
+        match new_data_size.cmp(&current_len) {
+            Ordering::Greater => {
+                let space_increase = new_data_size - current_len;
+                let rent_increase = Rent::get()?.minimum_balance(space_increase);
+
+                account_info.realloc(new_data_size, false)?;
+                self.transfer_sol(rent_increase)?;
+            }
+            Ordering::Less => {
+                let space_decrease = current_len - new_data_size;
+                let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
+
+                account_info.sub_lamports(rent_decrease)?;
+                self.authority.add_lamports(rent_decrease)?;
+                account_info.realloc(new_data_size, false)?;
+            }
+            Ordering::Equal => {
+                // Do nothing if sizes are equal
+            }
+        }
+
+        Ok(())
+    }
 }
 
 pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -> Result<()> {
@@ -143,7 +173,8 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         .collect::<Vec<CreatorShare>>();
 
     // update creator amounts in distribution account. add creator if not present, else update amount (amount * pct / 100)
-    let current_data = ctx.accounts.distribution_account.claim_data.clone();
+    let current_data = ctx.accounts.distribution_account.clone().claim_data.clone();
+
     let mut new_data = vec![];
     // Incoming creator updates
     for creator in creators.iter() {
@@ -197,6 +228,13 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         }
     }
 
+    let serialized_new_data =
+        bincode::serialize(&new_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
+
+    ctx.accounts
+        .realloc_distribution_account(CLAIM_DATA_OFFSET + serialized_new_data.len())?;
+
+    // Update the account data
     ctx.accounts.distribution_account.claim_data = new_data;
 
     let payment_mint = &ctx.accounts.payment_mint;

@@ -7,7 +7,7 @@ use anchor_spl::{
 
 use crate::{
     get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount,
-    DistributionErrors,
+    DistributionErrors, CLAIM_DATA_OFFSET,
 };
 
 #[derive(Accounts)]
@@ -73,6 +73,17 @@ impl ClaimDistribution<'_> {
         transfer_checked(cpi_ctx, amount, mint_decimals)?;
         Ok(())
     }
+
+    pub fn realloc_distribution_data(&self, new_data_size: usize) -> Result<()> {
+        let account_info = self.distribution.to_account_info();
+        let current_len = account_info.data_len();
+        let space_decrease = current_len - new_data_size;
+        let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
+        account_info.sub_lamports(rent_decrease)?;
+        self.creator.to_account_info().add_lamports(rent_decrease)?;
+        account_info.realloc(new_data_size, false)?;
+        Ok(())
+    }
 }
 
 pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
@@ -102,8 +113,18 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
             .transfer_tokens(claim_amount, &[&signer_seeds[..]])?;
     }
 
-    // update distribution account
-    ctx.accounts.distribution.claim_data = claim_data;
+    let account_info = ctx.accounts.distribution.to_account_info();
+    let current_len = account_info.data_len();
 
+    let serialized_new_data =
+        bincode::serialize(&claim_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
+
+    let new_data_size = CLAIM_DATA_OFFSET + serialized_new_data.len();
+
+    if new_data_size < current_len {
+        ctx.accounts.realloc_distribution_data(new_data_size)?;
+    }
+
+    ctx.accounts.distribution.claim_data = claim_data;
     Ok(())
 }
