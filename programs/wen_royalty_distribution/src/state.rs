@@ -34,38 +34,4 @@ impl DistributionAccount {
         self.payment_mint = payment_mint;
         self.claim_data = vec![];
     }
-
-    // pub fn add_to_creator(
-    //     &mut self,
-    //     creator: Pubkey,
-    //     amount: u64
-    // ) -> Result<()> {
-    //     if self.policies.iter().any(|policy| policy.hash == hash) {
-    //         return Err(PolicyEngineErrors::PolicyAlreadyExists.into());
-    //     }
-    //     self.policies.push(Policy {
-    //         hash,
-    //         policy_type,
-    //         identity_filter,
-    //     });
-    //     Ok(())
-    // }
-
-    // pub fn remove_creator(&mut self, creator_address: Pubkey) -> Result<()> {
-    //     if self.claim_data.iter().all(|c: &Creator| c.address != creator_address) {
-    //         return Err(DistributionErrors::CreatorNotFound.into());
-    //     }
-    //     // remove creator
-    //     let creator_to_remove_share = self
-    //         .claim_data
-    //         .iter()
-    //         .find(|c| c.address == creator_address)
-    //         .unwrap() // safe to unwrap as we checked the policy exists
-    //         .claim_amount;
-    //     if creator_to_remove_share > 0 {
-    //         return Err(DistributionErrors::CreatorNonZero.into());
-    //     }
-    //     self.claim_data.retain(|c| c.address != creator_address);
-    //     Ok(())
-    // }
 }
