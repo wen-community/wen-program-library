@@ -1,4 +1,11 @@
 import { createHash } from "crypto";
+import { Connection, PublicKey } from "@solana/web3.js";
+
+export async function sleep(ms: number) {
+  return new Promise((res) => {
+    setTimeout(res, ms);
+  });
+}
 
 export function getType(data: Buffer) {
   const managerDiscriminator = Buffer.from(
@@ -36,4 +43,37 @@ export function getType(data: Buffer) {
   } else {
     return "unknown";
   }
+}
+
+export async function filterAvailableAccounts(
+  connection: Connection,
+  accounts: Record<
+    string,
+    { pubkey: string; type: string; account: { data: string[] } }
+  >
+): Promise<
+  Record<string, { pubkey: string; type: string; account: { data: string[] } }>
+> {
+  const finalAccounts: Record<
+    string,
+    { pubkey: string; type: string; account: { data: string[] } }
+  > = {};
+  for (const account of Object.keys(accounts)) {
+    const accountPubkey = new PublicKey(account);
+    const accountInfo = await connection.getAccountInfo(
+      accountPubkey,
+      "confirmed"
+    );
+    if (accountInfo) {
+      finalAccounts[account] = {
+        ...accounts[account],
+        account: {
+          ...accounts[account].account,
+          data: [accountInfo.data.toString("base64"), "base64"],
+        },
+      };
+    }
+  }
+
+  return finalAccounts;
 }
