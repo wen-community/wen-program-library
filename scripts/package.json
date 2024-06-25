@@ -4,7 +4,8 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "calculate": "ts-node src/calculate.ts",
     "resize": "ts-node src/resize.ts",
-    "update": "ts-node src/update.ts"
+    "update": "ts-node src/update.ts",
+    "audit": "ts-node src/audit.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.0",
