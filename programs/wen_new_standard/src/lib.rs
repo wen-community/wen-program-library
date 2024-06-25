@@ -14,6 +14,8 @@ pub use utils::*;
 
 declare_id!("wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM");
 
+declare_program!(wen_transfer_guard);
+
 #[program]
 pub mod wen_new_standard {
     use super::*;
@@ -62,7 +64,10 @@ pub mod wen_new_standard {
     }
 
     /// add royalties to mint
-    pub fn add_royalties(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
+    pub fn add_royalties<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, AddRoyalties<'info>>,
+        args: UpdateRoyaltiesArgs,
+    ) -> Result<()> {
         instructions::mint::royalties::add::handler(ctx, args)
     }
 

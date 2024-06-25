@@ -1,3 +1,4 @@
+use anchor_lang::system_program::{create_account, CreateAccount};
 use anchor_lang::{prelude::*, solana_program::entrypoint::ProgramResult};
 use spl_tlv_account_resolution::state::ExtraAccountMetaList;
 
@@ -7,11 +8,14 @@ use anchor_spl::token_interface::{
 };
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
+use crate::wen_transfer_guard::cpi::accounts::Initialize;
+use crate::wen_transfer_guard::{cpi::initialize, ID as TRANSFER_GUARD_PROGRAM_ID};
 use crate::{
     get_approve_account_pda, get_meta_list, get_meta_list_size,
-    update_account_lamports_to_minimum_balance, MetadataErrors, UpdateRoyaltiesArgs,
-    META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
+    update_account_lamports_to_minimum_balance, ExtraAccountMetaListErrors, MetadataErrors,
+    UpdateRoyaltiesArgs, META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
 };
+use crate::{verify_extra_meta_account, ID as WNS_PROGRAM_ID};
 
 #[derive(Accounts)]
 #[instruction(args: UpdateRoyaltiesArgs)]
@@ -26,13 +30,7 @@ pub struct AddRoyalties<'info> {
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
     /// CHECK: This account's data is a buffer of TLV data
-    #[account(
-        init,
-        space = get_meta_list_size(get_approve_account_pda(mint.key())),
-        seeds = [META_LIST_ACCOUNT_SEED, mint.key().as_ref()],
-        bump,
-        payer = payer,
-    )]
+    #[account(mut)]
     pub extra_metas_account: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
@@ -50,19 +48,28 @@ impl<'info> AddRoyalties<'info> {
         Ok(())
     }
 
-    fn update_transfer_hook_program_id(&self) -> Result<()> {
+    fn update_transfer_hook_program_id(&self, hook_program_id: Pubkey) -> Result<()> {
         let cpi_accounts = TransferHookUpdate {
             token_program_id: self.token_program.to_account_info(),
             mint: self.mint.to_account_info(),
             authority: self.authority.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), cpi_accounts);
-        transfer_hook_update(cpi_ctx, Some(crate::id()))?;
+        transfer_hook_update(cpi_ctx, Some(hook_program_id))?;
         Ok(())
     }
 }
 
-pub fn handler(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<()> {
+pub fn handler<'a, 'b, 'c, 'info>(
+    ctx: Context<'a, 'b, 'c, 'info, AddRoyalties<'info>>,
+    args: UpdateRoyaltiesArgs,
+) -> Result<()> {
+    let mint = &ctx.accounts.mint;
+    let extra_metas_account = &ctx.accounts.extra_metas_account;
+    let system_program = &ctx.accounts.system_program;
+    let payer = &ctx.accounts.payer;
+    let authority = &ctx.accounts.authority;
+
     // validate that the fee_basis_point is less than 10000 (100%)
     require!(
         args.royalty_basis_points <= 10000,
@@ -91,14 +98,88 @@ pub fn handler(ctx: Context<AddRoyalties>, args: UpdateRoyaltiesArgs) -> Result<
         return Err(MetadataErrors::CreatorShareInvalid.into());
     }
 
-    // initialize the extra metas account
-    let extra_metas_account = &ctx.accounts.extra_metas_account;
-    let metas = get_meta_list(get_approve_account_pda(ctx.accounts.mint.key()));
-    let mut data = extra_metas_account.try_borrow_mut_data()?;
-    ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
+    let mint_key = mint.key();
+    if !extra_metas_account.data_is_empty() {
+        return err!(ExtraAccountMetaListErrors::ExtraAccountMetaAlreadyInitialized);
+    }
 
-    // add metadata program as the transfer hook program
-    ctx.accounts.update_transfer_hook_program_id()?;
+    let transfer_hook_program_account_info = ctx.remaining_accounts.get(0);
+    let (transfer_hook_program_id, bump) = match transfer_hook_program_account_info {
+        Some(transfer_hook_program) => {
+            if transfer_hook_program.key.eq(&TRANSFER_GUARD_PROGRAM_ID) {
+                let bump = verify_extra_meta_account(
+                    &mint.key(),
+                    &extra_metas_account.key(),
+                    &TRANSFER_GUARD_PROGRAM_ID,
+                )?;
+                (TRANSFER_GUARD_PROGRAM_ID, bump)
+            } else {
+                let bump = verify_extra_meta_account(
+                    &mint.key(),
+                    &extra_metas_account.key(),
+                    &WNS_PROGRAM_ID,
+                )?;
+                (WNS_PROGRAM_ID, bump)
+            }
+        }
+        None => {
+            let bump = verify_extra_meta_account(
+                &mint.key(),
+                &extra_metas_account.key(),
+                &WNS_PROGRAM_ID,
+            )?;
+            (WNS_PROGRAM_ID, bump)
+        }
+    };
+
+    // add metadata program/transfer guard program as the transfer hook program
+    ctx.accounts
+        .update_transfer_hook_program_id(transfer_hook_program_id)?;
+
+    if transfer_hook_program_id.eq(&WNS_PROGRAM_ID) {
+        let signer_seeds: &[&[&[u8]]] = &[&[META_LIST_ACCOUNT_SEED, mint_key.as_ref(), &[bump]]];
+        let account_size =
+            ExtraAccountMetaList::size_of(get_meta_list_size(get_approve_account_pda(mint_key)))?;
+        let lamports = Rent::get()?.minimum_balance(account_size);
+
+        // create ExtraAccountMetaList account
+        create_account(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                CreateAccount {
+                    from: ctx.accounts.payer.to_account_info(),
+                    to: ctx.accounts.extra_metas_account.to_account_info(),
+                },
+            )
+            .with_signer(signer_seeds),
+            lamports,
+            account_size as u64,
+            ctx.program_id,
+        )?;
+
+        // initialize the extra metas account
+        let metas = get_meta_list(get_approve_account_pda(mint.key()));
+        let mut data = extra_metas_account.try_borrow_mut_data()?;
+        ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
+    } else {
+        let transfer_guard_program_info = transfer_hook_program_account_info.unwrap();
+        let guard_account_info = ctx.remaining_accounts.get(1);
+        if guard_account_info.is_none() {
+            return err!(ExtraAccountMetaListErrors::InvalidGuardAccount);
+        }
+        let guard_account_info = guard_account_info.unwrap();
+        initialize(CpiContext::new(
+            transfer_guard_program_info.clone(),
+            Initialize {
+                extra_metas_account: extra_metas_account.to_account_info(),
+                guard: guard_account_info.clone(),
+                mint: mint.to_account_info(),
+                payer: payer.to_account_info(),
+                system_program: system_program.to_account_info(),
+                transfer_hook_authority: authority.to_account_info(),
+            },
+        ))?;
+    }
 
     // transfer minimum rent to mint account
     update_account_lamports_to_minimum_balance(
