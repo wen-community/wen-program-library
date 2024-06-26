@@ -121,7 +121,7 @@ import { getType } from "./utils";
     );
 
     // console.log(
-    //   `solana-test-validator -r --bpf-program wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM ~/Desktop/blockchain-projects/abk-wen-new-standard/target/deploy/wen_new_standard.so --bpf-program diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay ~/Desktop/blockchain-projects/abk-wen-new-standard/target/deploy/wen_royalty_distribution.so ${pubkeys.join(
+    //   `solana-test-validator -r --bpf-program wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM ~/Desktop/blockchain-projects/abk-wpl/target/deploy/wen_new_standard.so --bpf-program diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay ~/Desktop/blockchain-projects/abk-wpl/target/deploy/wen_royalty_distribution.so ${pubkeys.join(
     //     " "
     //   )} -u${isDevnet ? "d" : "m"}`
     // );

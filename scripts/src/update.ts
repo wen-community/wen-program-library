@@ -20,6 +20,7 @@ import WenRoyaltyIdl from "../../target/idl/wen_royalty_distribution.json";
 
 import accountsDevnet from "../devnet.json";
 import accountsMainnet from "../mainnet.json";
+import { filterAvailableAccounts, sleep } from "./utils";
 
 const INSTRUCTIONS_PER_TX = 20;
 
@@ -36,6 +37,9 @@ const INSTRUCTIONS_PER_TX = 20;
     const connection = new Connection(isDevnet ? DEVNET_URL : MAINNET_URL, {
       commitment: "confirmed",
     });
+
+    // To test locally
+    // const connection = new Connection("http://localhost:8899");
     const wallet = new Wallet(keypair);
     const provider = new AnchorProvider(connection, wallet, {
       skipPreflight: true,
@@ -44,7 +48,10 @@ const INSTRUCTIONS_PER_TX = 20;
     });
 
     /** Airdrop only for devnet/localnet */
-    if (isDevnet && (await connection.getBalance(keypair.publicKey)) === 0) {
+    if (
+      isDevnet &&
+      (await connection.getBalance(keypair.publicKey, "confirmed")) === 0
+    ) {
       console.log(`Zero balance account. Airdropping`);
       await connection.confirmTransaction({
         ...(await connection.getLatestBlockhash("confirmed")),
@@ -117,6 +124,9 @@ const INSTRUCTIONS_PER_TX = 20;
         { commitment: "confirmed" }
       );
       addressTableLookupAccount = value;
+
+      console.log(`Allowing for ATL to be indexed`);
+      await sleep(2000);
     } else {
       const { value } = await connection.getAddressLookupTable(
         addressTableLookupAddress,
@@ -126,10 +136,16 @@ const INSTRUCTIONS_PER_TX = 20;
     }
     /** */
 
-    const wnsAccounts: Record<string, { pubkey: string; type: string }> =
-      isDevnet ? accountsDevnet["wns"] : accountsMainnet["wns"];
+    const wnsAccounts: Record<
+      string,
+      { pubkey: string; type: string; account: { data: string[] } }
+    > = isDevnet ? accountsDevnet["wns"] : accountsMainnet["wns"];
+    const finalAccounts = await filterAvailableAccounts(
+      connection,
+      wnsAccounts
+    );
 
-    const filteredWnsAccounts = Object.values(wnsAccounts).filter(
+    const filteredWnsAccounts = Object.values(finalAccounts).filter(
       (wnsAccount) => wnsAccount.type !== "unknown"
     );
 
@@ -241,22 +257,27 @@ const INSTRUCTIONS_PER_TX = 20;
 
     const distributionAccounts: Record<
       string,
-      { pubkey: string; type: string }
+      { pubkey: string; type: string; account: { data: string[] } }
     > = isDevnet
       ? accountsDevnet["distribution"]
       : accountsMainnet["distribution"];
 
+    const finalDistAccounts = await filterAvailableAccounts(
+      connection,
+      distributionAccounts
+    );
+
     const totalDistributionBatches = Array.from(
       {
         length: Math.round(
-          Object.keys(distributionAccounts).length / INSTRUCTIONS_PER_TX
+          Object.keys(finalDistAccounts).length / INSTRUCTIONS_PER_TX
         ),
       },
       (_, i) => i + 1
     );
 
     for (const batch of totalDistributionBatches) {
-      const accounts = Object.values(distributionAccounts).slice(
+      const accounts = Object.values(finalDistAccounts).slice(
         (batch - 1) * INSTRUCTIONS_PER_TX,
         batch * INSTRUCTIONS_PER_TX
       );
