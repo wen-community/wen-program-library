@@ -14,7 +14,7 @@
     "url": "https://github.com/wen-community/wen-program-library.git"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.30.0",
+    "@coral-xyz/anchor": "^0.30.1",
     "@solana/spl-token": "^0.4.6",
     "@solana/spl-token-metadata": "^0.1.4"
   },
