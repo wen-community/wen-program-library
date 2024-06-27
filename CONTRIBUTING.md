@@ -12,14 +12,14 @@ yarn install
 
 ### Installing Anchor CLI
 
-Use `avm` to install the Anchor CLI. All programs currently use Anchor version `0.30.0`.
+Use `avm` to install the Anchor CLI. All programs currently use Anchor version `0.30.1`.
 
 ```bash
-cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.0 avm --locked
+cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 avm --locked
 avm install latest
 avm use latest
 anchor --version
-# Should output: anchor-cli 0.30.0
+# Should output: anchor-cli 0.30.1
 ```
 
 ### Available Commands

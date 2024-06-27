@@ -13,6 +13,7 @@ pub use state::*;
 pub use utils::*;
 
 declare_id!("wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM");
+declare_program!(wen_transfer_guard);
 
 #[program]
 pub mod wen_new_standard {
@@ -144,5 +145,13 @@ pub mod wen_new_standard {
     pub fn update_bump_group_member(ctx: Context<UpdateBumpGroupMember>) -> Result<()> {
         instructions::bump::group_member::handler(ctx)
     }
+    /**/
+
+    /* Transfer guard */
+
+    pub fn setup_transfer_guard(ctx: Context<SetupTransferGuard>) -> Result<()> {
+        instructions::transfer_guard::setup::handler(ctx)
+    }
+
     /**/
 }
