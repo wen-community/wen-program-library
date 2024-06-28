@@ -130,19 +130,4 @@ pub mod wen_new_standard {
     pub fn resize_approve(ctx: Context<ResizeApprove>) -> Result<()> {
         instructions::resize::approve::handler(ctx)
     }
-    /**/
-
-    /* Assign bump instructions */
-    pub fn update_bump_manager(ctx: Context<UpdateBumpManager>) -> Result<()> {
-        instructions::bump::manager::handler(ctx)
-    }
-
-    pub fn update_bump_group(ctx: Context<UpdateBumpGroup>) -> Result<()> {
-        instructions::bump::group::handler(ctx)
-    }
-
-    pub fn update_bump_group_member(ctx: Context<UpdateBumpGroupMember>) -> Result<()> {
-        instructions::bump::group_member::handler(ctx)
-    }
-    /**/
 }

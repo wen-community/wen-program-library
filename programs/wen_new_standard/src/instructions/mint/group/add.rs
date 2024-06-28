@@ -74,7 +74,6 @@ pub fn handler(ctx: Context<AddGroup>) -> Result<()> {
     member.group = group.key();
     member.mint = ctx.accounts.mint.key();
     member.member_number = group.size;
-    member.bump = ctx.bumps.member;
 
     let member_address = member.key();
 
