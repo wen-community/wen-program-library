@@ -3,12 +3,12 @@ members = ["programs/*"]
 resolver = "2"
 
 [workspace.dependencies]
-anchor-lang = { git = "https://github.com/coral-xyz/anchor", sha = "827c986618358c177a50c22ff8eb08bae6943784", features = [
+anchor-lang = { version = "0.30.1", features = [
   "init-if-needed",
   "interface-instructions",
   "allow-missing-optionals",
 ] }
-anchor-spl = { git = "https://github.com/coral-xyz/anchor", sha = "827c986618358c177a50c22ff8eb08bae6943784" }
+anchor-spl = { version = "0.30.1" }
 wen_new_standard = { path = "programs/wen_new_standard", features = ["cpi"] }
 wen_royalty_distribution = { path = "programs/wen_royalty_distribution", features = [
   "cpi",

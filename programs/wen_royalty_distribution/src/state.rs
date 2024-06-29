@@ -21,9 +21,7 @@ pub struct DistributionAccount {
     /// payment mint for the distribution account
     pub payment_mint: Pubkey,
     #[max_len(1)] // initial length
-    pub claim_data: Vec<Creator>,
-    /// PDA bump
-    pub bump: u8,
+    pub claim_data: Vec<Creator>
 }
 
 pub const CLAIM_DATA_OFFSET: usize = 8 + 1 + 32 + 32;

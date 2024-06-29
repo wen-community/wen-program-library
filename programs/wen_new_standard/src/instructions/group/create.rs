@@ -123,7 +123,6 @@ pub fn handler(ctx: Context<CreateGroupAccount>, args: CreateGroupAccountArgs) -
     group.update_authority = ctx.accounts.authority.key();
     group.mint = ctx.accounts.mint.key();
     group.size = 0;
-    group.bump = ctx.bumps.group;
 
     // mint to receiver
     ctx.accounts.mint_to_receiver()?;
