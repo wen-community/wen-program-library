@@ -14,7 +14,7 @@ pub struct UpdateDistributionBump<'info> {
 }
 
 pub fn handler(ctx: Context<UpdateDistributionBump>) -> Result<()> {
-    let distribution_account = &mut ctx.accounts.distribution_account;
-    distribution_account.bump = ctx.bumps.distribution_account;
+    let _distribution_account = &mut ctx.accounts.distribution_account;
+
     Ok(())
 }
