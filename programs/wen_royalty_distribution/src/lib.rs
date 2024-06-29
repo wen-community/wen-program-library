@@ -42,9 +42,4 @@ pub mod wen_royalty_distribution {
     pub fn resize_distribution(ctx: Context<ResizeDistribution>) -> Result<()> {
         instructions::resize::handler(ctx)
     }
-
-    /// Update bump field for a distribution account
-    pub fn update_bump_distribution(ctx: Context<UpdateDistributionBump>) -> Result<()> {
-        instructions::bump::handler(ctx)
-    }
 }
