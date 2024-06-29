@@ -11,14 +11,17 @@ pub struct TokenGroupMember {
     pub group: Pubkey,
     /// The member number
     pub member_number: u32,
+    /// Token PDA bump
+    pub bump: u8,
 }
 impl TokenGroupMember {
     /// Creates a new `TokenGroupMember` state
-    pub fn new(mint: &Pubkey, group: &Pubkey, member_number: u32) -> Self {
+    pub fn new(mint: &Pubkey, group: &Pubkey, member_number: u32, bump: u8) -> Self {
         Self {
             mint: *mint,
             group: *group,
             member_number,
+            bump,
         }
     }
 }
