@@ -8,7 +8,7 @@
     "audit": "ts-node src/audit.ts"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.30.0",
+    "@coral-xyz/anchor": "^0.30.1",
     "bs58": "^5.0.0",
     "fs-extra": "^11.2.0",
     "dotenv": "16.4.5"
