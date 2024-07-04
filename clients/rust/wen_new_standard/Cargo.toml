@@ -8,8 +8,7 @@ license = "MIT"
 repository = "https://github.com/wen-community/wen-program-library/clients/rust/wen_new_standard"
 documentation = "https://docs.wenwencoin.com"
 homepage = "https://wenwencoin.com"
-keywords = ["wen", "wns"]
-categories = ["nft", "solana", "blockchain"]
+keywords = ["wen", "wns", "nft", "solana", "blockchain"]
 readme = "README.md"
 
 [workspace]
