@@ -32,18 +32,18 @@ pub fn get_metadata(mint_account: &AccountInfo) -> Result<Vec<(String, String)>>
 
 /// Attempts to get the transfer hook data from a mint account that
 /// is supposed to have been initialized with the TransferHook extension.
-/// 
+///
 /// ### Arguments
-/// 
+///
 /// * `mint_account` - The mint account to get the transfer hook data from.
-/// 
+///
 /// ### Errors
-/// 
+///
 /// * If the mint account data is not initialized with the TransferHook extension or
 /// if the data is not serialized correctly.
-/// 
+///
 /// ### Returns
-/// 
+///
 /// The transfer hook data.
 pub fn get_transfer_hook_data(mint_account: &AccountInfo) -> Result<TransferHook> {
     let mint_account_data = mint_account.try_borrow_data()?;

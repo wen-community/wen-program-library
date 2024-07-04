@@ -26,10 +26,6 @@ import {
   type ParsedModifyRoyaltiesInstruction,
   type ParsedRemoveMetadataInstruction,
   type ParsedRemoveMintFromGroupInstruction,
-  type ParsedResizeApproveInstruction,
-  type ParsedResizeGroupInstruction,
-  type ParsedResizeGroupMemberInstruction,
-  type ParsedResizeManagerInstruction,
   type ParsedThawMintAccountInstruction,
   type ParsedUpdateGroupAccountInstruction,
 } from '../instructions';
@@ -111,10 +107,6 @@ export enum WenNewStandardInstruction {
   ModifyRoyalties,
   RemoveMetadata,
   RemoveMintFromGroup,
-  ResizeApprove,
-  ResizeGroup,
-  ResizeGroupMember,
-  ResizeManager,
   ThawMintAccount,
   UpdateGroupAccount,
 }
@@ -271,50 +263,6 @@ export function identifyWenNewStandardInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([219, 6, 54, 192, 97, 199, 33, 25])
-      ),
-      0
-    )
-  ) {
-    return WenNewStandardInstruction.ResizeApprove;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([57, 175, 155, 98, 160, 54, 88, 105])
-      ),
-      0
-    )
-  ) {
-    return WenNewStandardInstruction.ResizeGroup;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([234, 11, 246, 127, 141, 10, 4, 4])
-      ),
-      0
-    )
-  ) {
-    return WenNewStandardInstruction.ResizeGroupMember;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([245, 209, 10, 73, 190, 27, 17, 226])
-      ),
-      0
-    )
-  ) {
-    return WenNewStandardInstruction.ResizeManager;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([27, 53, 61, 16, 162, 190, 27, 72])
       ),
       0
@@ -380,18 +328,6 @@ export type ParsedWenNewStandardInstruction<
   | ({
       instructionType: WenNewStandardInstruction.RemoveMintFromGroup;
     } & ParsedRemoveMintFromGroupInstruction<TProgram>)
-  | ({
-      instructionType: WenNewStandardInstruction.ResizeApprove;
-    } & ParsedResizeApproveInstruction<TProgram>)
-  | ({
-      instructionType: WenNewStandardInstruction.ResizeGroup;
-    } & ParsedResizeGroupInstruction<TProgram>)
-  | ({
-      instructionType: WenNewStandardInstruction.ResizeGroupMember;
-    } & ParsedResizeGroupMemberInstruction<TProgram>)
-  | ({
-      instructionType: WenNewStandardInstruction.ResizeManager;
-    } & ParsedResizeManagerInstruction<TProgram>)
   | ({
       instructionType: WenNewStandardInstruction.ThawMintAccount;
     } & ParsedThawMintAccountInstruction<TProgram>)

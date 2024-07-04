@@ -7,7 +7,7 @@ use anchor_lang::{
     Lamports,
 };
 
-/// Accounts needed to update an account to have the minimum balance 
+/// Accounts needed to update an account to have the minimum balance
 /// required to be rent exempt.
 pub struct UpdateAccountLamportsToMinimumBalanceAccountInfos<'info> {
     /// CHECK: Source account to update.
