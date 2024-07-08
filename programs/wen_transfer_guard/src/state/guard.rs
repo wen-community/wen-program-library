@@ -296,18 +296,18 @@ impl GuardV1 {
     /// Enforce all rules set in the guard.
     ///
     /// ### Arguments
-    /// 
+    ///
     /// * `metadata` - The mint metadata.
     /// * `amount` - The amount of tokens being transferred.
     /// * `caller_program_id` - The program id of the caller program.
-    /// 
+    ///
     /// ### Errors
-    /// 
+    ///
     /// * `CpiRuleEnforcementFailed` - The caller program id is not in the allow list or is in the deny list.
     /// * `TransferAmountRuleEnforceFailed` - The transfer amount rule was not met.
     /// * `MetadataFieldDoesNotExist` - The field does not exist in the metadata.
     /// * `MetadataFieldDoesNotPass` - The field value does not pass the restriction.
-    /// 
+    ///
     pub fn enforce_rules(
         &self,
         metadata: &Vec<(String, String)>,
