@@ -158,6 +158,10 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let mint_data = StateWithExtensions::<Token2022Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
+    if args.amount <= 0 {
+        return Ok(());
+    }
+
     // get all creators from metadata Vec(String, String), only royalty_basis_points needs to be removed
     let creators = metadata
         .additional_metadata
