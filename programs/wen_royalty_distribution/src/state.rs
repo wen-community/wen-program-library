@@ -26,6 +26,8 @@ pub struct DistributionAccount {
 
 pub const CLAIM_DATA_OFFSET: usize = 8 + 1 + 32 + 32;
 
+pub const DISTRIBUTION_ACCOUNT_MIN_LEN: usize = DistributionAccount::INIT_SPACE + 8;
+
 impl DistributionAccount {
     pub const VERSION: u8 = 1;
     pub fn initialize_account_data(&mut self, group_mint: Pubkey, payment_mint: Pubkey) {
