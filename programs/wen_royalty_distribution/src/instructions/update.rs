@@ -18,7 +18,8 @@ use anchor_spl::{
 };
 
 use crate::{
-    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET, ROYALTY_BASIS_POINTS_FIELD,
+    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET,
+    DISTRIBUTION_ACCOUNT_MIN_LEN, ROYALTY_BASIS_POINTS_FIELD,
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -231,8 +232,11 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let serialized_new_data =
         bincode::serialize(&new_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
 
-    ctx.accounts
-        .realloc_distribution_account(CLAIM_DATA_OFFSET + serialized_new_data.len())?;
+    let new_data_size = std::cmp::max(
+        CLAIM_DATA_OFFSET + serialized_new_data.len(),
+        DISTRIBUTION_ACCOUNT_MIN_LEN,
+    );
+    ctx.accounts.realloc_distribution_account(new_data_size)?;
 
     // Update the account data
     ctx.accounts.distribution_account.claim_data = new_data;

@@ -7,7 +7,7 @@ use anchor_spl::{
 
 use crate::{
     get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount,
-    DistributionErrors, CLAIM_DATA_OFFSET,
+    DistributionErrors, CLAIM_DATA_OFFSET, DISTRIBUTION_ACCOUNT_MIN_LEN,
 };
 
 #[derive(Accounts)]
@@ -119,7 +119,10 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
     let serialized_new_data =
         bincode::serialize(&claim_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
 
-    let new_data_size = CLAIM_DATA_OFFSET + serialized_new_data.len();
+    let new_data_size = std::cmp::max(
+        CLAIM_DATA_OFFSET + serialized_new_data.len(),
+        DISTRIBUTION_ACCOUNT_MIN_LEN,
+    );
 
     if new_data_size < current_len {
         ctx.accounts.realloc_distribution_data(new_data_size)?;
