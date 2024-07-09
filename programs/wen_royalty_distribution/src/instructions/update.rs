@@ -130,16 +130,18 @@ impl UpdateDistribution<'_> {
 
         match new_data_size.cmp(&current_len) {
             Ordering::Greater => {
-                let space_increase = new_data_size - current_len;
-                let rent_increase = Rent::get()?.minimum_balance(space_increase);
-
+                let rent_increase = Rent::get()?
+                    .minimum_balance(new_data_size)
+                    .checked_sub(Rent::get()?.minimum_balance(current_len))
+                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
                 account_info.realloc(new_data_size, false)?;
                 self.transfer_sol(rent_increase)?;
             }
             Ordering::Less => {
-                let space_decrease = current_len - new_data_size;
-                let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
-
+                let rent_decrease = Rent::get()?
+                    .minimum_balance(current_len)
+                    .checked_sub(Rent::get()?.minimum_balance(new_data_size))
+                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
                 account_info.sub_lamports(rent_decrease)?;
                 self.authority.add_lamports(rent_decrease)?;
                 account_info.realloc(new_data_size, false)?;
