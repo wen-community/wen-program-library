@@ -77,8 +77,8 @@ impl ClaimDistribution<'_> {
     pub fn realloc_distribution_data(&self, new_data_size: usize) -> Result<()> {
         let account_info = self.distribution.to_account_info();
         let current_len = account_info.data_len();
-        let space_decrease = current_len - new_data_size;
-        let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
+        let rent_decrease =
+            Rent::get()?.minimum_balance(current_len) - Rent::get()?.minimum_balance(new_data_size);
         account_info.sub_lamports(rent_decrease)?;
         self.creator.to_account_info().add_lamports(rent_decrease)?;
         account_info.realloc(new_data_size, false)?;
