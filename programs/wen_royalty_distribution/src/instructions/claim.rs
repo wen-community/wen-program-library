@@ -116,7 +116,7 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
     if new_data_size < current_len {
         let account_info = ctx.accounts.distribution.to_account_info();
         let current_len = account_info.data_len();
-        let space_decrease = current_len - new_data_size;
+
         let rent_decrease = Rent::get()?
             .minimum_balance(current_len)
             .checked_sub(Rent::get()?.minimum_balance(new_data_size))

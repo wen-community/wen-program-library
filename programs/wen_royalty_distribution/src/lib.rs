@@ -20,7 +20,7 @@ pub mod wen_royalty_distribution {
     /// Initializes a new distribution account.
     pub fn initialize_distribution(
         ctx: Context<InitializeDistribution>,
-        payment_mint: String,
+        payment_mint: Pubkey,
     ) -> Result<()> {
         instructions::initialize::handler(ctx, payment_mint)
     }
