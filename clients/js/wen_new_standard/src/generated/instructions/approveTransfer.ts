@@ -10,8 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -33,7 +35,11 @@ import {
   type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export type ApproveTransferInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -139,6 +145,188 @@ export function getApproveTransferInstructionDataCodec(): Codec<
     getApproveTransferInstructionDataEncoder(),
     getApproveTransferInstructionDataDecoder()
   );
+}
+
+export type ApproveTransferAsyncInput<
+  TAccountPayer extends string = string,
+  TAccountAuthority extends string = string,
+  TAccountMint extends string = string,
+  TAccountApproveAccount extends string = string,
+  TAccountPaymentMint extends string = string,
+  TAccountDistributionTokenAccount extends string = string,
+  TAccountAuthorityTokenAccount extends string = string,
+  TAccountDistributionAccount extends string = string,
+  TAccountSystemProgram extends string = string,
+  TAccountDistributionProgram extends string = string,
+  TAccountTokenProgram extends string = string,
+  TAccountPaymentTokenProgram extends string = string,
+> = {
+  payer: TransactionSigner<TAccountPayer>;
+  authority: TransactionSigner<TAccountAuthority>;
+  mint: Address<TAccountMint>;
+  approveAccount?: Address<TAccountApproveAccount>;
+  paymentMint: Address<TAccountPaymentMint>;
+  distributionTokenAccount?: Address<TAccountDistributionTokenAccount>;
+  authorityTokenAccount?: Address<TAccountAuthorityTokenAccount>;
+  distributionAccount: Address<TAccountDistributionAccount>;
+  systemProgram?: Address<TAccountSystemProgram>;
+  distributionProgram?: Address<TAccountDistributionProgram>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+  paymentTokenProgram?: Address<TAccountPaymentTokenProgram>;
+  buyAmount: ApproveTransferInstructionDataArgs['buyAmount'];
+};
+
+export async function getApproveTransferInstructionAsync<
+  TAccountPayer extends string,
+  TAccountAuthority extends string,
+  TAccountMint extends string,
+  TAccountApproveAccount extends string,
+  TAccountPaymentMint extends string,
+  TAccountDistributionTokenAccount extends string,
+  TAccountAuthorityTokenAccount extends string,
+  TAccountDistributionAccount extends string,
+  TAccountSystemProgram extends string,
+  TAccountDistributionProgram extends string,
+  TAccountTokenProgram extends string,
+  TAccountPaymentTokenProgram extends string,
+>(
+  input: ApproveTransferAsyncInput<
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountApproveAccount,
+    TAccountPaymentMint,
+    TAccountDistributionTokenAccount,
+    TAccountAuthorityTokenAccount,
+    TAccountDistributionAccount,
+    TAccountSystemProgram,
+    TAccountDistributionProgram,
+    TAccountTokenProgram,
+    TAccountPaymentTokenProgram
+  >
+): Promise<
+  ApproveTransferInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountApproveAccount,
+    TAccountPaymentMint,
+    TAccountDistributionTokenAccount,
+    TAccountAuthorityTokenAccount,
+    TAccountDistributionAccount,
+    TAccountSystemProgram,
+    TAccountDistributionProgram,
+    TAccountTokenProgram,
+    TAccountPaymentTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    authority: { value: input.authority ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: false },
+    approveAccount: { value: input.approveAccount ?? null, isWritable: true },
+    paymentMint: { value: input.paymentMint ?? null, isWritable: false },
+    distributionTokenAccount: {
+      value: input.distributionTokenAccount ?? null,
+      isWritable: true,
+    },
+    authorityTokenAccount: {
+      value: input.authorityTokenAccount ?? null,
+      isWritable: true,
+    },
+    distributionAccount: {
+      value: input.distributionAccount ?? null,
+      isWritable: true,
+    },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+    distributionProgram: {
+      value: input.distributionProgram ?? null,
+      isWritable: false,
+    },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    paymentTokenProgram: {
+      value: input.paymentTokenProgram ?? null,
+      isWritable: false,
+    },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Original args.
+  const args = { ...input };
+
+  // Resolve default values.
+  if (!accounts.approveAccount.value) {
+    accounts.approveAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([
+            97, 112, 112, 114, 111, 118, 101, 45, 97, 99, 99, 111, 117, 110,
+            116,
+          ])
+        ),
+        getAddressEncoder().encode(expectAddress(accounts.mint.value)),
+      ],
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+  if (!accounts.distributionProgram.value) {
+    accounts.distributionProgram.value =
+      'diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay' as Address<'diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay'>;
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.payer),
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.approveAccount),
+      getAccountMeta(accounts.paymentMint),
+      getAccountMeta(accounts.distributionTokenAccount),
+      getAccountMeta(accounts.authorityTokenAccount),
+      getAccountMeta(accounts.distributionAccount),
+      getAccountMeta(accounts.systemProgram),
+      getAccountMeta(accounts.distributionProgram),
+      getAccountMeta(accounts.tokenProgram),
+      getAccountMeta(accounts.paymentTokenProgram),
+    ],
+    programAddress,
+    data: getApproveTransferInstructionDataEncoder().encode(
+      args as ApproveTransferInstructionDataArgs
+    ),
+  } as ApproveTransferInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountApproveAccount,
+    TAccountPaymentMint,
+    TAccountDistributionTokenAccount,
+    TAccountAuthorityTokenAccount,
+    TAccountDistributionAccount,
+    TAccountSystemProgram,
+    TAccountDistributionProgram,
+    TAccountTokenProgram,
+    TAccountPaymentTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type ApproveTransferInput<

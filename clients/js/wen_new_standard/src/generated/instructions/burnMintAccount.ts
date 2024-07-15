@@ -10,8 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   transformEncoder,
@@ -32,7 +34,11 @@ import {
   type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export type BurnMintAccountInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -102,6 +108,120 @@ export function getBurnMintAccountInstructionDataCodec(): Codec<
     getBurnMintAccountInstructionDataEncoder(),
     getBurnMintAccountInstructionDataDecoder()
   );
+}
+
+export type BurnMintAccountAsyncInput<
+  TAccountPayer extends string = string,
+  TAccountUser extends string = string,
+  TAccountMint extends string = string,
+  TAccountMintTokenAccount extends string = string,
+  TAccountManager extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  payer: TransactionSigner<TAccountPayer>;
+  user: TransactionSigner<TAccountUser>;
+  mint: Address<TAccountMint>;
+  mintTokenAccount?: Address<TAccountMintTokenAccount>;
+  manager?: Address<TAccountManager>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+};
+
+export async function getBurnMintAccountInstructionAsync<
+  TAccountPayer extends string,
+  TAccountUser extends string,
+  TAccountMint extends string,
+  TAccountMintTokenAccount extends string,
+  TAccountManager extends string,
+  TAccountTokenProgram extends string,
+>(
+  input: BurnMintAccountAsyncInput<
+    TAccountPayer,
+    TAccountUser,
+    TAccountMint,
+    TAccountMintTokenAccount,
+    TAccountManager,
+    TAccountTokenProgram
+  >
+): Promise<
+  BurnMintAccountInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountUser,
+    TAccountMint,
+    TAccountMintTokenAccount,
+    TAccountManager,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    user: { value: input.user ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: true },
+    mintTokenAccount: {
+      value: input.mintTokenAccount ?? null,
+      isWritable: true,
+    },
+    manager: { value: input.manager ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Resolve default values.
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+  if (!accounts.mintTokenAccount.value) {
+    accounts.mintTokenAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getAddressEncoder().encode(expectAddress(accounts.user.value)),
+        getAddressEncoder().encode(expectAddress(accounts.tokenProgram.value)),
+        getAddressEncoder().encode(expectAddress(accounts.mint.value)),
+      ],
+    });
+  }
+  if (!accounts.manager.value) {
+    accounts.manager.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([109, 97, 110, 97, 103, 101, 114])
+        ),
+      ],
+    });
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.payer),
+      getAccountMeta(accounts.user),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.mintTokenAccount),
+      getAccountMeta(accounts.manager),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getBurnMintAccountInstructionDataEncoder().encode({}),
+  } as BurnMintAccountInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountUser,
+    TAccountMint,
+    TAccountMintTokenAccount,
+    TAccountManager,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type BurnMintAccountInput<

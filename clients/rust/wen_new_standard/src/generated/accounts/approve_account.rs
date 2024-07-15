@@ -52,3 +52,11 @@ impl anchor_lang::Owner for ApproveAccount {
         crate::WEN_NEW_STANDARD_ID
     }
 }
+
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::IdlBuild for ApproveAccount {}
+
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::Discriminator for ApproveAccount {
+    const DISCRIMINATOR: [u8; 8] = [0; 8];
+}

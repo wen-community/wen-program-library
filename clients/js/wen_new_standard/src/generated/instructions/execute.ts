@@ -10,8 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -29,7 +31,11 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export type ExecuteInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -97,6 +103,111 @@ export function getExecuteInstructionDataCodec(): Codec<
     getExecuteInstructionDataEncoder(),
     getExecuteInstructionDataDecoder()
   );
+}
+
+export type ExecuteAsyncInput<
+  TAccountSourceAccount extends string = string,
+  TAccountMint extends string = string,
+  TAccountDestinationAccount extends string = string,
+  TAccountOwnerDelegate extends string = string,
+  TAccountExtraMetasAccount extends string = string,
+> = {
+  sourceAccount: Address<TAccountSourceAccount>;
+  mint: Address<TAccountMint>;
+  destinationAccount: Address<TAccountDestinationAccount>;
+  ownerDelegate: Address<TAccountOwnerDelegate>;
+  extraMetasAccount?: Address<TAccountExtraMetasAccount>;
+  amount: ExecuteInstructionDataArgs['amount'];
+};
+
+export async function getExecuteInstructionAsync<
+  TAccountSourceAccount extends string,
+  TAccountMint extends string,
+  TAccountDestinationAccount extends string,
+  TAccountOwnerDelegate extends string,
+  TAccountExtraMetasAccount extends string,
+>(
+  input: ExecuteAsyncInput<
+    TAccountSourceAccount,
+    TAccountMint,
+    TAccountDestinationAccount,
+    TAccountOwnerDelegate,
+    TAccountExtraMetasAccount
+  >
+): Promise<
+  ExecuteInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountSourceAccount,
+    TAccountMint,
+    TAccountDestinationAccount,
+    TAccountOwnerDelegate,
+    TAccountExtraMetasAccount
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    sourceAccount: { value: input.sourceAccount ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: false },
+    destinationAccount: {
+      value: input.destinationAccount ?? null,
+      isWritable: false,
+    },
+    ownerDelegate: { value: input.ownerDelegate ?? null, isWritable: false },
+    extraMetasAccount: {
+      value: input.extraMetasAccount ?? null,
+      isWritable: false,
+    },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Original args.
+  const args = { ...input };
+
+  // Resolve default values.
+  if (!accounts.extraMetasAccount.value) {
+    accounts.extraMetasAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([
+            101, 120, 116, 114, 97, 45, 97, 99, 99, 111, 117, 110, 116, 45, 109,
+            101, 116, 97, 115,
+          ])
+        ),
+        getAddressEncoder().encode(expectAddress(accounts.mint.value)),
+      ],
+    });
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.sourceAccount),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.destinationAccount),
+      getAccountMeta(accounts.ownerDelegate),
+      getAccountMeta(accounts.extraMetasAccount),
+    ],
+    programAddress,
+    data: getExecuteInstructionDataEncoder().encode(
+      args as ExecuteInstructionDataArgs
+    ),
+  } as ExecuteInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountSourceAccount,
+    TAccountMint,
+    TAccountDestinationAccount,
+    TAccountOwnerDelegate,
+    TAccountExtraMetasAccount
+  >;
+
+  return instruction;
 }
 
 export type ExecuteInput<

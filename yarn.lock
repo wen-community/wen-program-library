@@ -240,121 +240,122 @@
   resolved "https://registry.yarnpkg.com/@hutson/parse-repository-url/-/parse-repository-url-5.0.0.tgz#bf344cc75136039bc41bcf5d1ddbcb40405fca3b"
   integrity sha512-e5+YUKENATs1JgYHMzTr2MW/NDcXGfYFAuOQU8gJgF/kEh4EqKgfGrfLI67bMD4tbhZVlkigz/9YYwWcbOFthg==
 
-"@kinobi-so/errors@0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/errors/-/errors-0.20.4.tgz#d15c65c0eb9f8d70dbc67648dd4403056d608ef3"
-  integrity sha512-5GWQPiqLOngZFxMCTnF0rGsCc9LXUHXX+zBzbXBjhsdyQm8OSFpVFZtwiBkF+jsOBQPrLv26dFlkWJgBiq2jXQ==
+"@kinobi-so/errors@0.20.6":
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/errors/-/errors-0.20.6.tgz#1b66534e2d25004f20e267f3a89d44a49a4462e1"
+  integrity sha512-bxMfPbTU1JjhQzd1KzBzF9aKGpMwTxqkNA4ALdu0HLbNe6gTpZ+XF//a/Sdhcn6MZ48KAQX9siKfqVutgKjdzg==
   dependencies:
-    "@kinobi-so/node-types" "0.20.4"
+    "@kinobi-so/node-types" "0.20.6"
     chalk "^5.3.0"
     commander "^12.0.0"
 
-"@kinobi-so/node-types@0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/node-types/-/node-types-0.20.4.tgz#0cfeafedebd3343df20ff6098a4f8e457df31737"
-  integrity sha512-kFFXMC9nSemDj2itNeSj4VR9R6QTz0z7v3niwxHHq9IJ4TFPwpcZAt7aH++SGlCUeHG3iOHC2ZngFMhv+Ks/Fw==
-
-"@kinobi-so/nodes-from-anchor@^0.20.6":
+"@kinobi-so/node-types@0.20.6":
   version "0.20.6"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/nodes-from-anchor/-/nodes-from-anchor-0.20.6.tgz#725429c2f7c1acb2048cc41a99b458ac842d99b9"
-  integrity sha512-2ad1ILvnul1PqqlCkQ2uii9KCgcR9ne5jxXsxiTKUHhab6LmI6sCTR15FO4T+ZzgMVsvAe3ySrOmgDICUHr4eA==
+  resolved "https://registry.yarnpkg.com/@kinobi-so/node-types/-/node-types-0.20.6.tgz#011db6f1ccdc0b3fbbd3cea33e4297275941e63f"
+  integrity sha512-gStEfb52LAuK/RnfJGn426iECgobAhPAxlbcHIxx9BfuauF8Q57DfFFYUhCBS94/Se/KCtC4W+5dQjkTI8WViw==
+
+"@kinobi-so/nodes-from-anchor@0.20.8", "@kinobi-so/nodes-from-anchor@^0.20.8":
+  version "0.20.8"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/nodes-from-anchor/-/nodes-from-anchor-0.20.8.tgz#44d399afe24df1c71f3ab67fd894b002983d86c7"
+  integrity sha512-TJtHixtIA6uVk2/syPHTwzlEyRMZYH1GeCv9D3uhDo17SxUl2gYTnG+Q5FXDuzNWtUFOYYvW8l0t9p7MzVbfmQ==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/visitors" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/visitors" "0.20.6"
     "@noble/hashes" "^1.4.0"
 
-"@kinobi-so/nodes@0.20.4", "@kinobi-so/nodes@^0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/nodes/-/nodes-0.20.4.tgz#79d3413434acf00dfee9dd0809fe13199018d789"
-  integrity sha512-zeGOOdOaKbMxqiZWNJx/JVGVWp4mzCkwDp3bG4J+x9+mQ1nQcyuPvHXeHmtBXa9IWp7AScXlyn5HddVzK/8ZRQ==
+"@kinobi-so/nodes@0.20.6", "@kinobi-so/nodes@^0.20.6":
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/nodes/-/nodes-0.20.6.tgz#ae0922661beb6556d7455af226e7b8a3b3e96e8c"
+  integrity sha512-lKP+fj/6wvJp3dkwkhQRhFEgM6IlAufqOAU1A/sSi2Ciou7OxdqFJ98c14AFOMYBKpWqNOh5zUTtxBUyGDe9Sg==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/node-types" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/node-types" "0.20.6"
 
-"@kinobi-so/renderers-core@0.20.4", "@kinobi-so/renderers-core@^0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-core/-/renderers-core-0.20.4.tgz#be21b77669b677aa5bd7a00454d633121aeae3bb"
-  integrity sha512-feb0Fsw7UIj14JZ2LmHYyosT07K/Jrs7CvNYD2YF4g6WQz9mmy1l8Fa+gpVtoDdSHvfXrgzv8193p0QkRRBWmA==
+"@kinobi-so/renderers-core@0.20.6", "@kinobi-so/renderers-core@^0.20.6":
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-core/-/renderers-core-0.20.6.tgz#eb8eaeba75a0a85bb13c5a9d4a8124878090c8de"
+  integrity sha512-GdgkwbipQK/Vb4z+08eB3j81oZHWcD8jKHRZzOuMBSpT8aVZIes1Nxy8FfoJYFppmjWvRaGg/X4YKAsLXZV56Q==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/visitors-core" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/visitors-core" "0.20.6"
 
-"@kinobi-so/renderers-js-umi@0.20.5":
-  version "0.20.5"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-js-umi/-/renderers-js-umi-0.20.5.tgz#a271018e7df5496afbffd8d18ed498ba89e5cbfe"
-  integrity sha512-3rP7q8kATrVOZAHvJra6ES9jB7QmDkrMyMFMaD4PBhL+GkIiRDbcL09xvVFAStTTuaeGNTjoVfa31Wd6TPnJVw==
+"@kinobi-so/renderers-js-umi@0.20.8":
+  version "0.20.8"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-js-umi/-/renderers-js-umi-0.20.8.tgz#10aefd2dca406dfa4007a85800746c19a8862168"
+  integrity sha512-R/ilKcAPAZtmJlOHMY7egh61LOVkphAIeOvSiofV7OFqQgpF8Sp/fAep60F7uOOOwl+yCUHEprrITs7cgRel9A==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/renderers-core" "0.20.4"
-    "@kinobi-so/validators" "0.20.4"
-    "@kinobi-so/visitors-core" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/renderers-core" "0.20.6"
+    "@kinobi-so/validators" "0.20.6"
+    "@kinobi-so/visitors-core" "0.20.6"
     "@solana/codecs-strings" tp2
     nunjucks "^3.2.4"
     prettier "^3.2.5"
 
-"@kinobi-so/renderers-js@0.20.8":
-  version "0.20.8"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-js/-/renderers-js-0.20.8.tgz#6984d4633f31887da72f5e574038c49e3cb00cbf"
-  integrity sha512-U7mcnYXcZRPbONAI8bXPAedp4J2/X3/b63PkR9Cc/NLBQNqtz4cde/u0vB2JD12bHLlcgwahFKOcbSinx4aO7A==
+"@kinobi-so/renderers-js@0.20.11":
+  version "0.20.11"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-js/-/renderers-js-0.20.11.tgz#76184b1c027feefda538b1930a24a31637b4eb38"
+  integrity sha512-4MxpJ3gTQKvzIaeefHwo1bkWoopJJAvjVjwJCag7s2lxBWJ+NC1Dgo4z5BnTyDBoP5jJbXixRDKRc1p+/BW5jQ==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/renderers-core" "0.20.4"
-    "@kinobi-so/visitors-core" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/nodes-from-anchor" "0.20.8"
+    "@kinobi-so/renderers-core" "0.20.6"
+    "@kinobi-so/visitors-core" "0.20.6"
     "@solana/codecs-strings" tp2
     nunjucks "^3.2.4"
     prettier "^3.3.0"
 
-"@kinobi-so/renderers-rust@0.20.8":
-  version "0.20.8"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-rust/-/renderers-rust-0.20.8.tgz#a35952a01bdf8ab3bd38909f12b927f5aa5cdf09"
-  integrity sha512-9lM5rfYgYJAoYhEYdPUpGkxGLx9r6QRkXI9S/+6/Q15HCSHlarMkX1LTGNsHxh+zyaVleedAewJuSM3Z3bjG9w==
+"@kinobi-so/renderers-rust@0.20.12":
+  version "0.20.12"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers-rust/-/renderers-rust-0.20.12.tgz#19c9491ab1523075db411a92779aee645b5ff41f"
+  integrity sha512-R47AkigrmRxsB1rCO88J27jxjwqBKj9YnEtk16h9tK4pEN7iz3CyD1vGU9hoDKxa+kLLnhkL66bEVKwKWQCa7A==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/renderers-core" "0.20.4"
-    "@kinobi-so/visitors-core" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/renderers-core" "0.20.6"
+    "@kinobi-so/visitors-core" "0.20.6"
     "@solana/codecs-strings" tp2
     nunjucks "^3.2.4"
 
-"@kinobi-so/renderers@^0.20.9":
-  version "0.20.9"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers/-/renderers-0.20.9.tgz#8d5fe68b2b639fd20bb3decb8292db58b3e48d44"
-  integrity sha512-UpSov5LCR54AkNhAHjrkrD/l3fd7yG650jIu0hPUVUI+IaxcQ8dpnXwTpUlg1MK616eDYSJLYlwrUkiujQ4y6w==
+"@kinobi-so/renderers@^0.20.14":
+  version "0.20.14"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/renderers/-/renderers-0.20.14.tgz#f0fa59f5e729e8e391c487d4569c9135302c7bd4"
+  integrity sha512-144dvDWspQs9RZmEdfSgUjkjZ1l9Y+jH4yhw9OnzLMuhAzxTS/0od7ILGmCF2wY2L5RRp4xBfMkqadmI1w814Q==
   dependencies:
-    "@kinobi-so/renderers-js" "0.20.8"
-    "@kinobi-so/renderers-js-umi" "0.20.5"
-    "@kinobi-so/renderers-rust" "0.20.8"
+    "@kinobi-so/renderers-js" "0.20.11"
+    "@kinobi-so/renderers-js-umi" "0.20.8"
+    "@kinobi-so/renderers-rust" "0.20.12"
 
-"@kinobi-so/validators@0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/validators/-/validators-0.20.4.tgz#ddb0c29dce84328b25821e5b8809cc6221b2f05b"
-  integrity sha512-PyhfM1fgsAPrDgMOB1VjvW+CytPTtLMLB0bSCU+0GRm8IoZ8pj74cIcB5XPjai3N5dU7kDMYz1nZLnCFsoXfLg==
+"@kinobi-so/validators@0.20.6":
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/validators/-/validators-0.20.6.tgz#5c97e2891faba6e6eda8b2b94d5c86e13f5a4638"
+  integrity sha512-KSJ3sJU83n60KlTvL5UGE1p1PMAgvCz4A0N6XbX0RT1Rcm9LZoqIpdebDzkQ2wJTLznjwP2CuCtpHcNfejbwWg==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/visitors-core" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/visitors-core" "0.20.6"
 
-"@kinobi-so/visitors-core@0.20.4", "@kinobi-so/visitors-core@^0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/visitors-core/-/visitors-core-0.20.4.tgz#386c0ad0305e8c6c21ad2167bd3101dfbb31cd0d"
-  integrity sha512-l4LCAOKL35tXn4jDZ4/gNdBeJYB5ACE4lgKQxL6oyII36hPe8pwCihIpjzHKDm9S93o9pKFN76ay5S3NnWANRw==
+"@kinobi-so/visitors-core@0.20.6", "@kinobi-so/visitors-core@^0.20.6":
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/visitors-core/-/visitors-core-0.20.6.tgz#1bfd75412cb8df68b5812a6494884152fe96047e"
+  integrity sha512-V8Zosr40x38LMiMzGmJLvsglhlHJ7GPvLgAfGU4+7D8EhsFI5BXLIdQd55cbQE64Y1/2iG7jKDoEak0U+sy8Tw==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
     json-stable-stringify "^1.1.1"
 
-"@kinobi-so/visitors@0.20.4", "@kinobi-so/visitors@^0.20.4":
-  version "0.20.4"
-  resolved "https://registry.yarnpkg.com/@kinobi-so/visitors/-/visitors-0.20.4.tgz#41610829e5c88a7e233fc4d1b6e104f178a2a93e"
-  integrity sha512-sr+1qiU4sN5OfrVI//RqqHMKl5VapugkO3f/MHXGmFBDWANXJCIMmAXMMARzk/h6v76zswJ+NOHe0C3FLYb1xg==
+"@kinobi-so/visitors@0.20.6", "@kinobi-so/visitors@^0.20.6":
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/@kinobi-so/visitors/-/visitors-0.20.6.tgz#0e39b3b241257afda7423e3428ff9618a8a95bf6"
+  integrity sha512-EZOp83sWEZoS+J+fb5ipHQXagUovGVCdaJrMIlYZEMe9tAa5oZF8d0skWg6T2AeP8SHCNnwW0nRA2/K90ltjWA==
   dependencies:
-    "@kinobi-so/errors" "0.20.4"
-    "@kinobi-so/nodes" "0.20.4"
-    "@kinobi-so/visitors-core" "0.20.4"
+    "@kinobi-so/errors" "0.20.6"
+    "@kinobi-so/nodes" "0.20.6"
+    "@kinobi-so/visitors-core" "0.20.6"
 
 "@noble/curves@^1.4.0":
   version "1.4.0"
@@ -2065,9 +2066,9 @@ prettier@^2.6.2:
   integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
 
 prettier@^3.2.5, prettier@^3.3.0:
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.3.2.tgz#03ff86dc7c835f2d2559ee76876a3914cec4a90a"
-  integrity sha512-rAVeHYMcv8ATV5d508CFdn+8/pHPpXeIid1DdrPwXnaAdH7cqjVbpJaT5eq4yRAFU/lsbwYwSF/n5iNrdJHPQA==
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.3.3.tgz#30c54fe0be0d8d12e6ae61dbb10109ea00d53105"
+  integrity sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==
 
 punycode@^2.1.0:
   version "2.3.1"

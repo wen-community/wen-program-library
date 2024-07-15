@@ -36,7 +36,7 @@ export type WenNewStandardError =
 let wenNewStandardErrorMessages:
   | Record<WenNewStandardError, string>
   | undefined;
-if (__DEV__) {
+if (process.env.NODE_ENV !== 'production') {
   wenNewStandardErrorMessages = {
     [WEN_NEW_STANDARD_ERROR__CREATOR_ADDRESS_INVALID]: `The Address you provided is invalid. Please provide a valid address.`,
     [WEN_NEW_STANDARD_ERROR__CREATOR_SHARE_INVALID]: `Creators shares must add up to 100.`,
@@ -52,11 +52,11 @@ if (__DEV__) {
 export function getWenNewStandardErrorMessage(
   code: WenNewStandardError
 ): string {
-  if (__DEV__) {
+  if (process.env.NODE_ENV !== 'production') {
     return (wenNewStandardErrorMessages as Record<WenNewStandardError, string>)[
       code
     ];
   }
 
-  return 'Error message not available in production bundles. Compile with `__DEV__` set to true to see more information.';
+  return 'Error message not available in production bundles.';
 }

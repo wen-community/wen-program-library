@@ -10,8 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   transformEncoder,
@@ -32,7 +34,11 @@ import {
   type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 import {
   getUpdateRoyaltiesArgsDecoder,
   getUpdateRoyaltiesArgsEncoder,
@@ -116,6 +122,124 @@ export function getAddRoyaltiesInstructionDataCodec(): Codec<
     getAddRoyaltiesInstructionDataEncoder(),
     getAddRoyaltiesInstructionDataDecoder()
   );
+}
+
+export type AddRoyaltiesAsyncInput<
+  TAccountPayer extends string = string,
+  TAccountAuthority extends string = string,
+  TAccountMint extends string = string,
+  TAccountExtraMetasAccount extends string = string,
+  TAccountSystemProgram extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  payer: TransactionSigner<TAccountPayer>;
+  authority: TransactionSigner<TAccountAuthority>;
+  mint: Address<TAccountMint>;
+  extraMetasAccount?: Address<TAccountExtraMetasAccount>;
+  systemProgram?: Address<TAccountSystemProgram>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+  args: AddRoyaltiesInstructionDataArgs['args'];
+};
+
+export async function getAddRoyaltiesInstructionAsync<
+  TAccountPayer extends string,
+  TAccountAuthority extends string,
+  TAccountMint extends string,
+  TAccountExtraMetasAccount extends string,
+  TAccountSystemProgram extends string,
+  TAccountTokenProgram extends string,
+>(
+  input: AddRoyaltiesAsyncInput<
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountExtraMetasAccount,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >
+): Promise<
+  AddRoyaltiesInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountExtraMetasAccount,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    authority: { value: input.authority ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: true },
+    extraMetasAccount: {
+      value: input.extraMetasAccount ?? null,
+      isWritable: true,
+    },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Original args.
+  const args = { ...input };
+
+  // Resolve default values.
+  if (!accounts.extraMetasAccount.value) {
+    accounts.extraMetasAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([
+            101, 120, 116, 114, 97, 45, 97, 99, 99, 111, 117, 110, 116, 45, 109,
+            101, 116, 97, 115,
+          ])
+        ),
+        getAddressEncoder().encode(expectAddress(accounts.mint.value)),
+      ],
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.payer),
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.extraMetasAccount),
+      getAccountMeta(accounts.systemProgram),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getAddRoyaltiesInstructionDataEncoder().encode(
+      args as AddRoyaltiesInstructionDataArgs
+    ),
+  } as AddRoyaltiesInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountMint,
+    TAccountExtraMetasAccount,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type AddRoyaltiesInput<

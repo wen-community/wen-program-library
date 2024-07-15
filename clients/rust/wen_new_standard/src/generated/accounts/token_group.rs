@@ -69,3 +69,11 @@ impl anchor_lang::Owner for TokenGroup {
         crate::WEN_NEW_STANDARD_ID
     }
 }
+
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::IdlBuild for TokenGroup {}
+
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::Discriminator for TokenGroup {
+    const DISCRIMINATOR: [u8; 8] = [0; 8];
+}

@@ -10,8 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   transformEncoder,
@@ -31,7 +33,11 @@ import {
   type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export type FreezeMintAccountInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -101,6 +107,123 @@ export function getFreezeMintAccountInstructionDataCodec(): Codec<
     getFreezeMintAccountInstructionDataEncoder(),
     getFreezeMintAccountInstructionDataDecoder()
   );
+}
+
+export type FreezeMintAccountAsyncInput<
+  TAccountUser extends string = string,
+  TAccountDelegateAuthority extends string = string,
+  TAccountMint extends string = string,
+  TAccountMintTokenAccount extends string = string,
+  TAccountManager extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  user: Address<TAccountUser>;
+  delegateAuthority: TransactionSigner<TAccountDelegateAuthority>;
+  mint: Address<TAccountMint>;
+  mintTokenAccount?: Address<TAccountMintTokenAccount>;
+  manager?: Address<TAccountManager>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+};
+
+export async function getFreezeMintAccountInstructionAsync<
+  TAccountUser extends string,
+  TAccountDelegateAuthority extends string,
+  TAccountMint extends string,
+  TAccountMintTokenAccount extends string,
+  TAccountManager extends string,
+  TAccountTokenProgram extends string,
+>(
+  input: FreezeMintAccountAsyncInput<
+    TAccountUser,
+    TAccountDelegateAuthority,
+    TAccountMint,
+    TAccountMintTokenAccount,
+    TAccountManager,
+    TAccountTokenProgram
+  >
+): Promise<
+  FreezeMintAccountInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountUser,
+    TAccountDelegateAuthority,
+    TAccountMint,
+    TAccountMintTokenAccount,
+    TAccountManager,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    user: { value: input.user ?? null, isWritable: false },
+    delegateAuthority: {
+      value: input.delegateAuthority ?? null,
+      isWritable: true,
+    },
+    mint: { value: input.mint ?? null, isWritable: false },
+    mintTokenAccount: {
+      value: input.mintTokenAccount ?? null,
+      isWritable: true,
+    },
+    manager: { value: input.manager ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Resolve default values.
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+  if (!accounts.mintTokenAccount.value) {
+    accounts.mintTokenAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getAddressEncoder().encode(expectAddress(accounts.user.value)),
+        getAddressEncoder().encode(expectAddress(accounts.tokenProgram.value)),
+        getAddressEncoder().encode(expectAddress(accounts.mint.value)),
+      ],
+    });
+  }
+  if (!accounts.manager.value) {
+    accounts.manager.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([109, 97, 110, 97, 103, 101, 114])
+        ),
+      ],
+    });
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.user),
+      getAccountMeta(accounts.delegateAuthority),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.mintTokenAccount),
+      getAccountMeta(accounts.manager),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getFreezeMintAccountInstructionDataEncoder().encode({}),
+  } as FreezeMintAccountInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountUser,
+    TAccountDelegateAuthority,
+    TAccountMint,
+    TAccountMintTokenAccount,
+    TAccountManager,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type FreezeMintAccountInput<
