@@ -2,7 +2,7 @@
 name = "wen_royalty_distribution"
 version = "0.2.0-alpha"
 description = "Distribution program for WNS royalties"
-edition = "2018"
+edition = "2021"
 
 [package.metadata.docs.rs]
 tags = ["wns", "alpha", "solana", "token_extensions"]
