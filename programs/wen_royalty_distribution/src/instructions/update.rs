@@ -123,36 +123,6 @@ impl UpdateDistribution<'_> {
         )?;
         Ok(())
     }
-
-    pub fn realloc_distribution_account(&self, new_data_size: usize) -> Result<()> {
-        let account_info = self.distribution_account.to_account_info();
-        let current_len = account_info.data_len();
-
-        match new_data_size.cmp(&current_len) {
-            Ordering::Greater => {
-                let rent_increase = Rent::get()?
-                    .minimum_balance(new_data_size)
-                    .checked_sub(Rent::get()?.minimum_balance(current_len))
-                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                account_info.realloc(new_data_size, false)?;
-                self.transfer_sol(rent_increase)?;
-            }
-            Ordering::Less => {
-                let rent_decrease = Rent::get()?
-                    .minimum_balance(current_len)
-                    .checked_sub(Rent::get()?.minimum_balance(new_data_size))
-                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                account_info.sub_lamports(rent_decrease)?;
-                self.authority.add_lamports(rent_decrease)?;
-                account_info.realloc(new_data_size, false)?;
-            }
-            Ordering::Equal => {
-                // Do nothing if sizes are equal
-            }
-        }
-
-        Ok(())
-    }
 }
 
 pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -> Result<()> {
@@ -238,11 +208,40 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let serialized_new_data =
         bincode::serialize(&new_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
 
+    let prospective_size = CLAIM_DATA_OFFSET + serialized_new_data.len();
+    
     let new_data_size = std::cmp::max(
-        CLAIM_DATA_OFFSET + serialized_new_data.len(),
+        prospective_size,
         DISTRIBUTION_ACCOUNT_MIN_LEN,
     );
-    ctx.accounts.realloc_distribution_account(new_data_size)?;
+
+    let mut total_sol_transfer = 0;
+    
+    let account_info = ctx.accounts.distribution_account.to_account_info();
+    let current_len = account_info.data_len();
+
+    match new_data_size.cmp(&current_len) {
+        Ordering::Greater => {
+            let rent_increase = Rent::get()?
+                .minimum_balance(new_data_size)
+                .checked_sub(Rent::get()?.minimum_balance(current_len))
+                .ok_or(DistributionErrors::ArithmeticOverflow)?;
+            account_info.realloc(new_data_size, false)?;
+            total_sol_transfer += rent_increase;
+        }
+        Ordering::Less => {
+            let rent_decrease = Rent::get()?
+                .minimum_balance(current_len)
+                .checked_sub(Rent::get()?.minimum_balance(new_data_size))
+                .ok_or(DistributionErrors::ArithmeticOverflow)?;
+            account_info.sub_lamports(rent_decrease)?;
+            ctx.accounts.authority.add_lamports(rent_decrease)?;
+            account_info.realloc(new_data_size, false)?;
+        }
+        Ordering::Equal => {
+            // Do nothing if sizes are equal
+        }
+    }
 
     // Update the account data
     ctx.accounts.distribution_account.claim_data = new_data;
@@ -251,9 +250,13 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let payment_mint_pubkey = payment_mint.key();
 
     if payment_mint_pubkey == Pubkey::default() {
-        ctx.accounts.transfer_sol(args.amount)?;
+        total_sol_transfer += args.amount;
     } else {
         ctx.accounts.transfer_royalty_amount(args.amount)?;
+    }
+
+    if total_sol_transfer > 0 {
+        ctx.accounts.transfer_sol(total_sol_transfer)?;
     }
 
     Ok(())
