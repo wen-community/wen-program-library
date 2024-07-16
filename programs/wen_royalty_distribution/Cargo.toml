@@ -24,5 +24,6 @@ anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-spl.workspace = true
 spl-transfer-hook-interface.workspace = true
 spl-tlv-account-resolution.workspace = true
+spl-type-length-value.workspace = true
 bincode = "1.3.3"
 serde = "1.0.203"

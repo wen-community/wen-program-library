@@ -15,7 +15,7 @@ use crate::{
     update_account_lamports_to_minimum_balance, ExtraAccountMetaListErrors, MetadataErrors,
     UpdateRoyaltiesArgs, META_LIST_ACCOUNT_SEED, ROYALTY_BASIS_POINTS_FIELD,
 };
-use crate::{verify_extra_meta_account, ID as WNS_PROGRAM_ID};
+use crate::{utils::*, ID as WNS_PROGRAM_ID};
 
 #[derive(Accounts)]
 #[instruction(args: UpdateRoyaltiesArgs)]
@@ -158,7 +158,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
         )?;
 
         // initialize the extra metas account
-        let metas = get_meta_list(get_approve_account_pda(mint.key()));
+        let metas = get_meta_list(get_approve_account_pda(mint_key));
         let mut data = extra_metas_account.try_borrow_mut_data()?;
         ExtraAccountMetaList::init::<ExecuteInstruction>(&mut data, &metas)?;
     } else {
