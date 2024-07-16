@@ -375,6 +375,10 @@ describe("wen_royalty_distribution", () => {
         let sellerPostBalance: number;
         let buyerPostBalance: number;
 
+        let distributionBeforeRent: number;
+        let distributionCurrentRent: number;
+        let distributionRentDiff: number;
+
         let sellerTokenAccountData: Account;
         let buyerTokenAccountData: Account;
 
@@ -391,6 +395,13 @@ describe("wen_royalty_distribution", () => {
             seller.publicKey,
             "confirmed"
           );
+          distributionBeforeRent =
+            await connection.getMinimumBalanceForRentExemption(
+              (
+                await connection.getAccountInfo(distribution, "confirmed")
+              ).data.length,
+              "confirmed"
+            );
 
           await wenWnsMarketplace.methods
             .buy({
@@ -429,9 +440,10 @@ describe("wen_royalty_distribution", () => {
               commitment: "confirmed",
             });
 
-          distributionPostBalance =
-            (await connection.getBalance(distribution, "confirmed")) -
-            distributionPreBalance;
+          distributionPostBalance = await connection.getBalance(
+            distribution,
+            "confirmed"
+          );
           buyerPostBalance = await connection.getBalance(
             buyer.publicKey,
             "confirmed"
@@ -439,6 +451,16 @@ describe("wen_royalty_distribution", () => {
           sellerPostBalance =
             (await connection.getBalance(seller.publicKey, "confirmed")) -
             sellerPreBalance;
+
+          distributionCurrentRent =
+            await connection.getMinimumBalanceForRentExemption(
+              (
+                await connection.getAccountInfo(distribution, "confirmed")
+              ).data.length,
+              "confirmed"
+            );
+          distributionRentDiff =
+            distributionCurrentRent - distributionBeforeRent;
 
           sellerTokenAccountData = await getAccount(
             connection,
@@ -456,7 +478,9 @@ describe("wen_royalty_distribution", () => {
 
         describe("royalties", () => {
           it("should be sent to the distribution vault", () => {
-            expect(distributionPostBalance).to.eql(royalty.toNumber() + 1197120); // extra for rent
+            expect(distributionPostBalance).to.eql(
+              royalty.toNumber() + distributionCurrentRent
+            ); // extra for rent
           });
         });
 
@@ -474,7 +498,7 @@ describe("wen_royalty_distribution", () => {
         describe("the buyer", () => {
           it("sent the payment", () => {
             expect(buyerPostBalance).to.eql(
-              buyerPreBalance - listingAmount.toNumber() - 1197120
+              buyerPreBalance - listingAmount.toNumber() - distributionRentDiff
             );
           });
           it("should be the owner", () => {
