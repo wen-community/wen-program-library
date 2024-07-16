@@ -127,20 +127,21 @@ impl UpdateDistribution<'_> {
     pub fn realloc_distribution_account(&self, new_data_size: usize) -> Result<()> {
         let account_info = self.distribution_account.to_account_info();
         let current_len = account_info.data_len();
+        let rent = Rent::get()?;
 
         match new_data_size.cmp(&current_len) {
             Ordering::Greater => {
-                let rent_increase = Rent::get()?
+                let rent_increase = rent
                     .minimum_balance(new_data_size)
-                    .checked_sub(Rent::get()?.minimum_balance(current_len))
+                    .checked_sub(rent.minimum_balance(current_len))
                     .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                account_info.realloc(new_data_size, false)?;
                 self.transfer_sol(rent_increase)?;
+                account_info.realloc(new_data_size, false)?;
             }
             Ordering::Less => {
-                let rent_decrease = Rent::get()?
+                let rent_decrease = rent
                     .minimum_balance(current_len)
-                    .checked_sub(Rent::get()?.minimum_balance(new_data_size))
+                    .checked_sub(rent.minimum_balance(new_data_size))
                     .ok_or(DistributionErrors::ArithmeticOverflow)?;
                 account_info.sub_lamports(rent_decrease)?;
                 self.authority.add_lamports(rent_decrease)?;
