@@ -22,11 +22,11 @@ pub struct DistributionAccount {
     pub payment_mint: Pubkey,
     #[max_len(1)] // initial length
     pub claim_data: Vec<Creator>,
-    /// PDA bump
-    pub bump: u8,
 }
 
 pub const CLAIM_DATA_OFFSET: usize = 8 + 1 + 32 + 32;
+
+pub const DISTRIBUTION_ACCOUNT_MIN_LEN: usize = DistributionAccount::INIT_SPACE + 8;
 
 impl DistributionAccount {
     pub const VERSION: u8 = 1;

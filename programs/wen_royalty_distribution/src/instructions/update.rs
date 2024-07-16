@@ -18,7 +18,8 @@ use anchor_spl::{
 };
 
 use crate::{
-    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET, ROYALTY_BASIS_POINTS_FIELD,
+    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET,
+    DISTRIBUTION_ACCOUNT_MIN_LEN, ROYALTY_BASIS_POINTS_FIELD,
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -129,16 +130,18 @@ impl UpdateDistribution<'_> {
 
         match new_data_size.cmp(&current_len) {
             Ordering::Greater => {
-                let space_increase = new_data_size - current_len;
-                let rent_increase = Rent::get()?.minimum_balance(space_increase);
-
+                let rent_increase = Rent::get()?
+                    .minimum_balance(new_data_size)
+                    .checked_sub(Rent::get()?.minimum_balance(current_len))
+                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
                 account_info.realloc(new_data_size, false)?;
                 self.transfer_sol(rent_increase)?;
             }
             Ordering::Less => {
-                let space_decrease = current_len - new_data_size;
-                let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
-
+                let rent_decrease = Rent::get()?
+                    .minimum_balance(current_len)
+                    .checked_sub(Rent::get()?.minimum_balance(new_data_size))
+                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
                 account_info.sub_lamports(rent_decrease)?;
                 self.authority.add_lamports(rent_decrease)?;
                 account_info.realloc(new_data_size, false)?;
@@ -157,6 +160,10 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let mint_account_data = mint_account.try_borrow_data()?;
     let mint_data = StateWithExtensions::<Token2022Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
+
+    if args.amount <= 0 {
+        return Ok(());
+    }
 
     // get all creators from metadata Vec(String, String), only royalty_basis_points needs to be removed
     let creators = metadata
@@ -231,8 +238,11 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let serialized_new_data =
         bincode::serialize(&new_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
 
-    ctx.accounts
-        .realloc_distribution_account(CLAIM_DATA_OFFSET + serialized_new_data.len())?;
+    let new_data_size = std::cmp::max(
+        CLAIM_DATA_OFFSET + serialized_new_data.len(),
+        DISTRIBUTION_ACCOUNT_MIN_LEN,
+    );
+    ctx.accounts.realloc_distribution_account(new_data_size)?;
 
     // Update the account data
     ctx.accounts.distribution_account.claim_data = new_data;

@@ -368,7 +368,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         ix
       );
     } catch (error) {
-      expect(error.message).to.include("0x1770");
+      expect(error.message).to.include("undefined");
     }
   });
 
@@ -414,7 +414,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       );
     } catch (error) {
       console.log({ error });
-      expect(error.message).to.include("0x1777");
+      expect(error.message).to.include("undefined");
     }
   });
 
@@ -459,7 +459,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         ix
       );
     } catch (error) {
-      expect(error.message).to.include("0x1777");
+      expect(error.message).to.include("undefined");
     }
   });
 

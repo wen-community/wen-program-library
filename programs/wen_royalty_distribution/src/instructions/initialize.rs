@@ -1,10 +1,12 @@
+use std::str::FromStr;
+
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
 use crate::DistributionAccount;
 
 #[derive(Accounts)]
-#[instruction(payment_mint: Pubkey)]
+#[instruction(payment_mint: String)]
 pub struct InitializeDistribution<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -24,9 +26,10 @@ pub struct InitializeDistribution<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitializeDistribution>, payment_mint: Pubkey) -> Result<()> {
+pub fn handler(ctx: Context<InitializeDistribution>, payment_mint: String) -> Result<()> {
+    let payment_key = Pubkey::from_str(&payment_mint).unwrap_or_default();
     ctx.accounts
         .distribution_account
-        .initialize_account_data(ctx.accounts.group_mint.key(), payment_mint);
+        .initialize_account_data(ctx.accounts.group_mint.key(), payment_key);
     Ok(())
 }

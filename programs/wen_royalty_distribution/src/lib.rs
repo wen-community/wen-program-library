@@ -20,7 +20,7 @@ pub mod wen_royalty_distribution {
     /// Initializes a new distribution account.
     pub fn initialize_distribution(
         ctx: Context<InitializeDistribution>,
-        payment_mint: Pubkey,
+        payment_mint: String,
     ) -> Result<()> {
         instructions::initialize::handler(ctx, payment_mint)
     }
@@ -36,15 +36,5 @@ pub mod wen_royalty_distribution {
     /// Claim royalties from a distribution account.
     pub fn claim_distribution(ctx: Context<ClaimDistribution>) -> Result<()> {
         instructions::claim::handler(ctx)
-    }
-
-    /// Resize old accounts for backwards compatibility.
-    pub fn resize_distribution(ctx: Context<ResizeDistribution>) -> Result<()> {
-        instructions::resize::handler(ctx)
-    }
-
-    /// Update bump field for a distribution account
-    pub fn update_bump_distribution(ctx: Context<UpdateDistributionBump>) -> Result<()> {
-        instructions::bump::handler(ctx)
     }
 }

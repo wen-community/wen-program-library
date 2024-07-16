@@ -7,7 +7,7 @@ use anchor_spl::{
 
 use crate::{
     get_and_clear_creator_royalty_amount, get_bump_in_seed_form, DistributionAccount,
-    DistributionErrors, CLAIM_DATA_OFFSET,
+    DistributionErrors, CLAIM_DATA_OFFSET, DISTRIBUTION_ACCOUNT_MIN_LEN,
 };
 
 #[derive(Accounts)]
@@ -73,17 +73,6 @@ impl ClaimDistribution<'_> {
         transfer_checked(cpi_ctx, amount, mint_decimals)?;
         Ok(())
     }
-
-    pub fn realloc_distribution_data(&self, new_data_size: usize) -> Result<()> {
-        let account_info = self.distribution.to_account_info();
-        let current_len = account_info.data_len();
-        let space_decrease = current_len - new_data_size;
-        let rent_decrease = Rent::get()?.minimum_balance(space_decrease);
-        account_info.sub_lamports(rent_decrease)?;
-        self.creator.to_account_info().add_lamports(rent_decrease)?;
-        account_info.realloc(new_data_size, false)?;
-        Ok(())
-    }
 }
 
 pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
@@ -105,9 +94,9 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
         &get_bump_in_seed_form(&ctx.bumps.distribution),
     ];
 
+    let mut total_sol_transfer = 0;
     if payment_mint_key == Pubkey::default() {
-        ctx.accounts.distribution.sub_lamports(claim_amount)?;
-        ctx.accounts.creator.add_lamports(claim_amount)?;
+        total_sol_transfer = claim_amount;
     } else {
         ctx.accounts
             .transfer_tokens(claim_amount, &[&signer_seeds[..]])?;
@@ -119,10 +108,33 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
     let serialized_new_data =
         bincode::serialize(&claim_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
 
-    let new_data_size = CLAIM_DATA_OFFSET + serialized_new_data.len();
+    let new_data_size = std::cmp::max(
+        CLAIM_DATA_OFFSET + serialized_new_data.len(),
+        DISTRIBUTION_ACCOUNT_MIN_LEN,
+    );
 
     if new_data_size < current_len {
-        ctx.accounts.realloc_distribution_data(new_data_size)?;
+        let account_info = ctx.accounts.distribution.to_account_info();
+        let current_len = account_info.data_len();
+        let space_decrease = current_len - new_data_size;
+        let rent_decrease = Rent::get()?
+            .minimum_balance(current_len)
+            .checked_sub(Rent::get()?.minimum_balance(new_data_size))
+            .ok_or(DistributionErrors::ArithmeticOverflow)?;
+        msg!("rent {:?}", rent_decrease);
+        total_sol_transfer += rent_decrease;
+        account_info.realloc(new_data_size, false)?;
+    }
+
+    if total_sol_transfer > 0 {
+        let min_remaining = Rent::get()?.minimum_balance(new_data_size);
+        let account_balance = ctx.accounts.distribution.to_account_info().lamports();
+
+        let max_withdrawal = account_balance - min_remaining;
+        let final_transfer = std::cmp::min(total_sol_transfer, max_withdrawal);
+
+        ctx.accounts.distribution.sub_lamports(final_transfer)?;
+        ctx.accounts.creator.add_lamports(final_transfer)?;
     }
 
     ctx.accounts.distribution.claim_data = claim_data;

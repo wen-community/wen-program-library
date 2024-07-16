@@ -16,7 +16,7 @@ import {
 } from '@solana/web3.js';
 
 export type MemberSeeds = {
-  memberMint: Address;
+  mint: Address;
 };
 
 export async function findMemberPda(
@@ -32,7 +32,7 @@ export async function findMemberPda(
       fixEncoderSize(getBytesEncoder(), 6).encode(
         new Uint8Array([109, 101, 109, 98, 101, 114])
       ),
-      getAddressEncoder().encode(seeds.memberMint),
+      getAddressEncoder().encode(seeds.mint),
     ],
   });
 }

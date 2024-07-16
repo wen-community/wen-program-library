@@ -1,11 +1,11 @@
 {
   "name": "@wen-foundation/wen-new-standard",
-  "version": "0.4.1-alpha",
+  "version": "0.4.6-alpha",
   "description": "An SDK for developing on the Open Source NFT Standard built on Solana Token Extensions.",
   "main": "dist/src/index.js",
-  "types": "dist/src/types/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
+    "build": "rimraf dist && tsc -p tsconfig.json",
     "test": "ava",
     "lint": "eslint --ext js,ts,tsx src && prettier --check src test",
     "lint:fix": "eslint --fix --ext js,ts,tsx src && prettier --write src test"
