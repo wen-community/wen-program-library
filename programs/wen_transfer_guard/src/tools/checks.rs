@@ -50,7 +50,7 @@ pub fn is_initialized_by_transfer_hook_authority(
 ) -> Result<bool> {
     let transfer_hook_data = get_transfer_hook_data(mint_account)?;
     let pubkey = transfer_hook_data.authority.0;
-    return Ok(pubkey == transfer_hook_authority);
+    Ok(pubkey == transfer_hook_authority)
 }
 
 /// Checks if the transfer hook data has been initialized and is pointing
@@ -71,5 +71,5 @@ pub fn is_initialized_by_transfer_hook_authority(
 pub fn is_mint_transfer_hook_assigned_to_this_program(mint_account: &AccountInfo) -> Result<bool> {
     let transfer_hook_data = get_transfer_hook_data(mint_account)?;
     let pubkey = transfer_hook_data.program_id.0;
-    return Ok(pubkey == crate::ID);
+    Ok(pubkey == crate::ID)
 }

@@ -246,7 +246,7 @@ impl GuardV1 {
         size += 1; // Option (TransferAmountRule)
 
         // Transfer amount rule size (if present)
-        if let Some(_) = transfer_amount_rule {
+        if transfer_amount_rule.is_some() {
             size += TransferAmountRule::size_of();
         }
 

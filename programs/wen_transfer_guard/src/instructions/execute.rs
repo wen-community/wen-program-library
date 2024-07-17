@@ -64,7 +64,7 @@ pub fn processor(ctx: Context<Execute>, amount: u64) -> Result<()> {
     ExtraAccountMetaList::check_account_infos::<ExecuteInstruction>(
         &ctx.accounts.to_account_infos(),
         &TransferHookInstruction::Execute { amount }.pack(),
-        &ctx.program_id,
+        ctx.program_id,
         &ctx.accounts.extra_metas_account.try_borrow_data()?,
     )?;
 
