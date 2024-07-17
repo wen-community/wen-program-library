@@ -2,7 +2,10 @@ use solana_sdk::{
     account_info::AccountInfo, instruction::Instruction, program_error::ProgramError,
     pubkey::Pubkey, system_instruction::transfer,
 };
-use spl_associated_token_account::get_associated_token_address_with_program_id;
+use spl_associated_token_account::{
+    get_associated_token_address_with_program_id,
+    instruction::create_associated_token_account_idempotent,
+};
 use spl_token_2022::{
     extension::{BaseStateWithExtensions, StateWithExtensions},
     instruction::transfer_checked,
@@ -14,29 +17,39 @@ use std::str::FromStr;
 pub const ROYALTY_BASIS_POINTS_FIELD: &str = "royalty_basis_points";
 
 pub fn calculate_royalties(
-    buyer: &Pubkey,
     mint: &AccountInfo,
     amount: u64,
-    is_spl: bool,
-    token_program_id: &Pubkey,
-) -> Result<Vec<Instruction>, ProgramError> {
+) -> Result<(u64, TokenMetadata, Mint), ProgramError> {
     let mint_account_data = mint.try_borrow_data()?;
     let mint_data = StateWithExtensions::<Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
-    let mint_decimals = mint_data.base.decimals;
-
-    let additional_metadata = metadata.additional_metadata;
 
     // get royalty basis points from metadata Vec(String, String)
-    let royalty_basis_points = additional_metadata
+    let royalty_basis_points = metadata
+        .additional_metadata
         .iter()
         .find(|(key, _)| key == ROYALTY_BASIS_POINTS_FIELD)
         .map(|(_, value)| u64::from_str(value).unwrap())
         .unwrap_or(0);
 
-    let royalty_amount = (amount * royalty_basis_points) / 10000;
+    Ok((
+        ((amount * royalty_basis_points) / 10000),
+        metadata,
+        mint_data.base,
+    ))
+}
 
-    let creators = additional_metadata
+pub fn generate_royalty_ixs(
+    amount: u64,
+    mint: &AccountInfo,
+    buyer: &Pubkey,
+    token_program_id: &Option<AccountInfo>,
+    is_spl: bool,
+) -> Result<Vec<Instruction>, ProgramError> {
+    let (royalty_amount, metadata, mint_base_state) = calculate_royalties(mint, amount)?;
+
+    let creators = metadata
+        .additional_metadata
         .iter()
         .filter(|(key, _)| key != ROYALTY_BASIS_POINTS_FIELD)
         .filter_map(|(key, value)| match Pubkey::from_str(key) {
@@ -56,10 +69,20 @@ pub fn calculate_royalties(
         let transfer_instruction = if !is_spl {
             transfer(buyer, &creator, creator_share_amount)
         } else {
+            if token_program_id.is_none() {
+                return Err(ProgramError::IncorrectProgramId);
+            }
+            let token_program_id = token_program_id.clone().unwrap().key;
             let source_token_account =
                 get_associated_token_address_with_program_id(buyer, mint.key, token_program_id);
             let destination_token_account =
                 get_associated_token_address_with_program_id(&creator, mint.key, token_program_id);
+            instructions.push(create_associated_token_account_idempotent(
+                buyer,
+                &destination_token_account,
+                mint.key,
+                token_program_id,
+            ));
 
             transfer_checked(
                 token_program_id,
@@ -69,7 +92,7 @@ pub fn calculate_royalties(
                 buyer,
                 &[],
                 amount,
-                mint_decimals,
+                mint_base_state.decimals,
             )?
         };
 

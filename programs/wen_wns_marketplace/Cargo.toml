@@ -28,3 +28,4 @@ wen_new_standard.workspace = true
 wen_royalty_distribution.workspace = true
 spl-transfer-hook-interface.workspace = true
 spl-type-length-value.workspace = true
+royalties-interface = { path = "../../libraries/royalties-interface" }

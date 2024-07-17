@@ -1,5 +1,6 @@
 use anchor_lang::{
     prelude::*,
+    solana_program::program::invoke,
     system_program::{transfer, Transfer},
 };
 use anchor_spl::{
@@ -10,15 +11,12 @@ use anchor_spl::{
     },
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
-use royalties_interface::calculate_royalties;
+use royalties_interface::{calculate_royalties, generate_royalty_ixs};
 use wen_new_standard::{
-    cpi::{
-        accounts::{ApproveTransfer, ThawDelegatedAccount},
-        approve_transfer, thaw_mint_account,
-    },
+    cpi::{accounts::ThawDelegatedAccount, thaw_mint_account},
     program::WenNewStandard,
 };
-use wen_royalty_distribution::{program::WenRoyaltyDistribution, DistributionAccount};
+use wen_transfer_guard::program::WenTransferGuard;
 
 use crate::constants::*;
 use crate::errors::*;
@@ -26,25 +24,25 @@ use crate::state::*;
 use crate::utils::*;
 
 #[derive(Accounts)]
-#[instruction(args: FulfillListingArgs)]
-pub struct FulfillListing<'info> {
+#[instruction(args: FulfillListingTransferGuardArgs)]
+pub struct FulfillListingTransferGuard<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
     #[account(
-        mut,
-        seeds = [
-            MARKETPLACE,
-            LISTING,
-            listing.seller.as_ref(),
-            listing.mint.as_ref(),
-        ],
-        bump = listing.bump,
-        has_one = mint,
-        has_one = seller,
-        has_one = seller_token_account,
-        constraint = args.buy_amount.eq(&args.buy_amount) @ WenWnsMarketplaceError::ListingAmountMismatch
-    )]
+      mut,
+      seeds = [
+          MARKETPLACE,
+          LISTING,
+          listing.seller.as_ref(),
+          listing.mint.as_ref(),
+      ],
+      bump = listing.bump,
+      has_one = mint,
+      has_one = seller,
+      has_one = seller_token_account,
+      constraint = args.buy_amount.eq(&args.buy_amount) @ WenWnsMarketplaceError::ListingAmountMismatch
+  )]
     pub listing: Account<'info, Listing>,
 
     /// CHECK: Could be SOL or SPL, checked in distribution program
@@ -53,29 +51,22 @@ pub struct FulfillListing<'info> {
     #[account(mut)]
     pub buyer: Signer<'info>,
 
-    #[account(
-        mut,
-        has_one = payment_mint,
-        constraint = listing.payment_mint.eq(&distribution.payment_mint),
-    )]
-    pub distribution: Account<'info, DistributionAccount>,
-
     #[account(mut)]
     pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
-        mut,
-        token::mint = mint,
-        token::authority = seller,
-    )]
+      mut,
+      token::mint = mint,
+      token::authority = seller,
+  )]
     pub seller_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
-        init_if_needed,
-        payer = payer,
-        associated_token::mint = mint,
-        associated_token::authority = buyer,
-    )]
+      init_if_needed,
+      payer = payer,
+      associated_token::mint = mint,
+      associated_token::authority = buyer,
+  )]
     pub buyer_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
@@ -90,7 +81,7 @@ pub struct FulfillListing<'info> {
     pub approve_account: UncheckedAccount<'info>,
 
     pub wns_program: Program<'info, WenNewStandard>,
-    pub distribution_program: Program<'info, WenRoyaltyDistribution>,
+    pub wen_transfer_guard_program: Program<'info, WenTransferGuard>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
     pub payment_token_program: Option<Interface<'info, TokenInterface>>,
@@ -98,29 +89,25 @@ pub struct FulfillListing<'info> {
 
     /* Optional accounts */
     #[account(
-        mut,
-        token::authority = seller,
-        token::mint = payment_mint,
-        token::token_program = payment_token_program
-    )]
+      mut,
+      token::authority = seller,
+      token::mint = payment_mint,
+      token::token_program = payment_token_program
+  )]
     pub seller_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(
-        mut,
-        token::authority = buyer,
-        token::mint = payment_mint,
-        token::token_program = payment_token_program
-    )]
+      mut,
+      token::authority = buyer,
+      token::mint = payment_mint,
+      token::token_program = payment_token_program
+  )]
     pub buyer_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
-    #[account(
-        mut,
-        token::authority = distribution,
-        token::mint = payment_mint,
-        token::token_program = payment_token_program
-    )]
-    pub distribution_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
-pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result<()> {
+pub fn handler<'a, 'b, 'c, 'info>(
+    ctx: Context<'a, 'b, 'c, 'info, FulfillListingTransferGuard<'info>>,
+    args: FulfillListingTransferGuardArgs,
+) -> Result<()> {
     let listing = &mut ctx.accounts.listing;
 
     let is_payment_mint_spl = ctx.accounts.payment_mint.key.ne(&Pubkey::default());
@@ -205,39 +192,71 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
         None
     };
 
-    // Approve Transfer
-    let distribution_token_account_info = ctx
-        .accounts
-        .distribution_payment_token_account
-        .as_ref()
-        .map(|d| d.to_account_info());
-
+    // Royalties interface instructions
     let payment_token_program = ctx
         .accounts
         .payment_token_program
         .as_ref()
         .map(|d| d.to_account_info());
 
-    approve_transfer(
-        CpiContext::new(
-            ctx.accounts.wns_program.to_account_info(),
-            ApproveTransfer {
-                payer: ctx.accounts.payer.to_account_info(),
-                authority: ctx.accounts.buyer.to_account_info(),
-                payment_mint: ctx.accounts.payment_mint.to_account_info(),
-                mint: ctx.accounts.mint.to_account_info(),
-                distribution_account: ctx.accounts.distribution.to_account_info(),
-                authority_token_account: buyer_token_account_info,
-                distribution_token_account: distribution_token_account_info,
-                approve_account: ctx.accounts.approve_account.to_account_info(),
-                distribution_program: ctx.accounts.distribution_program.to_account_info(),
-                token_program: ctx.accounts.token_program.to_account_info(),
-                payment_token_program,
-                system_program: ctx.accounts.system_program.to_account_info(),
-            },
-        ),
+    let royalty_ixs = generate_royalty_ixs(
         args.buy_amount,
+        &ctx.accounts.mint.to_account_info(),
+        ctx.accounts.buyer.key,
+        &payment_token_program,
+        is_payment_mint_spl,
     )?;
+
+    for (ix_index, royalty_ix) in royalty_ixs.iter().enumerate() {
+        let remaining_accounts = ctx.remaining_accounts;
+        let creator = remaining_accounts.get(ix_index);
+        if creator.is_none() {
+            return err!(WenWnsMarketplaceError::CreatorMissing);
+        }
+        let creator = creator.unwrap();
+
+        if royalty_ix.program_id == ctx.accounts.system_program.key() {
+            invoke(
+                royalty_ix,
+                &[
+                    ctx.accounts.buyer.to_account_info(),
+                    creator.clone(),
+                    ctx.accounts.system_program.to_account_info(),
+                ],
+            )?;
+            continue;
+        }
+
+        let creator_token_account = remaining_accounts.get(ix_index + 1);
+        if creator_token_account.is_none() {
+            return err!(WenWnsMarketplaceError::CreatorTokenAccountMissing);
+        }
+        let creator_token_account = creator_token_account.unwrap();
+
+        if royalty_ix.program_id == ctx.accounts.associated_token_program.key() {
+            invoke(
+                royalty_ix,
+                &[
+                    ctx.accounts.buyer.to_account_info(),
+                    creator_token_account.clone(),
+                    creator.clone(),
+                    ctx.accounts.payment_mint.to_account_info(),
+                    ctx.accounts.system_program.to_account_info(),
+                    ctx.accounts.token_program.to_account_info(),
+                ],
+            )?;
+        } else {
+            invoke(
+                royalty_ix,
+                &[
+                    buyer_token_account_info.clone().unwrap(),
+                    ctx.accounts.payment_mint.to_account_info(),
+                    creator_token_account.clone(),
+                    ctx.accounts.buyer.to_account_info(),
+                ],
+            )?;
+        }
+    }
 
     // Transfer NFT to buyer
     transfer_checked_with_hook(
@@ -265,6 +284,6 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct FulfillListingArgs {
+pub struct FulfillListingTransferGuardArgs {
     pub buy_amount: u64,
 }

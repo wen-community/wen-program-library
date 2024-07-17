@@ -10,4 +10,8 @@ pub enum WenWnsMarketplaceError {
     InvalidPaymentTokenAccount,
     #[msg("Arithmetic error")]
     ArithmeticError,
+    #[msg("Creator missing for royalty transfer")]
+    CreatorMissing,
+    #[msg("Creator token account missing for royalty transfer")]
+    CreatorTokenAccountMissing,
 }

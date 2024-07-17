@@ -28,6 +28,13 @@ pub mod wen_wns_marketplace {
     pub fn buy(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result<()> {
         listing::buy::handler(ctx, args)
     }
+
+    pub fn buy_transfer_guard<'a, 'b, 'c, 'info>(
+        ctx: Context<'a, 'b, 'c, 'info, FulfillListingTransferGuard<'info>>,
+        args: FulfillListingTransferGuardArgs,
+    ) -> Result<()> {
+        listing::buy_transfer_guard::handler(ctx, args)
+    }
     /* endregion */
 
     /* region CLAIM ROYALTY */
