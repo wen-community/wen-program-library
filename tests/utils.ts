@@ -39,11 +39,11 @@ export const LISTING = Buffer.from("listing");
 
 export const getExtraMetasAccountPda = (
   mint: PublicKey,
-  programId: PublicKey
+  programId: PublicKey,
 ) => {
   const [extraMetasAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("extra-account-metas"), mint.toBuffer()],
-    programId
+    programId,
   );
   return extraMetasAccount;
 };
@@ -51,7 +51,7 @@ export const getExtraMetasAccountPda = (
 export const getApproveAccountPda = (mint: PublicKey, programId: PublicKey) => {
   const [approveAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("approve-account"), mint.toBuffer()],
-    programId
+    programId,
   );
 
   return approveAccount;
@@ -60,7 +60,7 @@ export const getApproveAccountPda = (mint: PublicKey, programId: PublicKey) => {
 export const getManagerAccountPda = (programId: PublicKey) => {
   const [managerAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("manager")],
-    programId
+    programId,
   );
   return managerAccount;
 };
@@ -68,7 +68,7 @@ export const getManagerAccountPda = (programId: PublicKey) => {
 export const getGroupAccountPda = (mint: PublicKey, programId: PublicKey) => {
   const [groupAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("group"), mint.toBuffer()],
-    programId
+    programId,
   );
   return groupAccount;
 };
@@ -76,7 +76,7 @@ export const getGroupAccountPda = (mint: PublicKey, programId: PublicKey) => {
 export const getMemberAccountPda = (mint: PublicKey, programId: PublicKey) => {
   const [memberAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("member"), mint.toBuffer()],
-    programId
+    programId,
   );
   return memberAccount;
 };
@@ -84,11 +84,11 @@ export const getMemberAccountPda = (mint: PublicKey, programId: PublicKey) => {
 export const getDistributionAccountPda = (
   group: PublicKey,
   paymentMint: PublicKey,
-  programId: PublicKey
+  programId: PublicKey,
 ) => {
   const [distributionAccount] = PublicKey.findProgramAddressSync(
     [group.toBuffer(), paymentMint.toBuffer()],
-    programId
+    programId,
   );
   return distributionAccount;
 };
@@ -96,11 +96,11 @@ export const getDistributionAccountPda = (
 export const getListingAccountPda = (
   seller: PublicKey,
   mint: PublicKey,
-  programId: PublicKey
+  programId: PublicKey,
 ) => {
   const [listingAccount] = PublicKey.findProgramAddressSync(
     [MARKETPLACE, LISTING, seller.toBuffer(), mint.toBuffer()],
-    programId
+    programId,
   );
   return listingAccount;
 };
@@ -109,7 +109,7 @@ export async function airdrop(
   connection: Connection,
   address: PublicKey,
   airdropLamports: number,
-  commitment: Commitment = "confirmed"
+  commitment: Commitment = "confirmed",
 ) {
   const signature = await connection.requestAirdrop(address, airdropLamports);
   const { blockhash, lastValidBlockHeight } =
@@ -121,14 +121,14 @@ export async function airdrop(
       lastValidBlockHeight,
       signature,
     },
-    commitment
+    commitment,
   );
 }
 
 export async function getMinRentForWNSMint(
   connection: Connection,
   metaData: TokenMetadata,
-  type: string
+  type: string,
 ) {
   // Size of MetadataExtension 2 bytes for type, 2 bytes for length
   const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
@@ -145,13 +145,13 @@ export async function getMinRentForWNSMint(
     ].concat(
       type === "member"
         ? [ExtensionType.GroupMemberPointer]
-        : [ExtensionType.GroupPointer]
-    )
+        : [ExtensionType.GroupPointer],
+    ),
   );
 
   // Minimum lamports required for Mint Account
   return connection.getMinimumBalanceForRentExemption(
-    mintLen + metadataExtension + metadataLen
+    mintLen + metadataExtension + metadataLen,
   );
 }
 
@@ -159,12 +159,12 @@ export async function createMintTokenKegIx(
   connection: Connection,
   mint: PublicKey,
   authority: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) {
   const space = getMintLen([]);
   const rent = await getMinimumBalanceForRentExemptMint(
     connection,
-    "confirmed"
+    "confirmed",
   );
 
   return {
@@ -185,7 +185,7 @@ export async function createMint2022Ix(
   connection: Connection,
   mint: PublicKey,
   authority: PublicKey,
-  payer: PublicKey
+  payer: PublicKey,
 ) {
   // Size of MetadataExtension 2 bytes for type, 2 bytes for length
   const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
@@ -205,7 +205,7 @@ export async function createMint2022Ix(
 
   // Minimum lamports required for Mint Account
   const mintRent = await connection.getMinimumBalanceForRentExemption(
-    mintLen + metadataExtension + metadataLen
+    mintLen + metadataExtension + metadataLen,
   );
 
   return {
@@ -221,14 +221,14 @@ export async function createMint2022Ix(
         mint,
         authority,
         mint,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       ),
       createInitializeMint2Instruction(
         mint,
         6,
         authority,
         authority,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       ),
       createInitializeInstruction({
         metadata: mint,
@@ -250,7 +250,7 @@ export function mintToBuyerSellerIx(
   buyerTokenAccount: PublicKey,
   seller: PublicKey,
   sellerTokenAccount: PublicKey,
-  tokenProgram: PublicKey = TOKEN_PROGRAM_ID
+  tokenProgram: PublicKey = TOKEN_PROGRAM_ID,
 ) {
   return {
     ixs: [
@@ -260,7 +260,7 @@ export function mintToBuyerSellerIx(
         buyer,
         mint,
         tokenProgram,
-        ASSOCIATED_PROGRAM_ID
+        ASSOCIATED_PROGRAM_ID,
       ),
       createMintToCheckedInstruction(
         mint,
@@ -269,7 +269,7 @@ export function mintToBuyerSellerIx(
         10_000 * 10 ** 6,
         6,
         [],
-        tokenProgram
+        tokenProgram,
       ),
       createAssociatedTokenAccountInstruction(
         payer,
@@ -277,7 +277,7 @@ export function mintToBuyerSellerIx(
         seller,
         mint,
         tokenProgram,
-        ASSOCIATED_PROGRAM_ID
+        ASSOCIATED_PROGRAM_ID,
       ),
       createMintToCheckedInstruction(
         mint,
@@ -286,7 +286,7 @@ export function mintToBuyerSellerIx(
         10_000 * 10 ** 6,
         6,
         [],
-        tokenProgram
+        tokenProgram,
       ),
     ],
   };
@@ -297,7 +297,7 @@ export async function sendAndConfirmWNSTransaction(
   instructions: TransactionInstruction[],
   provider: AnchorProvider,
   skipPreflight = true,
-  additionalSigners: Signer[] = []
+  additionalSigners: Signer[] = [],
 ) {
   const transaction = new VersionedTransaction(
     new TransactionMessage({
@@ -305,7 +305,7 @@ export async function sendAndConfirmWNSTransaction(
       payerKey: provider.wallet.publicKey,
       recentBlockhash: (await connection.getLatestBlockhash("confirmed"))
         .blockhash,
-    }).compileToV0Message()
+    }).compileToV0Message(),
   );
   const signedTx = await provider.wallet.signTransaction(transaction);
   signedTx.sign(additionalSigners);
@@ -323,7 +323,7 @@ export async function sendAndConfirmWNSTransaction(
         lastValidBlockHeight,
         blockhash,
       },
-      "confirmed"
+      "confirmed",
     );
     return signature;
   } catch (err) {

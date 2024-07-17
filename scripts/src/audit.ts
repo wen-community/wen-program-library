@@ -17,7 +17,7 @@ import { filterAvailableAccounts } from "./utils";
     const DEVNET_URL = process.env.DEVNET_URL;
     const MAINNET_URL = process.env.MAINNET_URL;
     const keypair = Keypair.fromSecretKey(
-      Uint8Array.from(JSON.parse(process.env.KEYPAIR))
+      Uint8Array.from(JSON.parse(process.env.KEYPAIR)),
     );
     console.log(`Signing Address: ${keypair.publicKey.toString()}`);
     const connection = new Connection(isDevnet ? DEVNET_URL : MAINNET_URL, {
@@ -37,7 +37,7 @@ import { filterAvailableAccounts } from "./utils";
     const wnsProgram = new Program(WNSIdl as WenNewStandard, provider);
     const distributionProgram = new Program(
       WenRoyaltyIdl as WenRoyaltyDistribution,
-      provider
+      provider,
     );
 
     const wnsAccounts: Record<
@@ -47,10 +47,10 @@ import { filterAvailableAccounts } from "./utils";
 
     const finalAccounts = await filterAvailableAccounts(
       connection,
-      wnsAccounts
+      wnsAccounts,
     );
     const filteredWnsAccounts = Object.values(finalAccounts).filter(
-      (wnsAccount) => wnsAccount.type !== "unknown"
+      (wnsAccount) => wnsAccount.type !== "unknown",
     );
 
     for (const {
@@ -65,51 +65,51 @@ import { filterAvailableAccounts } from "./utils";
           case "tokenGroup": {
             const tokenGroup = wnsProgram.coder.accounts.decode(
               "tokenGroup",
-              accountBuffer
+              accountBuffer,
             );
             const [_, bump] = PublicKey.findProgramAddressSync(
               [Buffer.from("group"), tokenGroup.mint.toBuffer()],
-              wnsProgram.programId
+              wnsProgram.programId,
             );
 
             console.log(
               `Expected Bump: ${bump}, Received Bump: ${
                 tokenGroup.bump
-              }. Is Equal: ${bump === tokenGroup.bump}\n`
+              }. Is Equal: ${bump === tokenGroup.bump}\n`,
             );
             continue;
           }
           case "manager": {
             const manager = wnsProgram.coder.accounts.decode(
               "manager",
-              accountBuffer
+              accountBuffer,
             );
             const [_, bump] = PublicKey.findProgramAddressSync(
               [Buffer.from("manager")],
-              wnsProgram.programId
+              wnsProgram.programId,
             );
 
             console.log(
               `Expected Bump: ${bump}, Received Bump: ${
                 manager.bump
-              }. Is Equal: ${bump === manager.bump}\n`
+              }. Is Equal: ${bump === manager.bump}\n`,
             );
             continue;
           }
           case "tokenGroupMember": {
             const tokenGroupMember = wnsProgram.coder.accounts.decode(
               "tokenGroupMember",
-              accountBuffer
+              accountBuffer,
             );
             const [_, bump] = PublicKey.findProgramAddressSync(
               [Buffer.from("member"), tokenGroupMember.mint.toBuffer()],
-              wnsProgram.programId
+              wnsProgram.programId,
             );
 
             console.log(
               `Expected Bump: ${bump}, Received Bump: ${
                 tokenGroupMember.bump
-              }. Is Equal: ${bump === tokenGroupMember.bump}\n`
+              }. Is Equal: ${bump === tokenGroupMember.bump}\n`,
             );
             continue;
           }
@@ -129,21 +129,21 @@ import { filterAvailableAccounts } from "./utils";
 
     const finalDistAccounts = await filterAvailableAccounts(
       connection,
-      distributionAccounts
+      distributionAccounts,
     );
 
     for (const { pubkey, type } of Object.values(finalDistAccounts)) {
       const accountPubkey = new PublicKey(pubkey);
       const { data: accountBuffer } = await connection.getAccountInfo(
         accountPubkey,
-        "confirmed"
+        "confirmed",
       );
 
       console.log(type);
 
       const distributionAccount = distributionProgram.coder.accounts.decode(
         "distributionAccount",
-        accountBuffer
+        accountBuffer,
       );
 
       const [_, bump] = PublicKey.findProgramAddressSync(
@@ -151,13 +151,13 @@ import { filterAvailableAccounts } from "./utils";
           distributionAccount.groupMint.toBuffer(),
           distributionAccount.paymentMint.toBuffer(),
         ],
-        distributionProgram.programId
+        distributionProgram.programId,
       );
 
       console.log(
         `Expected Bump: ${bump}, Received Bump: ${
           distributionAccount.bump
-        }. Is Equal: ${bump === distributionAccount.bump}\n`
+        }. Is Equal: ${bump === distributionAccount.bump}\n`,
       );
     }
   } catch (err) {

@@ -7,6 +7,7 @@
 
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
+use solana_program::pubkey::Pubkey;
 
 /// Accounts.
 pub struct InitializeDistribution {
@@ -85,7 +86,7 @@ impl Default for InitializeDistributionInstructionData {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InitializeDistributionInstructionArgs {
-    pub payment_mint: String,
+    pub payment_mint: Pubkey,
 }
 
 /// Instruction builder for `InitializeDistribution`.
@@ -102,7 +103,7 @@ pub struct InitializeDistributionBuilder {
     group_mint: Option<solana_program::pubkey::Pubkey>,
     distribution_account: Option<solana_program::pubkey::Pubkey>,
     system_program: Option<solana_program::pubkey::Pubkey>,
-    payment_mint: Option<String>,
+    payment_mint: Option<Pubkey>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -135,7 +136,7 @@ impl InitializeDistributionBuilder {
         self
     }
     #[inline(always)]
-    pub fn payment_mint(&mut self, payment_mint: String) -> &mut Self {
+    pub fn payment_mint(&mut self, payment_mint: Pubkey) -> &mut Self {
         self.payment_mint = Some(payment_mint);
         self
     }
@@ -361,7 +362,7 @@ impl<'a, 'b> InitializeDistributionCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn payment_mint(&mut self, payment_mint: String) -> &mut Self {
+    pub fn payment_mint(&mut self, payment_mint: Pubkey) -> &mut Self {
         self.instruction.payment_mint = Some(payment_mint);
         self
     }
@@ -445,7 +446,7 @@ struct InitializeDistributionCpiBuilderInstruction<'a, 'b> {
     group_mint: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     distribution_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    payment_mint: Option<String>,
+    payment_mint: Option<Pubkey>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,

@@ -9,23 +9,23 @@ export async function sleep(ms: number) {
 
 export function getType(data: Buffer) {
   const managerDiscriminator = Buffer.from(
-    createHash("sha256").update("account:Manager").digest()
+    createHash("sha256").update("account:Manager").digest(),
   ).subarray(0, 8);
 
   const groupDiscriminator = Buffer.from(
-    createHash("sha256").update("account:TokenGroup").digest()
+    createHash("sha256").update("account:TokenGroup").digest(),
   ).subarray(0, 8);
 
   const memberDiscriminator = Buffer.from(
-    createHash("sha256").update("account:TokenGroupMember").digest()
+    createHash("sha256").update("account:TokenGroupMember").digest(),
   ).subarray(0, 8);
 
   const approveDiscriminator = Buffer.from(
-    createHash("sha256").update("account:ApproveAccount").digest()
+    createHash("sha256").update("account:ApproveAccount").digest(),
   ).subarray(0, 8);
 
   const distributionDiscriminator = Buffer.from(
-    createHash("sha256").update("account:DistributionAccount").digest()
+    createHash("sha256").update("account:DistributionAccount").digest(),
   ).subarray(0, 8);
 
   const dataFirst8Bytes = data.subarray(0, 8);
@@ -50,7 +50,7 @@ export async function filterAvailableAccounts(
   accounts: Record<
     string,
     { pubkey: string; type: string; account: { data: string[] } }
-  >
+  >,
 ): Promise<
   Record<string, { pubkey: string; type: string; account: { data: string[] } }>
 > {
@@ -62,7 +62,7 @@ export async function filterAvailableAccounts(
     const accountPubkey = new PublicKey(account);
     const accountInfo = await connection.getAccountInfo(
       accountPubkey,
-      "confirmed"
+      "confirmed",
     );
     if (accountInfo) {
       finalAccounts[account] = {

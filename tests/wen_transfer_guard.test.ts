@@ -31,9 +31,9 @@ const sendSignedVtx = async (
         payerKey: payer,
         instructions: ixs,
         recentBlockhash: provider.context.lastBlockhash,
-      }).compileToV0Message()
+      }).compileToV0Message(),
     ),
-    signers
+    signers,
   );
 
 const kMint = {
@@ -52,7 +52,7 @@ const createMint = async (
   provider: BankrunProvider,
   mint = kMint,
   sourceAuthority = kSourceAuthority,
-  destinationAuthority = kDestinationAuthority
+  destinationAuthority = kDestinationAuthority,
 ) => {
   const extensions = [ExtensionType.TransferHook];
   const mintLen = getMintLen(extensions);
@@ -64,13 +64,13 @@ const createMint = async (
     mint.keypair.publicKey,
     sourceAuthority.publicKey,
     false,
-    TOKEN_2022_PROGRAM_ID
+    TOKEN_2022_PROGRAM_ID,
   );
   const destinationAta = getAssociatedTokenAddressSync(
     mint.keypair.publicKey,
     destinationAuthority.publicKey,
     false,
-    TOKEN_2022_PROGRAM_ID
+    TOKEN_2022_PROGRAM_ID,
   );
   const ixs = [
     // TX: Allocate mint account
@@ -86,7 +86,7 @@ const createMint = async (
       mint.keypair.publicKey,
       mint.transferHookAuthority.publicKey,
       programId,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
     ),
     // TX: Init mint
     createInitializeMintInstruction(
@@ -94,7 +94,7 @@ const createMint = async (
       mint.decimals,
       mint.mintAuthority.publicKey,
       mint.mintAuthority.publicKey,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
     ),
     // TX: Create Source ATA
     createAssociatedTokenAccountInstruction(
@@ -103,7 +103,7 @@ const createMint = async (
       sourceAuthority.publicKey,
       mint.keypair.publicKey,
       TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
+      ASSOCIATED_TOKEN_PROGRAM_ID,
     ),
     // TX: Create Destination ATA
     createAssociatedTokenAccountInstruction(
@@ -112,7 +112,7 @@ const createMint = async (
       destinationAuthority.publicKey,
       mint.keypair.publicKey,
       TOKEN_2022_PROGRAM_ID,
-      ASSOCIATED_TOKEN_PROGRAM_ID
+      ASSOCIATED_TOKEN_PROGRAM_ID,
     ),
     // TX: Mint to Source ATA some tokens
     createMintToInstruction(
@@ -121,7 +121,7 @@ const createMint = async (
       mint.mintAuthority.publicKey,
       mint.mintAmount,
       undefined,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
     ),
   ];
 
@@ -129,7 +129,7 @@ const createMint = async (
     provider,
     payer.publicKey,
     [payer, mint.keypair, mint.mintAuthority],
-    ...ixs
+    ...ixs,
   );
 
   return {
@@ -189,24 +189,24 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
             owner: web3.SystemProgram.programId,
           },
         },
-      ]
+      ],
     );
     provider = new BankrunProvider(context);
     program = new Program<WenTransferGuard>(
       require("../target/idl/wen_transfer_guard.json"),
-      provider
+      provider,
     );
 
     const extraMetasAddress = getExtraAccountMetaAddress(
       kMint.keypair.publicKey,
-      program.programId
+      program.programId,
     );
 
     // Create a mint
     const { sourceAta, destinationAta } = await createMint(
       program.programId,
       context.payer,
-      provider
+      provider,
     );
 
     kSourceAta = sourceAta;
@@ -219,7 +219,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         Buffer.from("guard_v1"),
         kGuardMint.publicKey.toBuffer(),
       ],
-      program.programId
+      program.programId,
     );
 
     kGuard = guardAddress;
@@ -248,7 +248,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       provider,
       context.payer.publicKey,
       [context.payer, kGuardOwner, kGuardMint],
-      ix
+      ix,
     );
 
     const guard = await program.account.guardV1.fetch(kGuard);
@@ -299,7 +299,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       provider,
       context.payer.publicKey,
       [context.payer, kMint.transferHookAuthority],
-      ix
+      ix,
     );
   });
 
@@ -314,14 +314,14 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       kMint.decimals,
       undefined,
       undefined,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
     );
 
     await sendSignedVtx(
       provider,
       context.payer.publicKey,
       [kSourceAuthority, context.payer],
-      ix
+      ix,
     );
   });
 
@@ -340,7 +340,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
           mint: kGuardMint.publicKey,
           guardAuthority: kGuardOwner.publicKey,
         })
-        .instruction()
+        .instruction(),
     );
     const guard = await program.account.guardV1.fetch(kGuard);
     const denyRules = guard.cpiRule.deny[0];
@@ -357,7 +357,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
       kMint.decimals,
       undefined,
       undefined,
-      TOKEN_2022_PROGRAM_ID
+      TOKEN_2022_PROGRAM_ID,
     );
 
     try {
@@ -365,7 +365,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         provider,
         context.payer.publicKey,
         [kSourceAuthority, context.payer],
-        ix
+        ix,
       );
     } catch (error) {
       expect(error.message).to.include("undefined");
@@ -383,14 +383,14 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
     };
     const extraMetasAddress = getExtraAccountMetaAddress(
       wrongProgramMint.keypair.publicKey,
-      program.programId // Purposefully using right program id here to simulate wrong sdk usage.
+      program.programId, // Purposefully using right program id here to simulate wrong sdk usage.
     );
 
     await createMint(
       wrongProgramId.publicKey,
       context.payer,
       provider,
-      wrongProgramMint
+      wrongProgramMint,
     );
 
     const ix = await program.methods
@@ -410,7 +410,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         provider,
         context.payer.publicKey,
         [context.payer, wrongProgramMint.transferHookAuthority],
-        ix
+        ix,
       );
     } catch (error) {
       console.log({ error });
@@ -429,14 +429,14 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
     };
     const extraMetasAddress = getExtraAccountMetaAddress(
       wrongProgramMint.keypair.publicKey,
-      program.programId // Purposefully using right program id here to simulate wrong sdk usage.
+      program.programId, // Purposefully using right program id here to simulate wrong sdk usage.
     );
 
     await createMint(
       wrongProgramId.publicKey,
       context.payer,
       provider,
-      wrongProgramMint
+      wrongProgramMint,
     );
 
     const ix = await program.methods
@@ -456,7 +456,7 @@ describe("[wen_transfer_guard] - Solana Bankrun test suite", () => {
         provider,
         context.payer.publicKey,
         [context.payer, wrongProgramMint.transferHookAuthority],
-        ix
+        ix,
       );
     } catch (error) {
       expect(error.message).to.include("undefined");

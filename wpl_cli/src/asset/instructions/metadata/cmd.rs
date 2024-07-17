@@ -21,10 +21,7 @@ pub enum Commands {
     Remove(MetadataArgs),
 }
 
-pub async fn subcommand(
-    context: Context,
-    subcommand: MetadataSubCommand,
-) -> Result<()> {
+pub async fn subcommand(context: Context, subcommand: MetadataSubCommand) -> Result<()> {
     match subcommand.action {
         Commands::Add(args) => {
             add_metadata(context, args).await?;

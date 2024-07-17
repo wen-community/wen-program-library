@@ -9,7 +9,10 @@ use solana_sdk::{
 use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
 use wen_new_standard::instructions::{RemoveMetadata, RemoveMetadataInstructionArgs};
 
-use crate::{asset::{parse_remove_metadata_pairs, MetadataArgs}, Context};
+use crate::{
+    asset::{parse_remove_metadata_pairs, MetadataArgs},
+    Context,
+};
 
 pub async fn run(context: Context, args: MetadataArgs) -> Result<()> {
     let Context { client, keypair } = context;

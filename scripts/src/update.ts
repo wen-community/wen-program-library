@@ -30,7 +30,7 @@ const INSTRUCTIONS_PER_TX = 20;
     const DEVNET_URL = process.env.DEVNET_URL;
     const MAINNET_URL = process.env.MAINNET_URL;
     const keypair = Keypair.fromSecretKey(
-      Uint8Array.from(JSON.parse(process.env.KEYPAIR))
+      Uint8Array.from(JSON.parse(process.env.KEYPAIR)),
     );
     console.log(`Signing Address: ${keypair.publicKey.toString()}`);
 
@@ -57,7 +57,7 @@ const INSTRUCTIONS_PER_TX = 20;
         ...(await connection.getLatestBlockhash("confirmed")),
         signature: await connection.requestAirdrop(
           keypair.publicKey,
-          1 * LAMPORTS_PER_SOL
+          1 * LAMPORTS_PER_SOL,
         ),
       });
     }
@@ -66,7 +66,7 @@ const INSTRUCTIONS_PER_TX = 20;
     const wnsProgram = new Program(WNSIdl as WenNewStandard, provider);
     const distributionProgram = new Program(
       WenRoyaltyIdl as WenRoyaltyDistribution,
-      provider
+      provider,
     );
 
     /** Address table lookup for maximum efficiency */
@@ -83,7 +83,7 @@ const INSTRUCTIONS_PER_TX = 20;
         });
 
       console.log(
-        `Created address table lookup: ${lookupTableAccount.toString()}`
+        `Created address table lookup: ${lookupTableAccount.toString()}`,
       );
 
       const extendLookupTableIx = AddressLookupTableProgram.extendLookupTable({
@@ -117,11 +117,11 @@ const INSTRUCTIONS_PER_TX = 20;
           lastValidBlockHeight,
           signature: sig,
         },
-        "confirmed"
+        "confirmed",
       );
       const { value } = await connection.getAddressLookupTable(
         lookupTableAccount,
-        { commitment: "confirmed" }
+        { commitment: "confirmed" },
       );
       addressTableLookupAccount = value;
 
@@ -130,7 +130,7 @@ const INSTRUCTIONS_PER_TX = 20;
     } else {
       const { value } = await connection.getAddressLookupTable(
         addressTableLookupAddress,
-        { commitment: "confirmed" }
+        { commitment: "confirmed" },
       );
       addressTableLookupAccount = value;
     }
@@ -142,25 +142,25 @@ const INSTRUCTIONS_PER_TX = 20;
     > = isDevnet ? accountsDevnet["wns"] : accountsMainnet["wns"];
     const finalAccounts = await filterAvailableAccounts(
       connection,
-      wnsAccounts
+      wnsAccounts,
     );
 
     const filteredWnsAccounts = Object.values(finalAccounts).filter(
-      (wnsAccount) => wnsAccount.type !== "unknown"
+      (wnsAccount) => wnsAccount.type !== "unknown",
     );
 
     const totalWNSBatches = Array.from(
       {
         length: Math.round(filteredWnsAccounts.length / INSTRUCTIONS_PER_TX),
       },
-      (_, i) => i + 1
+      (_, i) => i + 1,
     );
     console.log(`Total Tx batches: ${totalWNSBatches.length}`);
 
     for (const batch of totalWNSBatches) {
       const accounts = filteredWnsAccounts.slice(
         (batch - 1) * INSTRUCTIONS_PER_TX,
-        batch * INSTRUCTIONS_PER_TX
+        batch * INSTRUCTIONS_PER_TX,
       );
 
       const instructions = [
@@ -180,7 +180,7 @@ const INSTRUCTIONS_PER_TX = 20;
                   signer: keypair.publicKey,
                   group: wnsAccount,
                 })
-                .instruction()
+                .instruction(),
             );
             continue;
           }
@@ -192,7 +192,7 @@ const INSTRUCTIONS_PER_TX = 20;
                   signer: keypair.publicKey,
                   member: wnsAccount,
                 })
-                .instruction()
+                .instruction(),
             );
             continue;
           }
@@ -204,7 +204,7 @@ const INSTRUCTIONS_PER_TX = 20;
                   signer: keypair.publicKey,
                   manager: wnsAccount,
                 })
-                .instruction()
+                .instruction(),
             );
             continue;
           }
@@ -240,13 +240,13 @@ const INSTRUCTIONS_PER_TX = 20;
           });
           await connection.confirmTransaction(
             { signature, blockhash, lastValidBlockHeight },
-            "confirmed"
+            "confirmed",
           );
           isFinished = true;
           console.log(
             `Batch resize success. https://explorer.solana.com/tx/${signature}/${
               isDevnet ? "?cluster=devnet" : ""
-            }`
+            }`,
           );
         } catch (err) {
           console.log(err);
@@ -264,22 +264,22 @@ const INSTRUCTIONS_PER_TX = 20;
 
     const finalDistAccounts = await filterAvailableAccounts(
       connection,
-      distributionAccounts
+      distributionAccounts,
     );
 
     const totalDistributionBatches = Array.from(
       {
         length: Math.round(
-          Object.keys(finalDistAccounts).length / INSTRUCTIONS_PER_TX
+          Object.keys(finalDistAccounts).length / INSTRUCTIONS_PER_TX,
         ),
       },
-      (_, i) => i + 1
+      (_, i) => i + 1,
     );
 
     for (const batch of totalDistributionBatches) {
       const accounts = Object.values(finalDistAccounts).slice(
         (batch - 1) * INSTRUCTIONS_PER_TX,
-        batch * INSTRUCTIONS_PER_TX
+        batch * INSTRUCTIONS_PER_TX,
       );
 
       const instructions = [
@@ -296,7 +296,7 @@ const INSTRUCTIONS_PER_TX = 20;
               distributionAccount,
               signer: keypair.publicKey,
             })
-            .instruction()
+            .instruction(),
         );
       }
 
@@ -321,13 +321,13 @@ const INSTRUCTIONS_PER_TX = 20;
           });
           await connection.confirmTransaction(
             { signature, blockhash, lastValidBlockHeight },
-            "confirmed"
+            "confirmed",
           );
           isFinished = true;
           console.log(
             `Batch resize success. https://explorer.solana.com/tx/${signature}/${
               isDevnet ? "?cluster=devnet" : ""
-            }`
+            }`,
           );
         } catch (err) {
           console.log(err);

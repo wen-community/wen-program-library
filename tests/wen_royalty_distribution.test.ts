@@ -108,38 +108,38 @@ describe("wen_royalty_distribution", () => {
         groupMintPublicKey,
         groupMintAuthPublicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       );
 
       const sellerMemberMintTokenAccount = getAssociatedTokenAddressSync(
         memberMintPublickey,
         memberMintAuthPublicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       );
 
       const buyerMemberMintTokenAccount = getAssociatedTokenAddressSync(
         memberMintPublickey,
         buyer.publicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       );
 
       const group = getGroupAccountPda(groupMintPublicKey, wnsProgramId);
       const distribution = getDistributionAccountPda(
         groupMintPublicKey,
         PublicKey.default,
-        wenDistributionProgramId
+        wenDistributionProgramId,
       );
 
       const member = getMemberAccountPda(memberMintPublickey, wnsProgramId);
       const extraMetasAccount = getExtraMetasAccountPda(
         memberMintPublickey,
-        wnsProgramId
+        wnsProgramId,
       );
       const approveAccount = getApproveAccountPda(
         memberMintPublickey,
-        wnsProgramId
+        wnsProgramId,
       );
 
       const listingAmount = new anchor.BN(2 * LAMPORTS_PER_SOL);
@@ -190,11 +190,11 @@ describe("wen_royalty_distribution", () => {
 
         distributionAccountInfo = await connection.getAccountInfo(
           distribution,
-          "confirmed"
+          "confirmed",
         );
         distributionAccountData = wenDistributionProgram.coder.accounts.decode(
           "distributionAccount",
-          distributionAccountInfo.data
+          distributionAccountInfo.data,
         );
       });
 
@@ -268,19 +268,19 @@ describe("wen_royalty_distribution", () => {
 
         it("should be owned by the distribution program", () => {
           expect(distributionAccountInfo.owner.toBase58()).to.eql(
-            wenDistributionProgramId.toBase58()
+            wenDistributionProgramId.toBase58(),
           );
         });
 
         it("should point the correct group mint account address", () => {
           expect(
-            (distributionAccountData.groupMint as PublicKey).toBase58()
+            (distributionAccountData.groupMint as PublicKey).toBase58(),
           ).to.eql(groupMintPublicKey.toBase58());
         });
 
         it("should point the correct payment mint account address", () => {
           expect(
-            (distributionAccountData.paymentMint as PublicKey).toBase58()
+            (distributionAccountData.paymentMint as PublicKey).toBase58(),
           ).to.eql(PublicKey.default.toBase58());
         });
       });
@@ -289,7 +289,7 @@ describe("wen_royalty_distribution", () => {
         const listing = getListingAccountPda(
           seller.publicKey,
           memberMintPublickey,
-          wenWnsMarketplaceId
+          wenWnsMarketplaceId,
         );
 
         let listingAccountInfo: AccountInfo<Buffer>;
@@ -322,17 +322,17 @@ describe("wen_royalty_distribution", () => {
 
           listingAccountInfo = await connection.getAccountInfo(
             listing,
-            "confirmed"
+            "confirmed",
           );
           listingAccountData = wenWnsMarketplace.coder.accounts.decode(
             "listing",
-            listingAccountInfo.data
+            listingAccountInfo.data,
           );
           sellerTokenAccountData = await getAccount(
             connection,
             sellerMemberMintTokenAccount,
             "confirmed",
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID,
           );
         });
 
@@ -342,13 +342,13 @@ describe("wen_royalty_distribution", () => {
 
         it("should be owned by sale program", () => {
           expect(listingAccountInfo.owner.toBase58()).to.eql(
-            wenWnsMarketplaceId.toBase58()
+            wenWnsMarketplaceId.toBase58(),
           );
         });
 
         it("should point the listing account as delegate of NFT", () => {
           expect(sellerTokenAccountData.delegate.toBase58()).to.eql(
-            listing.toBase58()
+            listing.toBase58(),
           );
         });
 
@@ -361,7 +361,7 @@ describe("wen_royalty_distribution", () => {
         const listing = getListingAccountPda(
           seller.publicKey,
           memberMintPublickey,
-          wenWnsMarketplaceId
+          wenWnsMarketplaceId,
         );
 
         const royalty = listingAmount
@@ -381,15 +381,15 @@ describe("wen_royalty_distribution", () => {
         before(async () => {
           distributionPreBalance = await connection.getBalance(
             distribution,
-            "confirmed"
+            "confirmed",
           );
           buyerPreBalance = await connection.getBalance(
             buyer.publicKey,
-            "confirmed"
+            "confirmed",
           );
           sellerPreBalance = await connection.getBalance(
             seller.publicKey,
-            "confirmed"
+            "confirmed",
           );
 
           await wenWnsMarketplace.methods
@@ -434,7 +434,7 @@ describe("wen_royalty_distribution", () => {
             distributionPreBalance;
           buyerPostBalance = await connection.getBalance(
             buyer.publicKey,
-            "confirmed"
+            "confirmed",
           );
           sellerPostBalance =
             (await connection.getBalance(seller.publicKey, "confirmed")) -
@@ -444,26 +444,28 @@ describe("wen_royalty_distribution", () => {
             connection,
             sellerMemberMintTokenAccount,
             "confirmed",
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID,
           );
           buyerTokenAccountData = await getAccount(
             connection,
             buyerMemberMintTokenAccount,
             "confirmed",
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID,
           );
         });
 
         describe("royalties", () => {
           it("should be sent to the distribution vault", () => {
-            expect(distributionPostBalance).to.eql(royalty.toNumber() + 1197120); // extra for rent
+            expect(distributionPostBalance).to.eql(
+              royalty.toNumber() + 1197120,
+            ); // extra for rent
           });
         });
 
         describe("the seller", () => {
           it("receive the payment minus royalties", () => {
             expect(sellerPostBalance).to.eql(
-              listingAmount.sub(royalty).toNumber()
+              listingAmount.sub(royalty).toNumber(),
             );
           });
           it("should not be the owner anymore", () => {
@@ -474,7 +476,7 @@ describe("wen_royalty_distribution", () => {
         describe("the buyer", () => {
           it("sent the payment", () => {
             expect(buyerPostBalance).to.eql(
-              buyerPreBalance - listingAmount.toNumber() - 1197120
+              buyerPreBalance - listingAmount.toNumber() - 1197120,
             );
           });
           it("should be the owner", () => {
@@ -494,7 +496,7 @@ describe("wen_royalty_distribution", () => {
           before(async () => {
             creator1PreBalance = await connection.getBalance(
               creator1.publicKey,
-              "confirmed"
+              "confirmed",
             );
 
             await wenWnsMarketplace.methods
@@ -538,7 +540,7 @@ describe("wen_royalty_distribution", () => {
           before(async () => {
             creator2PreBalance = await connection.getBalance(
               creator2.publicKey,
-              "confirmed"
+              "confirmed",
             );
 
             await wenWnsMarketplace.methods
@@ -595,57 +597,57 @@ describe("wen_royalty_distribution", () => {
         groupMintPublicKey,
         groupMintAuthPublicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       );
 
       const sellerMemberMintTokenAccount = getAssociatedTokenAddressSync(
         memberMintPublickey,
         memberMintAuthPublicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       );
 
       const sellerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
         paymentMintPublickey,
         seller.publicKey,
         false,
-        TOKEN_PROGRAM_ID
+        TOKEN_PROGRAM_ID,
       );
 
       const buyerMemberMintTokenAccount = getAssociatedTokenAddressSync(
         memberMintPublickey,
         buyer.publicKey,
         false,
-        TOKEN_2022_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID,
       );
 
       const buyerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
         paymentMintPublickey,
         buyer.publicKey,
         false,
-        TOKEN_PROGRAM_ID
+        TOKEN_PROGRAM_ID,
       );
 
       const group = getGroupAccountPda(groupMintPublicKey, wnsProgramId);
       const distribution = getDistributionAccountPda(
         groupMintPublicKey,
         paymentMintPublickey,
-        wenDistributionProgramId
+        wenDistributionProgramId,
       );
 
       const listing = getListingAccountPda(
         seller.publicKey,
         memberMintPublickey,
-        wenWnsMarketplaceId
+        wenWnsMarketplaceId,
       );
       const member = getMemberAccountPda(memberMintPublickey, wnsProgramId);
       const extraMetasAccount = getExtraMetasAccountPda(
         memberMintPublickey,
-        wnsProgramId
+        wnsProgramId,
       );
       const approveAccount = getApproveAccountPda(
         memberMintPublickey,
-        wnsProgramId
+        wnsProgramId,
       );
 
       const listingAmount = new anchor.BN(500 * 10 ** 6);
@@ -664,7 +666,7 @@ describe("wen_royalty_distribution", () => {
           connection,
           paymentMintPublickey,
           paymentMintAuthPublicKey,
-          paymentMintAuthPublicKey
+          paymentMintAuthPublicKey,
         );
 
         await sendAndConfirmWNSTransaction(
@@ -672,7 +674,7 @@ describe("wen_royalty_distribution", () => {
           createMintIxs,
           provider,
           true,
-          [paymentMintKeypair]
+          [paymentMintKeypair],
         );
 
         const { ixs: mintToIxs } = mintToBuyerSellerIx(
@@ -682,7 +684,7 @@ describe("wen_royalty_distribution", () => {
           buyer.publicKey,
           buyerPaymentMintTokenAccount,
           seller.publicKey,
-          sellerPaymentMintTokenAccount
+          sellerPaymentMintTokenAccount,
         );
 
         await sendAndConfirmWNSTransaction(
@@ -690,7 +692,7 @@ describe("wen_royalty_distribution", () => {
           mintToIxs,
           provider,
           true,
-          []
+          [],
         );
       });
 
@@ -731,11 +733,11 @@ describe("wen_royalty_distribution", () => {
 
         distributionAccountInfo = await connection.getAccountInfo(
           distribution,
-          "confirmed"
+          "confirmed",
         );
         distributionAccountData = wenDistributionProgram.coder.accounts.decode(
           "distributionAccount",
-          distributionAccountInfo.data
+          distributionAccountInfo.data,
         );
       });
 
@@ -809,19 +811,19 @@ describe("wen_royalty_distribution", () => {
 
         it("should be owned by the distribution program", () => {
           expect(distributionAccountInfo.owner.toBase58()).to.eql(
-            wenDistributionProgramId.toBase58()
+            wenDistributionProgramId.toBase58(),
           );
         });
 
         it("should point the correct group mint account address", () => {
           expect(
-            (distributionAccountData.groupMint as PublicKey).toBase58()
+            (distributionAccountData.groupMint as PublicKey).toBase58(),
           ).to.eql(groupMintPublicKey.toBase58());
         });
 
         it("should point the correct payment mint account address", () => {
           expect(
-            (distributionAccountData.paymentMint as PublicKey).toBase58()
+            (distributionAccountData.paymentMint as PublicKey).toBase58(),
           ).to.eql(paymentMintPublickey.toBase58());
         });
       });
@@ -857,17 +859,17 @@ describe("wen_royalty_distribution", () => {
 
           listingAccountInfo = await connection.getAccountInfo(
             listing,
-            "confirmed"
+            "confirmed",
           );
           listingAccountData = wenWnsMarketplace.coder.accounts.decode(
             "listing",
-            listingAccountInfo.data
+            listingAccountInfo.data,
           );
           sellerTokenAccountData = await getAccount(
             connection,
             sellerMemberMintTokenAccount,
             "confirmed",
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID,
           );
         });
 
@@ -881,7 +883,7 @@ describe("wen_royalty_distribution", () => {
 
         it("should point the listing account as delegate of NFT", () => {
           expect(sellerTokenAccountData.delegate.toBase58()).to.eql(
-            listing.toBase58()
+            listing.toBase58(),
           );
         });
 
@@ -895,14 +897,14 @@ describe("wen_royalty_distribution", () => {
           paymentMintPublickey,
           buyer.publicKey,
           false,
-          TOKEN_PROGRAM_ID
+          TOKEN_PROGRAM_ID,
         );
 
         const sellerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
           paymentMintPublickey,
           seller.publicKey,
           false,
-          TOKEN_PROGRAM_ID
+          TOKEN_PROGRAM_ID,
         );
 
         const distributionPaymentMintTokenAccount =
@@ -910,7 +912,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             distribution,
             true,
-            TOKEN_PROGRAM_ID
+            TOKEN_PROGRAM_ID,
           );
 
         let sellerPreBalance: number;
@@ -929,9 +931,9 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 buyerPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_PROGRAM_ID
+                TOKEN_PROGRAM_ID,
               )
-            ).amount.toString()
+            ).amount.toString(),
           );
           sellerPreBalance = parseInt(
             (
@@ -939,9 +941,9 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 sellerPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_PROGRAM_ID
+                TOKEN_PROGRAM_ID,
               )
-            ).amount.toString()
+            ).amount.toString(),
           );
 
           await wenWnsMarketplace.methods
@@ -979,7 +981,7 @@ describe("wen_royalty_distribution", () => {
                 distributionPaymentMintTokenAccount,
                 distribution,
                 paymentMintPublickey,
-                TOKEN_PROGRAM_ID
+                TOKEN_PROGRAM_ID,
               ),
             ])
             .signers([buyer])
@@ -995,9 +997,9 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 distributionPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_PROGRAM_ID
+                TOKEN_PROGRAM_ID,
               )
-            ).amount.toString()
+            ).amount.toString(),
           );
           buyerPostBalance = parseInt(
             (
@@ -1005,9 +1007,9 @@ describe("wen_royalty_distribution", () => {
                 connection,
                 buyerPaymentMintTokenAccount,
                 "confirmed",
-                TOKEN_PROGRAM_ID
+                TOKEN_PROGRAM_ID,
               )
-            ).amount.toString()
+            ).amount.toString(),
           );
           sellerPostBalance =
             parseInt(
@@ -1016,22 +1018,22 @@ describe("wen_royalty_distribution", () => {
                   connection,
                   sellerPaymentMintTokenAccount,
                   "confirmed",
-                  TOKEN_PROGRAM_ID
+                  TOKEN_PROGRAM_ID,
                 )
-              ).amount.toString()
+              ).amount.toString(),
             ) - sellerPreBalance;
 
           sellerTokenAccountData = await getAccount(
             connection,
             sellerMemberMintTokenAccount,
             "confirmed",
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID,
           );
           buyerTokenAccountData = await getAccount(
             connection,
             buyerMemberMintTokenAccount,
             "confirmed",
-            TOKEN_2022_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID,
           );
         });
 
@@ -1044,7 +1046,7 @@ describe("wen_royalty_distribution", () => {
         describe("the seller", () => {
           it("receive the payment minus royalties", () => {
             expect(sellerPostBalance).to.eql(
-              listingAmount.sub(royalty).toNumber()
+              listingAmount.sub(royalty).toNumber(),
             );
           });
           it("should not be the owner anymore", () => {
@@ -1056,7 +1058,7 @@ describe("wen_royalty_distribution", () => {
           it("sent the payment", () => {
             console.log;
             expect(buyerPostBalance).to.eql(
-              buyerPreBalance - listingAmount.toNumber()
+              buyerPreBalance - listingAmount.toNumber(),
             );
           });
           it("should be the owner", () => {
@@ -1071,7 +1073,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             distribution,
             true,
-            TOKEN_PROGRAM_ID
+            TOKEN_PROGRAM_ID,
           );
 
         describe("creator 1", () => {
@@ -1079,7 +1081,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             creator1.publicKey,
             true,
-            TOKEN_PROGRAM_ID
+            TOKEN_PROGRAM_ID,
           );
 
           let creator1PostBalance: number;
@@ -1109,7 +1111,7 @@ describe("wen_royalty_distribution", () => {
                   creator1PaymentMintTokenAccount,
                   creator1.publicKey,
                   paymentMintPublickey,
-                  TOKEN_PROGRAM_ID
+                  TOKEN_PROGRAM_ID,
                 ),
               ])
               .signers([creator1])
@@ -1125,9 +1127,9 @@ describe("wen_royalty_distribution", () => {
                   connection,
                   creator1PaymentMintTokenAccount,
                   "confirmed",
-                  TOKEN_PROGRAM_ID
+                  TOKEN_PROGRAM_ID,
                 )
-              ).amount.toString()
+              ).amount.toString(),
             );
           });
 
@@ -1141,7 +1143,7 @@ describe("wen_royalty_distribution", () => {
             paymentMintPublickey,
             creator2.publicKey,
             true,
-            TOKEN_PROGRAM_ID
+            TOKEN_PROGRAM_ID,
           );
 
           let creator2PostBalance: number;
@@ -1171,7 +1173,7 @@ describe("wen_royalty_distribution", () => {
                   creator2PaymentMintTokenAccount,
                   creator2.publicKey,
                   paymentMintPublickey,
-                  TOKEN_PROGRAM_ID
+                  TOKEN_PROGRAM_ID,
                 ),
               ])
               .signers([creator2])
@@ -1187,9 +1189,9 @@ describe("wen_royalty_distribution", () => {
                   connection,
                   creator2PaymentMintTokenAccount,
                   "confirmed",
-                  TOKEN_PROGRAM_ID
+                  TOKEN_PROGRAM_ID,
                 )
-              ).amount.toString()
+              ).amount.toString(),
             );
           });
 
