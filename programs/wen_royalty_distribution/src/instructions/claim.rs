@@ -116,12 +116,10 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
     if new_data_size < current_len {
         let account_info = ctx.accounts.distribution.to_account_info();
         let current_len = account_info.data_len();
-        let space_decrease = current_len - new_data_size;
         let rent_decrease = Rent::get()?
             .minimum_balance(current_len)
             .checked_sub(Rent::get()?.minimum_balance(new_data_size))
             .ok_or(DistributionErrors::ArithmeticOverflow)?;
-        msg!("rent {:?}", rent_decrease);
         total_sol_transfer += rent_decrease;
         account_info.realloc(new_data_size, false)?;
     }

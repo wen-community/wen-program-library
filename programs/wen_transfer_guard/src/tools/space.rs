@@ -31,12 +31,12 @@ pub struct UpdateAccountLamportsToMinimumBalanceAccountInfos<'info> {
 ///
 /// * If the account is not rent exempt and the payer does not have enough
 ///  lamports to make the account rent exempt.
-pub fn update_account_lamports_to_minimum_balance<'info>(
+pub fn update_account_lamports_to_minimum_balance(
     UpdateAccountLamportsToMinimumBalanceAccountInfos {
         account,
         payer,
         system_program,
-    }: UpdateAccountLamportsToMinimumBalanceAccountInfos<'info>,
+    }: UpdateAccountLamportsToMinimumBalanceAccountInfos,
 ) -> Result<()> {
     let extra_lamports = Rent::get()?.minimum_balance(account.data_len()) - account.get_lamports();
     if extra_lamports > 0 {

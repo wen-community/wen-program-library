@@ -59,7 +59,7 @@ pub fn processor(ctx: Context<Initialize>) -> Result<()> {
     let mut data = extra_metas_account.try_borrow_mut_data()?;
     ExtraAccountMetaList::init::<ExecuteInstruction>(
         &mut data,
-        &(vec![
+        &([
             ExtraAccountMeta::new_with_pubkey(&guard.key(), false, false)?,
             ExtraAccountMeta::new_with_pubkey(&sysvar::instructions::id(), false, false)?,
         ]),
