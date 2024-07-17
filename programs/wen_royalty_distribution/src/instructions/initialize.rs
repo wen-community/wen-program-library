@@ -6,7 +6,7 @@ use anchor_spl::token_interface::Mint;
 use crate::DistributionAccount;
 
 #[derive(Accounts)]
-#[instruction(payment_mint: String)]
+#[instruction(payment_mint: Pubkey)]
 pub struct InitializeDistribution<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,

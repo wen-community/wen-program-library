@@ -121,6 +121,7 @@ impl UpdateDistribution<'_> {
                 self.system_program.to_account_info(),
             ],
         )?;
+
         Ok(())
     }
 
@@ -161,7 +162,7 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let mint_data = StateWithExtensions::<Token2022Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
 
-    if args.amount <= 0 {
+    if args.amount == 0 {
         return Ok(());
     }
 
@@ -235,8 +236,8 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         }
     }
 
-    let serialized_new_data =
-        bincode::serialize(&new_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
+    let mut serialized_new_data = Vec::new();
+    new_data.serialize(&mut serialized_new_data)?;
 
     let new_data_size = std::cmp::max(
         CLAIM_DATA_OFFSET + serialized_new_data.len(),
