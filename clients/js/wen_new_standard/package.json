@@ -1,6 +1,6 @@
 {
   "name": "@wen-foundation/wen-new-standard",
-  "version": "0.4.6-alpha",
+  "version": "0.5.0-alpha",
   "description": "An SDK for developing on the Open Source NFT Standard built on Solana Token Extensions.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -53,6 +53,5 @@
         "test/": "dist/test/"
       }
     }
-  },
-  "packageManager": "pnpm@9.1.0"
+  }
 }

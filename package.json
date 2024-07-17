@@ -1,6 +1,6 @@
 {
   "name": "wen-program-library",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A library of programs maintained by the WEN community",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
@@ -15,6 +15,12 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
+    "@kinobi-so/nodes": "^0.20.6",
+    "@kinobi-so/nodes-from-anchor": "^0.20.8",
+    "@kinobi-so/renderers": "^0.20.14",
+    "@kinobi-so/renderers-core": "^0.20.6",
+    "@kinobi-so/visitors": "^0.20.6",
+    "@kinobi-so/visitors-core": "^0.20.6",
     "@solana/spl-token": "^0.4.6",
     "@solana/spl-token-metadata": "^0.1.4"
   },
@@ -22,12 +28,6 @@
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
     "@faker-js/faker": "^8.4.1",
-    "@kinobi-so/nodes": "^0.20.4",
-    "@kinobi-so/nodes-from-anchor": "^0.20.6",
-    "@kinobi-so/renderers": "^0.20.9",
-    "@kinobi-so/renderers-core": "^0.20.4",
-    "@kinobi-so/visitors": "^0.20.4",
-    "@kinobi-so/visitors-core": "^0.20.4",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",

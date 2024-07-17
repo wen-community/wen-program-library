@@ -1,0 +1,57 @@
+{
+  "name": "@wen-foundation/wen-wns-marketplace",
+  "version": "0.5.0-alpha",
+  "description": "An SDK for developing on the Open Source NFT Standard built on Solana Token Extensions.",
+  "main": "dist/src/index.js",
+  "types": "dist/src/types/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
+    "test": "ava",
+    "lint": "eslint --ext js,ts,tsx src && prettier --check src test",
+    "lint:fix": "eslint --fix --ext js,ts,tsx src && prettier --write src test"
+  },
+  "files": [
+    "/dist/src"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "homepage": "https://wenwencoin.com",
+  "repository": "https://github.com/wen-community/wen-program-libarary.git",
+  "author": "wen community",
+  "license": "MIT",
+  "keywords": [
+    "solana",
+    "nft",
+    "blockchain",
+    "wen"
+  ],
+  "peerDependencies": {
+    "@solana/web3.js": "2.0.0-preview.3"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^4.1.0",
+    "@solana/eslint-config-solana": "^3.0.0",
+    "@solana/web3.js": "tp3",
+    "@solana/webcrypto-ed25519-polyfill": "tp3",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "ava": "^6.1.2",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "tsup": "^8.0.2",
+    "typedoc": "^0.25.12",
+    "typedoc-plugin-missing-exports": "^2.2.0",
+    "typescript": "^5.4.2"
+  },
+  "ava": {
+    "typescript": {
+      "compile": false,
+      "rewritePaths": {
+        "test/": "dist/test/"
+      }
+    }
+  }
+}

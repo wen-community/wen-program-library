@@ -1,7 +1,14 @@
 {
+  "private": true,
+  "workspaces": [
+    "wen_new_standard",
+    "wen_royalty_distribution",
+    "wen_transfer_guard",
+    "wen_wns_marketplace"
+  ],
   "scripts": {
-    "build": "pnpm --filter {wen_new_standard} build",
-    "format": "pnpm --filter {wen_new_standard} format",
-    "lint": "pnpm  --filter {wen_new_standard} lint"
+    "build": "yarn workspaces run build",
+    "format": "yarn workspaces run format",
+    "lint": "yarn workspaces run lint"
   }
 }

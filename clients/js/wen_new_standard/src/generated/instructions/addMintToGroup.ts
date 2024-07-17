@@ -10,8 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   transformEncoder,
@@ -32,7 +34,11 @@ import {
   type WritableSignerAccount,
 } from '@solana/web3.js';
 import { WEN_NEW_STANDARD_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  expectAddress,
+  getAccountMetaFactory,
+  type ResolvedAccount,
+} from '../shared';
 
 export type AddMintToGroupInstruction<
   TProgram extends string = typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
@@ -113,6 +119,136 @@ export function getAddMintToGroupInstructionDataCodec(): Codec<
     getAddMintToGroupInstructionDataEncoder(),
     getAddMintToGroupInstructionDataDecoder()
   );
+}
+
+export type AddMintToGroupAsyncInput<
+  TAccountPayer extends string = string,
+  TAccountAuthority extends string = string,
+  TAccountGroup extends string = string,
+  TAccountMember extends string = string,
+  TAccountMint extends string = string,
+  TAccountManager extends string = string,
+  TAccountSystemProgram extends string = string,
+  TAccountTokenProgram extends string = string,
+> = {
+  payer: TransactionSigner<TAccountPayer>;
+  authority: TransactionSigner<TAccountAuthority>;
+  group: Address<TAccountGroup>;
+  member?: Address<TAccountMember>;
+  mint: Address<TAccountMint>;
+  manager?: Address<TAccountManager>;
+  systemProgram?: Address<TAccountSystemProgram>;
+  tokenProgram?: Address<TAccountTokenProgram>;
+};
+
+export async function getAddMintToGroupInstructionAsync<
+  TAccountPayer extends string,
+  TAccountAuthority extends string,
+  TAccountGroup extends string,
+  TAccountMember extends string,
+  TAccountMint extends string,
+  TAccountManager extends string,
+  TAccountSystemProgram extends string,
+  TAccountTokenProgram extends string,
+>(
+  input: AddMintToGroupAsyncInput<
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountGroup,
+    TAccountMember,
+    TAccountMint,
+    TAccountManager,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >
+): Promise<
+  AddMintToGroupInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountGroup,
+    TAccountMember,
+    TAccountMint,
+    TAccountManager,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    authority: { value: input.authority ?? null, isWritable: false },
+    group: { value: input.group ?? null, isWritable: true },
+    member: { value: input.member ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: true },
+    manager: { value: input.manager ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Resolve default values.
+  if (!accounts.member.value) {
+    accounts.member.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(new Uint8Array([109, 101, 109, 98, 101, 114])),
+        getAddressEncoder().encode(expectAddress(accounts.mint.value)),
+      ],
+    });
+  }
+  if (!accounts.manager.value) {
+    accounts.manager.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([109, 97, 110, 97, 103, 101, 114])
+        ),
+      ],
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address<'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.payer),
+      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.group),
+      getAccountMeta(accounts.member),
+      getAccountMeta(accounts.mint),
+      getAccountMeta(accounts.manager),
+      getAccountMeta(accounts.systemProgram),
+      getAccountMeta(accounts.tokenProgram),
+    ],
+    programAddress,
+    data: getAddMintToGroupInstructionDataEncoder().encode({}),
+  } as AddMintToGroupInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountAuthority,
+    TAccountGroup,
+    TAccountMember,
+    TAccountMint,
+    TAccountManager,
+    TAccountSystemProgram,
+    TAccountTokenProgram
+  >;
+
+  return instruction;
 }
 
 export type AddMintToGroupInput<

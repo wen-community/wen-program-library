@@ -12,6 +12,7 @@ import {
   fixEncoderSize,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   transformEncoder,
@@ -89,6 +90,83 @@ export function getInitManagerAccountInstructionDataCodec(): Codec<
     getInitManagerAccountInstructionDataEncoder(),
     getInitManagerAccountInstructionDataDecoder()
   );
+}
+
+export type InitManagerAccountAsyncInput<
+  TAccountPayer extends string = string,
+  TAccountManager extends string = string,
+  TAccountSystemProgram extends string = string,
+> = {
+  payer: TransactionSigner<TAccountPayer>;
+  manager?: Address<TAccountManager>;
+  systemProgram?: Address<TAccountSystemProgram>;
+};
+
+export async function getInitManagerAccountInstructionAsync<
+  TAccountPayer extends string,
+  TAccountManager extends string,
+  TAccountSystemProgram extends string,
+>(
+  input: InitManagerAccountAsyncInput<
+    TAccountPayer,
+    TAccountManager,
+    TAccountSystemProgram
+  >
+): Promise<
+  InitManagerAccountInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountManager,
+    TAccountSystemProgram
+  >
+> {
+  // Program address.
+  const programAddress = WEN_NEW_STANDARD_PROGRAM_ADDRESS;
+
+  // Original accounts.
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    manager: { value: input.manager ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+  };
+  const accounts = originalAccounts as Record<
+    keyof typeof originalAccounts,
+    ResolvedAccount
+  >;
+
+  // Resolve default values.
+  if (!accounts.manager.value) {
+    accounts.manager.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([109, 97, 110, 97, 103, 101, 114])
+        ),
+      ],
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+
+  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+  const instruction = {
+    accounts: [
+      getAccountMeta(accounts.payer),
+      getAccountMeta(accounts.manager),
+      getAccountMeta(accounts.systemProgram),
+    ],
+    programAddress,
+    data: getInitManagerAccountInstructionDataEncoder().encode({}),
+  } as InitManagerAccountInstruction<
+    typeof WEN_NEW_STANDARD_PROGRAM_ADDRESS,
+    TAccountPayer,
+    TAccountManager,
+    TAccountSystemProgram
+  >;
+
+  return instruction;
 }
 
 export type InitManagerAccountInput<

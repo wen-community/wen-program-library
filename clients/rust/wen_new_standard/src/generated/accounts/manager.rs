@@ -51,3 +51,11 @@ impl anchor_lang::Owner for Manager {
         crate::WEN_NEW_STANDARD_ID
     }
 }
+
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::IdlBuild for Manager {}
+
+#[cfg(feature = "anchor-idl-build")]
+impl anchor_lang::Discriminator for Manager {
+    const DISCRIMINATOR: [u8; 8] = [0; 8];
+}
