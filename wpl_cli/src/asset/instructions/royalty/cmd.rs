@@ -23,10 +23,7 @@ pub enum Commands {
     Modify(RoyaltyArgs),
 }
 
-pub async fn subcommand(
-    context: Context,
-    subcommand: RoyaltySubCommand,
-) -> Result<()> {
+pub async fn subcommand(context: Context, subcommand: RoyaltySubCommand) -> Result<()> {
     match subcommand.action {
         Commands::Add(args) => {
             add_royalties(context, args).await?;

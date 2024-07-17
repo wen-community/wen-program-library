@@ -31,7 +31,7 @@ import { getType } from "./utils";
     const wnsProgram = new Program(WNSIdl as WenNewStandard, provider);
     const distributionProgram = new Program(
       WenRoyaltyIdl as WenRoyaltyDistribution,
-      provider
+      provider,
     );
 
     const data: Record<
@@ -64,7 +64,7 @@ import { getType } from "./utils";
       {} as Readonly<{
         account: AccountInfo<Buffer>;
         pubkey: PublicKey;
-      }>
+      }>,
     );
 
     const pubkeys = Object.keys(wnsAccounts)
@@ -97,12 +97,12 @@ import { getType } from "./utils";
       {} as Readonly<{
         account: AccountInfo<Buffer>;
         pubkey: PublicKey;
-      }>
+      }>,
     );
 
     console.log(
       "Distribution Program GPA:",
-      Object.keys(distributionAccounts).length
+      Object.keys(distributionAccounts).length,
     );
     console.log(`-----------------------------------------------------`);
 
@@ -111,13 +111,13 @@ import { getType } from "./utils";
     pubkeys.push(
       ...Object.keys(distributionAccounts)
         .slice(0, 50)
-        .map((a) => `--clone ${a}`)
+        .map((a) => `--clone ${a}`),
     );
 
     await writeFile(
       `${__dirname}/../${isDevnet ? "devnet" : "mainnet"}.json`,
       JSON.stringify(data, null, 2),
-      { encoding: "utf8" }
+      { encoding: "utf8" },
     );
 
     // console.log(

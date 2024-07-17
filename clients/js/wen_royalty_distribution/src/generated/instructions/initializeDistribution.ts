@@ -7,21 +7,16 @@
  */
 
 import {
-  addDecoderSizePrefix,
-  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressDecoder,
   getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  getUtf8Decoder,
-  getUtf8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -78,16 +73,18 @@ export type InitializeDistributionInstruction<
 
 export type InitializeDistributionInstructionData = {
   discriminator: ReadonlyUint8Array;
-  paymentMint: string;
+  paymentMint: Address;
 };
 
-export type InitializeDistributionInstructionDataArgs = { paymentMint: string };
+export type InitializeDistributionInstructionDataArgs = {
+  paymentMint: Address;
+};
 
 export function getInitializeDistributionInstructionDataEncoder(): Encoder<InitializeDistributionInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['paymentMint', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
+      ['paymentMint', getAddressEncoder()],
     ]),
     (value) => ({
       ...value,
@@ -99,7 +96,7 @@ export function getInitializeDistributionInstructionDataEncoder(): Encoder<Initi
 export function getInitializeDistributionInstructionDataDecoder(): Decoder<InitializeDistributionInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['paymentMint', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
+    ['paymentMint', getAddressDecoder()],
   ]);
 }
 
@@ -174,9 +171,7 @@ export async function getInitializeDistributionInstructionAsync<
       programAddress,
       seeds: [
         getAddressEncoder().encode(expectAddress(accounts.groupMint.value)),
-        addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder()).encode(
-          expectSome(args.paymentMint)
-        ),
+        getAddressEncoder().encode(expectSome(args.paymentMint)),
       ],
     });
   }
