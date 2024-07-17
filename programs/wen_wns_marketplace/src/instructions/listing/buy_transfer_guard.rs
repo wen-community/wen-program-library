@@ -15,8 +15,8 @@ use royalties_interface::{calculate_royalties, generate_royalty_ixs};
 use wen_new_standard::{
     cpi::{accounts::ThawDelegatedAccount, thaw_mint_account},
     program::WenNewStandard,
+    wen_transfer_guard::program::WenTransferGuard,
 };
-use wen_transfer_guard::program::WenTransferGuard;
 
 use crate::constants::*;
 use crate::errors::*;
