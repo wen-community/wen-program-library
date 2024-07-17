@@ -4,7 +4,8 @@
   "description": "A library of programs maintained by the WEN community",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "lint:ts": "sh -c 'find . -name \"node_modules\" -prune -o -name \"dist\" -prune -o -name \"*.ts\" -o -name \"*.tsx\" -exec sh -c \"echo Formatting {} && prettier --write {}\" \\;'",
+    "lint:rs": "sh -c 'find . -path ./target -prune -o -name \"*.rs\" -exec sh -c \"echo Formatting {} && cargo fmt -- {}\" \\;'",
     "clients": "node ./kinobi.mjs",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "prepare": "husky"

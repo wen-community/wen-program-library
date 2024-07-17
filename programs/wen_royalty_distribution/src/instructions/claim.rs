@@ -105,8 +105,8 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
     let account_info = ctx.accounts.distribution.to_account_info();
     let current_len = account_info.data_len();
 
-    let serialized_new_data =
-        bincode::serialize(&claim_data).map_err(|_| DistributionErrors::ArithmeticOverflow)?;
+    let mut serialized_new_data = Vec::new();
+    claim_data.serialize(&mut serialized_new_data)?;
 
     let new_data_size = std::cmp::max(
         CLAIM_DATA_OFFSET + serialized_new_data.len(),
