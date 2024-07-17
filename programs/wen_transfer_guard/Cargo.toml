@@ -22,3 +22,4 @@ anchor-spl.workspace = true
 spl-pod.workspace = true
 spl-transfer-hook-interface.workspace = true
 spl-tlv-account-resolution.workspace = true
+spl-type-length-value.workspace = true

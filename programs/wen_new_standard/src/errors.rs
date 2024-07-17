@@ -29,3 +29,13 @@ pub enum MintErrors {
     #[msg("Invalid Token group member mint")]
     InvalidTokenGroupMemberMint,
 }
+
+#[error_code]
+pub enum ExtraAccountMetaListErrors {
+    #[msg("Extra Account Meta is initialized already")]
+    ExtraAccountMetaAlreadyInitialized,
+    #[msg("Invalid extra account meta address")]
+    InvalidExtraAccountMeta,
+    #[msg("Invalid guard account provided")]
+    InvalidGuardAccount,
+}

@@ -1,5 +1,5 @@
 [workspace]
-members = ["programs/*"]
+members = ["programs/*", "libraries/*"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -13,9 +13,10 @@ wen_new_standard = { path = "programs/wen_new_standard", features = ["cpi"] }
 wen_royalty_distribution = { path = "programs/wen_royalty_distribution", features = [
   "cpi",
 ] }
-spl-transfer-hook-interface = "0.5.1"
-spl-tlv-account-resolution = "0.4.0"
-spl-pod = "0.2.2"
+spl-transfer-hook-interface = "0.6.5"
+spl-tlv-account-resolution = "0.6.5"
+spl-pod = "0.2.5"
+spl-type-length-value = "=0.3.0"
 
 [profile.release]
 overflow-checks = true

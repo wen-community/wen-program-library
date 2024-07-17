@@ -1,6 +1,6 @@
-use crate::{APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
+use crate::{ExtraAccountMetaListErrors, APPROVE_ACCOUNT_SEED, META_LIST_ACCOUNT_SEED};
 use anchor_lang::{
-    prelude::Result,
+    prelude::*,
     solana_program::{
         account_info::AccountInfo,
         instruction::{get_stack_height, TRANSACTION_LEVEL_STACK_HEIGHT},
@@ -25,6 +25,25 @@ use spl_tlv_account_resolution::{account::ExtraAccountMeta, state::ExtraAccountM
 pub fn get_bump_in_seed_form(bump: &u8) -> [u8; 1] {
     let bump_val = *bump;
     [bump_val]
+}
+
+pub fn verify_extra_meta_account(
+    mint: &Pubkey,
+    extra_metas_account: &Pubkey,
+    transfer_hook_program_id: &Pubkey,
+) -> Result<u8> {
+    let (expected_extra_account_metas, bump) = Pubkey::find_program_address(
+        &[META_LIST_ACCOUNT_SEED, mint.as_ref()],
+        transfer_hook_program_id,
+    );
+
+    require_eq!(
+        &expected_extra_account_metas,
+        extra_metas_account,
+        ExtraAccountMetaListErrors::InvalidExtraAccountMeta
+    );
+
+    Ok(bump)
 }
 
 pub fn update_account_lamports_to_minimum_balance<'info>(

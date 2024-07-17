@@ -40,7 +40,7 @@ pub struct Initialize<'info> {
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
-    #[account(mut)]
+    #[account()]
     pub transfer_hook_authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
