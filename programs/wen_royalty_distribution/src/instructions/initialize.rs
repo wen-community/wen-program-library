@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
@@ -26,10 +24,9 @@ pub struct InitializeDistribution<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitializeDistribution>, payment_mint: String) -> Result<()> {
-    let payment_key = Pubkey::from_str(&payment_mint).unwrap_or_default();
+pub fn handler(ctx: Context<InitializeDistribution>, payment_mint: Pubkey) -> Result<()> {
     ctx.accounts
         .distribution_account
-        .initialize_account_data(ctx.accounts.group_mint.key(), payment_key);
+        .initialize_account_data(ctx.accounts.group_mint.key(), payment_mint);
     Ok(())
 }
