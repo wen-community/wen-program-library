@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, str::FromStr};
+use std::{cmp::Ordering, mem, str::FromStr};
 
 use anchor_lang::{
     prelude::*,
@@ -128,15 +128,16 @@ impl UpdateDistribution<'_> {
     pub fn realloc_distribution_account(&self, new_data_size: usize) -> Result<()> {
         let account_info = self.distribution_account.to_account_info();
         let current_len = account_info.data_len();
-
+        msg!("{:?}, {:?}", new_data_size, current_len);
         match new_data_size.cmp(&current_len) {
             Ordering::Greater => {
                 let rent_increase = Rent::get()?
                     .minimum_balance(new_data_size)
                     .checked_sub(Rent::get()?.minimum_balance(current_len))
                     .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                account_info.realloc(new_data_size, false)?;
                 self.transfer_sol(rent_increase)?;
+                msg!("{:?}, {:?}", new_data_size, current_len);
+                account_info.realloc(new_data_size, false)?;
             }
             Ordering::Less => {
                 let rent_decrease = Rent::get()?
@@ -236,18 +237,6 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         }
     }
 
-    let mut serialized_new_data = Vec::new();
-    new_data.serialize(&mut serialized_new_data)?;
-
-    let new_data_size = std::cmp::max(
-        CLAIM_DATA_OFFSET + serialized_new_data.len(),
-        DISTRIBUTION_ACCOUNT_MIN_LEN,
-    );
-    ctx.accounts.realloc_distribution_account(new_data_size)?;
-
-    // Update the account data
-    ctx.accounts.distribution_account.claim_data = new_data;
-
     let payment_mint = &ctx.accounts.payment_mint;
     let payment_mint_pubkey = payment_mint.key();
 
@@ -256,6 +245,27 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     } else {
         ctx.accounts.transfer_royalty_amount(args.amount)?;
     }
+
+    let temp = DistributionAccount {
+        version: ctx.accounts.distribution_account.version,
+        payment_mint: payment_mint_pubkey,
+        group_mint: ctx.accounts.distribution_account.group_mint,
+        claim_data: new_data.clone()
+    };
+
+    let size = mem::size_of_val(&temp);
+
+    let new_data_size = std::cmp::max(
+        8 + size,
+        DISTRIBUTION_ACCOUNT_MIN_LEN,
+    );
+    
+    msg!("{:?}, {:?}", new_data_size, size);
+    ctx.accounts.realloc_distribution_account(new_data_size)?;
+
+    // Update the account data
+    ctx.accounts.distribution_account.claim_data = new_data;
+
 
     Ok(())
 }
