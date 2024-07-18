@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, mem, str::FromStr};
+use std::{borrow::BorrowMut, cmp::Ordering, mem, str::FromStr};
 
 use anchor_lang::{
     prelude::*,
@@ -125,7 +125,11 @@ impl UpdateDistribution<'_> {
         Ok(())
     }
 
-    pub fn realloc_distribution_account(&self, new_data_size: usize, additional_payment: u64) -> Result<()> {
+    pub fn realloc_distribution_account(
+        &self,
+        new_data_size: usize,
+        additional_payment: u64,
+    ) -> Result<()> {
         let account_info = self.distribution_account.to_account_info();
         let current_len = account_info.data_len();
         msg!("{:?}, {:?}", new_data_size, current_len);
@@ -252,24 +256,20 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         version: ctx.accounts.distribution_account.version,
         payment_mint: payment_mint_pubkey,
         group_mint: ctx.accounts.distribution_account.group_mint,
-        claim_data: new_data.clone()
+        claim_data: new_data.clone(),
     };
     let mut buffer: Vec<u8> = Vec::new();
     temp.serialize(&mut buffer).unwrap();
-
     let size = buffer.len();
 
-    let new_data_size = std::cmp::max(
-        8 + size,
-        DISTRIBUTION_ACCOUNT_MIN_LEN,
-    );
-    
+    let new_data_size = std::cmp::max(8 + size, DISTRIBUTION_ACCOUNT_MIN_LEN);
+
     msg!("{:?}, {:?}", new_data_size, size);
-    ctx.accounts.realloc_distribution_account(new_data_size, additional_payment)?;
-
-    // Update the account data
-    ctx.accounts.distribution_account.claim_data = new_data;
-
+    ctx.accounts
+        .realloc_distribution_account(new_data_size, additional_payment)?;
+    let binding = ctx.accounts.distribution_account.to_account_info();
+    let distribution_account = &mut binding.try_borrow_mut_data()?;
+    distribution_account[8..].copy_from_slice(&temp.try_to_vec()?);
 
     Ok(())
 }
