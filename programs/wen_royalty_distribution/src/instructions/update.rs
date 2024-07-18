@@ -1,4 +1,4 @@
-use std::{borrow::BorrowMut, cmp::Ordering, mem, str::FromStr};
+use std::str::FromStr;
 
 use anchor_lang::{
     prelude::*,
@@ -18,8 +18,8 @@ use anchor_spl::{
 };
 
 use crate::{
-    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET,
-    DISTRIBUTION_ACCOUNT_MIN_LEN, ROYALTY_BASIS_POINTS_FIELD,
+    Creator, DistributionAccount, DistributionErrors, DISTRIBUTION_ACCOUNT_MIN_LEN,
+    ROYALTY_BASIS_POINTS_FIELD,
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -124,41 +124,6 @@ impl UpdateDistribution<'_> {
 
         Ok(())
     }
-
-    pub fn realloc_distribution_account(
-        &self,
-        new_data_size: usize,
-        additional_payment: u64,
-    ) -> Result<()> {
-        let account_info = self.distribution_account.to_account_info();
-        let current_len = account_info.data_len();
-        msg!("{:?}, {:?}", new_data_size, current_len);
-        match new_data_size.cmp(&current_len) {
-            Ordering::Greater => {
-                let rent_increase = Rent::get()?
-                    .minimum_balance(new_data_size)
-                    .checked_sub(Rent::get()?.minimum_balance(current_len))
-                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                self.transfer_sol(rent_increase + additional_payment)?;
-                msg!("{:?}, {:?}", new_data_size, current_len);
-                account_info.realloc(new_data_size, false)?;
-            }
-            Ordering::Less => {
-                let rent_decrease = Rent::get()?
-                    .minimum_balance(current_len)
-                    .checked_sub(Rent::get()?.minimum_balance(new_data_size))
-                    .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                account_info.sub_lamports(rent_decrease)?;
-                self.authority.add_lamports(rent_decrease)?;
-                account_info.realloc(new_data_size, false)?;
-            }
-            Ordering::Equal => {
-                // Do nothing if sizes are equal
-            }
-        }
-
-        Ok(())
-    }
 }
 
 pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -> Result<()> {
@@ -166,7 +131,6 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let mint_account_data = mint_account.try_borrow_data()?;
     let mint_data = StateWithExtensions::<Token2022Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
-
     if args.amount == 0 {
         return Ok(());
     }
@@ -186,7 +150,7 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         .collect::<Vec<CreatorShare>>();
 
     // update creator amounts in distribution account. add creator if not present, else update amount (amount * pct / 100)
-    let current_data = ctx.accounts.distribution_account.clone().claim_data.clone();
+    let current_data = ctx.accounts.distribution_account.claim_data.clone();
 
     let mut new_data = vec![];
     // Incoming creator updates
@@ -244,32 +208,38 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let payment_mint = &ctx.accounts.payment_mint;
     let payment_mint_pubkey = payment_mint.key();
 
-    let mut additional_payment = 0;
+    ctx.accounts.distribution_account.claim_data = new_data.clone();
+
     if payment_mint_pubkey == Pubkey::default() {
-        // ctx.accounts.transfer_sol(args.amount)?;
-        additional_payment += args.amount;
+        ctx.accounts.transfer_sol(args.amount)?;
     } else {
         ctx.accounts.transfer_royalty_amount(args.amount)?;
     }
 
-    let temp = DistributionAccount {
-        version: ctx.accounts.distribution_account.version,
-        payment_mint: payment_mint_pubkey,
-        group_mint: ctx.accounts.distribution_account.group_mint,
-        claim_data: new_data.clone(),
-    };
-    let mut buffer: Vec<u8> = Vec::new();
-    temp.serialize(&mut buffer).unwrap();
-    let size = buffer.len();
+    let new_creator_size = std::cmp::max(new_data.len() * Creator::INIT_SPACE, Creator::INIT_SPACE);
+    let realloc_size = DISTRIBUTION_ACCOUNT_MIN_LEN + new_creator_size;
 
-    let new_data_size = std::cmp::max(8 + size, DISTRIBUTION_ACCOUNT_MIN_LEN);
-
-    msg!("{:?}, {:?}", new_data_size, size);
     ctx.accounts
-        .realloc_distribution_account(new_data_size, additional_payment)?;
-    let binding = ctx.accounts.distribution_account.to_account_info();
-    let distribution_account = &mut binding.try_borrow_mut_data()?;
-    distribution_account[8..].copy_from_slice(&temp.try_to_vec()?);
+        .distribution_account
+        .to_account_info()
+        .realloc(realloc_size, false)?;
+
+    // transfer min rent in or out of distribution account
+    let rent = Rent::get()?;
+    let min_rent = rent.minimum_balance(realloc_size);
+    let current_rent = ctx
+        .accounts
+        .distribution_account
+        .to_account_info()
+        .lamports();
+    if current_rent < min_rent {
+        let rent_amount = min_rent - current_rent;
+        ctx.accounts.transfer_sol(rent_amount)?;
+    } else if current_rent > min_rent {
+        let rent_amount = current_rent - min_rent;
+        ctx.accounts.distribution_account.sub_lamports(rent_amount);
+        ctx.accounts.authority.add_lamports(rent_amount);
+    }
 
     Ok(())
 }
