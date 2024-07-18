@@ -18,8 +18,7 @@ use anchor_spl::{
 };
 
 use crate::{
-    Creator, DistributionAccount, DistributionErrors, DISTRIBUTION_ACCOUNT_MIN_LEN,
-    ROYALTY_BASIS_POINTS_FIELD,
+    Creator, DistributionAccount, DistributionErrors, CLAIM_DATA_OFFSET, ROYALTY_BASIS_POINTS_FIELD,
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -151,7 +150,13 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
 
     // update creator amounts in distribution account. add creator if not present, else update amount (amount * pct / 100)
     let current_data = ctx.accounts.distribution_account.claim_data.clone();
-
+    let rent = Rent::get()?;
+    let current_rent = rent.minimum_balance(
+        ctx.accounts
+            .distribution_account
+            .to_account_info()
+            .data_len(),
+    );
     let mut new_data = vec![];
     // Incoming creator updates
     for creator in creators.iter() {
@@ -217,7 +222,7 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     }
 
     let new_creator_size = std::cmp::max(new_data.len() * Creator::INIT_SPACE, Creator::INIT_SPACE);
-    let realloc_size = DISTRIBUTION_ACCOUNT_MIN_LEN + new_creator_size;
+    let realloc_size = CLAIM_DATA_OFFSET + new_creator_size;
 
     ctx.accounts
         .distribution_account
@@ -225,20 +230,16 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         .realloc(realloc_size, false)?;
 
     // transfer min rent in or out of distribution account
-    let rent = Rent::get()?;
     let min_rent = rent.minimum_balance(realloc_size);
-    let current_rent = ctx
-        .accounts
-        .distribution_account
-        .to_account_info()
-        .lamports();
     if current_rent < min_rent {
         let rent_amount = min_rent - current_rent;
         ctx.accounts.transfer_sol(rent_amount)?;
     } else if current_rent > min_rent {
         let rent_amount = current_rent - min_rent;
-        ctx.accounts.distribution_account.sub_lamports(rent_amount);
-        ctx.accounts.authority.add_lamports(rent_amount);
+        ctx.accounts
+            .distribution_account
+            .sub_lamports(rent_amount)?;
+        ctx.accounts.authority.add_lamports(rent_amount)?;
     }
 
     Ok(())
