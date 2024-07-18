@@ -1,25 +1,26 @@
-use solana_sdk::{
-    account_info::AccountInfo, instruction::Instruction, program_error::ProgramError,
-    pubkey::Pubkey, system_instruction::transfer,
+use anchor_lang::{
+    solana_program::{
+        account_info::AccountInfo, instruction::Instruction, program_error::ProgramError,
+        pubkey::Pubkey,
+    },
+    Result,
 };
-use spl_associated_token_account::{
-    get_associated_token_address_with_program_id,
-    instruction::create_associated_token_account_idempotent,
+use anchor_spl::{
+    associated_token::get_associated_token_address_with_program_id,
+    token_2022::spl_token_2022::{
+        extension::{BaseStateWithExtensions, StateWithExtensions},
+        state::Mint,
+    },
+    token_interface::spl_token_metadata_interface::state::TokenMetadata,
 };
-use spl_token_2022::{
-    extension::{BaseStateWithExtensions, StateWithExtensions},
-    instruction::transfer_checked,
-    state::Mint,
-};
-use spl_token_metadata_interface::state::TokenMetadata;
+use solana_program::system_instruction::transfer;
+use spl_associated_token_account::instruction::create_associated_token_account_idempotent;
+use spl_token_2022::instruction::transfer_checked;
 use std::str::FromStr;
 
 pub const ROYALTY_BASIS_POINTS_FIELD: &str = "royalty_basis_points";
 
-pub fn calculate_royalties(
-    mint: &AccountInfo,
-    amount: u64,
-) -> Result<(u64, TokenMetadata, Mint), ProgramError> {
+pub fn calculate_royalties(mint: &AccountInfo, amount: u64) -> Result<(u64, TokenMetadata, Mint)> {
     let mint_account_data = mint.try_borrow_data()?;
     let mint_data = StateWithExtensions::<Mint>::unpack(&mint_account_data)?;
     let metadata = mint_data.get_variable_len_extension::<TokenMetadata>()?;
@@ -45,7 +46,7 @@ pub fn generate_royalty_ixs(
     buyer: &Pubkey,
     token_program_id: &Option<AccountInfo>,
     is_spl: bool,
-) -> Result<Vec<Instruction>, ProgramError> {
+) -> Result<Vec<Instruction>> {
     let (royalty_amount, metadata, mint_base_state) = calculate_royalties(mint, amount)?;
 
     let creators = metadata
@@ -70,7 +71,7 @@ pub fn generate_royalty_ixs(
             transfer(buyer, &creator, creator_share_amount)
         } else {
             if token_program_id.is_none() {
-                return Err(ProgramError::IncorrectProgramId);
+                return Err(ProgramError::IncorrectProgramId.into());
             }
             let token_program_id = token_program_id.clone().unwrap().key;
             let source_token_account =

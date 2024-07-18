@@ -4,9 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-solana-program.workspace = true
-solana-sdk.workspace = true
+anchor-lang.workspace = true
+anchor-spl.workspace = true
 spl-associated-token-account.workspace = true
-spl-token.workspace = true
 spl-token-2022.workspace = true
-spl-token-metadata-interface.workspace = true
+solana-program.workspace = true
