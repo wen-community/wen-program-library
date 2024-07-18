@@ -125,7 +125,7 @@ impl UpdateDistribution<'_> {
         Ok(())
     }
 
-    pub fn realloc_distribution_account(&self, new_data_size: usize) -> Result<()> {
+    pub fn realloc_distribution_account(&self, new_data_size: usize, additional_payment: u64) -> Result<()> {
         let account_info = self.distribution_account.to_account_info();
         let current_len = account_info.data_len();
         msg!("{:?}, {:?}", new_data_size, current_len);
@@ -135,7 +135,7 @@ impl UpdateDistribution<'_> {
                     .minimum_balance(new_data_size)
                     .checked_sub(Rent::get()?.minimum_balance(current_len))
                     .ok_or(DistributionErrors::ArithmeticOverflow)?;
-                self.transfer_sol(rent_increase)?;
+                self.transfer_sol(rent_increase + additional_payment)?;
                 msg!("{:?}, {:?}", new_data_size, current_len);
                 account_info.realloc(new_data_size, false)?;
             }
@@ -240,8 +240,10 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let payment_mint = &ctx.accounts.payment_mint;
     let payment_mint_pubkey = payment_mint.key();
 
+    let mut additional_payment = 0;
     if payment_mint_pubkey == Pubkey::default() {
-        ctx.accounts.transfer_sol(args.amount)?;
+        // ctx.accounts.transfer_sol(args.amount)?;
+        additional_payment += args.amount;
     } else {
         ctx.accounts.transfer_royalty_amount(args.amount)?;
     }
@@ -252,8 +254,10 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         group_mint: ctx.accounts.distribution_account.group_mint,
         claim_data: new_data.clone()
     };
+    let mut buffer: Vec<u8> = Vec::new();
+    temp.serialize(&mut buffer).unwrap();
 
-    let size = mem::size_of_val(&temp);
+    let size = buffer.len();
 
     let new_data_size = std::cmp::max(
         8 + size,
@@ -261,7 +265,7 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     );
     
     msg!("{:?}, {:?}", new_data_size, size);
-    ctx.accounts.realloc_distribution_account(new_data_size)?;
+    ctx.accounts.realloc_distribution_account(new_data_size, additional_payment)?;
 
     // Update the account data
     ctx.accounts.distribution_account.claim_data = new_data;
