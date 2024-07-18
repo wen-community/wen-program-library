@@ -1,12 +1,12 @@
 [package]
-name = "royalties-interface"
+name = "wen-royalties-interface"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-solana-program = "1.18.14"
-solana-sdk = "1.18.14"
-spl-associated-token-account = "3.0.2"
-spl-token = "6.0.0"
-spl-token-2022 = "3.0.2"
-spl-token-metadata-interface = "0.3.5"
+solana-program.workspace = true
+solana-sdk.workspace = true
+spl-associated-token-account.workspace = true
+spl-token.workspace = true
+spl-token-2022.workspace = true
+spl-token-metadata-interface.workspace = true

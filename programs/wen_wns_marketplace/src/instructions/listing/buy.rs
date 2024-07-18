@@ -10,7 +10,6 @@ use anchor_spl::{
     },
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
-use royalties_interface::calculate_royalties;
 use wen_new_standard::{
     cpi::{
         accounts::{ApproveTransfer, ThawDelegatedAccount},
@@ -18,6 +17,7 @@ use wen_new_standard::{
     },
     program::WenNewStandard,
 };
+use wen_royalties_interface::calculate_royalties;
 use wen_royalty_distribution::{program::WenRoyaltyDistribution, DistributionAccount};
 
 use crate::constants::*;

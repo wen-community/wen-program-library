@@ -1698,18 +1698,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
 
 [[package]]
-name = "royalties-interface"
-version = "0.1.0"
-dependencies = [
- "solana-program 1.18.18",
- "solana-sdk",
- "spl-associated-token-account",
- "spl-token 6.0.0",
- "spl-token-2022",
- "spl-token-metadata-interface",
-]
-
-[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2769,6 +2757,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "wen-royalties-interface"
+version = "0.1.0"
+dependencies = [
+ "solana-program 1.18.18",
+ "solana-sdk",
+ "spl-associated-token-account",
+ "spl-token 6.0.0",
+ "spl-token-2022",
+ "spl-token-metadata-interface",
+]
+
+[[package]]
 name = "wen_new_standard"
 version = "0.4.2-alpha"
 dependencies = [
@@ -2811,9 +2811,9 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "royalties-interface",
  "spl-transfer-hook-interface",
  "spl-type-length-value 0.3.0",
+ "wen-royalties-interface",
  "wen_new_standard",
  "wen_royalty_distribution",
 ]
