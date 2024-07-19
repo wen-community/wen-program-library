@@ -45,6 +45,9 @@ export type ClaimDistributionInstruction<
   TAccountTokenProgram extends
     | string
     | IAccountMeta<string> = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+  TAccountSystemProgram extends
+    | string
+    | IAccountMeta<string> = '11111111111111111111111111111111',
   TRemainingAccounts extends readonly IAccountMeta<string>[] = [],
 > = IInstruction<TProgram> &
   IInstructionWithData<Uint8Array> &
@@ -69,6 +72,9 @@ export type ClaimDistributionInstruction<
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
+      TAccountSystemProgram extends string
+        ? ReadonlyAccount<TAccountSystemProgram>
+        : TAccountSystemProgram,
       ...TRemainingAccounts,
     ]
   >;
@@ -112,6 +118,7 @@ export type ClaimDistributionInput<
   TAccountDistributionTokenAccount extends string = string,
   TAccountCreatorTokenAccount extends string = string,
   TAccountTokenProgram extends string = string,
+  TAccountSystemProgram extends string = string,
 > = {
   creator: TransactionSigner<TAccountCreator>;
   distribution: Address<TAccountDistribution>;
@@ -119,6 +126,7 @@ export type ClaimDistributionInput<
   distributionTokenAccount?: Address<TAccountDistributionTokenAccount>;
   creatorTokenAccount?: Address<TAccountCreatorTokenAccount>;
   tokenProgram?: Address<TAccountTokenProgram>;
+  systemProgram?: Address<TAccountSystemProgram>;
 };
 
 export function getClaimDistributionInstruction<
@@ -128,6 +136,7 @@ export function getClaimDistributionInstruction<
   TAccountDistributionTokenAccount extends string,
   TAccountCreatorTokenAccount extends string,
   TAccountTokenProgram extends string,
+  TAccountSystemProgram extends string,
 >(
   input: ClaimDistributionInput<
     TAccountCreator,
@@ -135,7 +144,8 @@ export function getClaimDistributionInstruction<
     TAccountPaymentMint,
     TAccountDistributionTokenAccount,
     TAccountCreatorTokenAccount,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >
 ): ClaimDistributionInstruction<
   typeof WEN_ROYALTY_DISTRIBUTION_PROGRAM_ADDRESS,
@@ -144,7 +154,8 @@ export function getClaimDistributionInstruction<
   TAccountPaymentMint,
   TAccountDistributionTokenAccount,
   TAccountCreatorTokenAccount,
-  TAccountTokenProgram
+  TAccountTokenProgram,
+  TAccountSystemProgram
 > {
   // Program address.
   const programAddress = WEN_ROYALTY_DISTRIBUTION_PROGRAM_ADDRESS;
@@ -163,6 +174,7 @@ export function getClaimDistributionInstruction<
       isWritable: true,
     },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -174,6 +186,10 @@ export function getClaimDistributionInstruction<
     accounts.tokenProgram.value =
       'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address<'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'>;
   }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   const instruction = {
@@ -184,6 +200,7 @@ export function getClaimDistributionInstruction<
       getAccountMeta(accounts.distributionTokenAccount),
       getAccountMeta(accounts.creatorTokenAccount),
       getAccountMeta(accounts.tokenProgram),
+      getAccountMeta(accounts.systemProgram),
     ],
     programAddress,
     data: getClaimDistributionInstructionDataEncoder().encode({}),
@@ -194,7 +211,8 @@ export function getClaimDistributionInstruction<
     TAccountPaymentMint,
     TAccountDistributionTokenAccount,
     TAccountCreatorTokenAccount,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >;
 
   return instruction;
@@ -212,6 +230,7 @@ export type ParsedClaimDistributionInstruction<
     distributionTokenAccount?: TAccountMetas[3] | undefined;
     creatorTokenAccount?: TAccountMetas[4] | undefined;
     tokenProgram: TAccountMetas[5];
+    systemProgram: TAccountMetas[6];
   };
   data: ClaimDistributionInstructionData;
 };
@@ -224,7 +243,7 @@ export function parseClaimDistributionInstruction<
     IInstructionWithAccounts<TAccountMetas> &
     IInstructionWithData<Uint8Array>
 ): ParsedClaimDistributionInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 6) {
+  if (instruction.accounts.length < 7) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -249,6 +268,7 @@ export function parseClaimDistributionInstruction<
       distributionTokenAccount: getNextOptionalAccount(),
       creatorTokenAccount: getNextOptionalAccount(),
       tokenProgram: getNextAccount(),
+      systemProgram: getNextAccount(),
     },
     data: getClaimDistributionInstructionDataDecoder().decode(instruction.data),
   };
