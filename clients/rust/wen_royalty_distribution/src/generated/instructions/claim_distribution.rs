@@ -21,6 +21,8 @@ pub struct ClaimDistribution {
     pub creator_token_account: Option<solana_program::pubkey::Pubkey>,
 
     pub token_program: solana_program::pubkey::Pubkey,
+
+    pub system_program: solana_program::pubkey::Pubkey,
 }
 
 impl ClaimDistribution {
@@ -32,7 +34,7 @@ impl ClaimDistribution {
         &self,
         remaining_accounts: &[solana_program::instruction::AccountMeta],
     ) -> solana_program::instruction::Instruction {
-        let mut accounts = Vec::with_capacity(6 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(7 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             self.creator,
             true,
@@ -69,6 +71,10 @@ impl ClaimDistribution {
         }
         accounts.push(solana_program::instruction::AccountMeta::new_readonly(
             self.token_program,
+            false,
+        ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            self.system_program,
             false,
         ));
         accounts.extend_from_slice(remaining_accounts);
@@ -113,6 +119,7 @@ impl Default for ClaimDistributionInstructionData {
 ///   3. `[writable, optional]` distribution_token_account
 ///   4. `[writable, optional]` creator_token_account
 ///   5. `[optional]` token_program (default to `TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA`)
+///   6. `[optional]` system_program (default to `11111111111111111111111111111111`)
 #[derive(Clone, Debug, Default)]
 pub struct ClaimDistributionBuilder {
     creator: Option<solana_program::pubkey::Pubkey>,
@@ -121,6 +128,7 @@ pub struct ClaimDistributionBuilder {
     distribution_token_account: Option<solana_program::pubkey::Pubkey>,
     creator_token_account: Option<solana_program::pubkey::Pubkey>,
     token_program: Option<solana_program::pubkey::Pubkey>,
+    system_program: Option<solana_program::pubkey::Pubkey>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
 
@@ -167,6 +175,12 @@ impl ClaimDistributionBuilder {
         self.token_program = Some(token_program);
         self
     }
+    /// `[optional account, default to '11111111111111111111111111111111']`
+    #[inline(always)]
+    pub fn system_program(&mut self, system_program: solana_program::pubkey::Pubkey) -> &mut Self {
+        self.system_program = Some(system_program);
+        self
+    }
     /// Add an aditional account to the instruction.
     #[inline(always)]
     pub fn add_remaining_account(
@@ -196,6 +210,9 @@ impl ClaimDistributionBuilder {
             token_program: self.token_program.unwrap_or(solana_program::pubkey!(
                 "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
             )),
+            system_program: self
+                .system_program
+                .unwrap_or(solana_program::pubkey!("11111111111111111111111111111111")),
         };
 
         accounts.instruction_with_remaining_accounts(&self.__remaining_accounts)
@@ -215,6 +232,8 @@ pub struct ClaimDistributionCpiAccounts<'a, 'b> {
     pub creator_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
 
     pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
+
+    pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
 /// `claim_distribution` CPI instruction.
@@ -233,6 +252,8 @@ pub struct ClaimDistributionCpi<'a, 'b> {
     pub creator_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
 
     pub token_program: &'b solana_program::account_info::AccountInfo<'a>,
+
+    pub system_program: &'b solana_program::account_info::AccountInfo<'a>,
 }
 
 impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
@@ -248,6 +269,7 @@ impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
             distribution_token_account: accounts.distribution_token_account,
             creator_token_account: accounts.creator_token_account,
             token_program: accounts.token_program,
+            system_program: accounts.system_program,
         }
     }
     #[inline(always)]
@@ -283,7 +305,7 @@ impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
             bool,
         )],
     ) -> solana_program::entrypoint::ProgramResult {
-        let mut accounts = Vec::with_capacity(6 + remaining_accounts.len());
+        let mut accounts = Vec::with_capacity(7 + remaining_accounts.len());
         accounts.push(solana_program::instruction::AccountMeta::new(
             *self.creator.key,
             true,
@@ -322,6 +344,10 @@ impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
             *self.token_program.key,
             false,
         ));
+        accounts.push(solana_program::instruction::AccountMeta::new_readonly(
+            *self.system_program.key,
+            false,
+        ));
         remaining_accounts.iter().for_each(|remaining_account| {
             accounts.push(solana_program::instruction::AccountMeta {
                 pubkey: *remaining_account.0.key,
@@ -338,7 +364,7 @@ impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
             accounts,
             data,
         };
-        let mut account_infos = Vec::with_capacity(6 + 1 + remaining_accounts.len());
+        let mut account_infos = Vec::with_capacity(7 + 1 + remaining_accounts.len());
         account_infos.push(self.__program.clone());
         account_infos.push(self.creator.clone());
         account_infos.push(self.distribution.clone());
@@ -350,6 +376,7 @@ impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
             account_infos.push(creator_token_account.clone());
         }
         account_infos.push(self.token_program.clone());
+        account_infos.push(self.system_program.clone());
         remaining_accounts
             .iter()
             .for_each(|remaining_account| account_infos.push(remaining_account.0.clone()));
@@ -372,6 +399,7 @@ impl<'a, 'b> ClaimDistributionCpi<'a, 'b> {
 ///   3. `[writable, optional]` distribution_token_account
 ///   4. `[writable, optional]` creator_token_account
 ///   5. `[]` token_program
+///   6. `[]` system_program
 #[derive(Clone, Debug)]
 pub struct ClaimDistributionCpiBuilder<'a, 'b> {
     instruction: Box<ClaimDistributionCpiBuilderInstruction<'a, 'b>>,
@@ -387,6 +415,7 @@ impl<'a, 'b> ClaimDistributionCpiBuilder<'a, 'b> {
             distribution_token_account: None,
             creator_token_account: None,
             token_program: None,
+            system_program: None,
             __remaining_accounts: Vec::new(),
         });
         Self { instruction }
@@ -439,6 +468,14 @@ impl<'a, 'b> ClaimDistributionCpiBuilder<'a, 'b> {
         token_program: &'b solana_program::account_info::AccountInfo<'a>,
     ) -> &mut Self {
         self.instruction.token_program = Some(token_program);
+        self
+    }
+    #[inline(always)]
+    pub fn system_program(
+        &mut self,
+        system_program: &'b solana_program::account_info::AccountInfo<'a>,
+    ) -> &mut Self {
+        self.instruction.system_program = Some(system_program);
         self
     }
     /// Add an additional account to the instruction.
@@ -505,6 +542,11 @@ impl<'a, 'b> ClaimDistributionCpiBuilder<'a, 'b> {
                 .instruction
                 .token_program
                 .expect("token_program is not set"),
+
+            system_program: self
+                .instruction
+                .system_program
+                .expect("system_program is not set"),
         };
         instruction.invoke_signed_with_remaining_accounts(
             signers_seeds,
@@ -522,6 +564,7 @@ struct ClaimDistributionCpiBuilderInstruction<'a, 'b> {
     distribution_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     creator_token_account: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     token_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
+    system_program: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(
         &'b solana_program::account_info::AccountInfo<'a>,
