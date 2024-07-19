@@ -457,7 +457,7 @@ describe("wen_royalty_distribution", () => {
         describe("royalties", () => {
           it("should be sent to the distribution vault", () => {
             expect(distributionPostBalance).to.eql(
-              royalty.toNumber() + 278400,
+              royalty.toNumber(),
             ); // extra for rent
           });
         });
@@ -476,7 +476,7 @@ describe("wen_royalty_distribution", () => {
         describe("the buyer", () => {
           it("sent the payment", () => {
             expect(buyerPostBalance).to.eql(
-              buyerPreBalance - listingAmount.toNumber() - 278400,
+              buyerPreBalance - listingAmount.toNumber(),
             );
           });
           it("should be the owner", () => {
@@ -570,7 +570,7 @@ describe("wen_royalty_distribution", () => {
           });
 
           it("should receive correct royalty funds", () => {
-            expect(creator2PostBalance).to.eql(expectedCreatorShare.toNumber());
+            expect(creator2PostBalance).to.eql(expectedCreatorShare.toNumber() - 278400);
           });
         });
       });

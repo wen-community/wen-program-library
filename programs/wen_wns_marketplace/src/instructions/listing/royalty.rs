@@ -72,6 +72,7 @@ pub fn handler(ctx: Context<ClaimRoyalty>) -> Result<()> {
             distribution: ctx.accounts.distribution.to_account_info(),
             distribution_token_account: distribution_token_account_info,
             token_program: ctx.accounts.token_program.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
         },
     ))?;
 

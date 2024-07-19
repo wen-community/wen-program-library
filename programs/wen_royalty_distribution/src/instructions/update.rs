@@ -214,33 +214,28 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let payment_mint_pubkey = payment_mint.key();
 
     ctx.accounts.distribution_account.claim_data = new_data.clone();
-    let mut sol_transfer = 0;
-    if payment_mint_pubkey == Pubkey::default() {
-        sol_transfer += args.amount;
-    } else {
-        ctx.accounts.transfer_royalty_amount(args.amount)?;
-    }
 
     let new_creator_size = std::cmp::max(new_data.len() * Creator::INIT_SPACE, Creator::INIT_SPACE);
     let realloc_size = CLAIM_DATA_OFFSET + new_creator_size;
+
+    if payment_mint_pubkey == Pubkey::default() {
+        ctx.accounts.transfer_sol(args.amount)?;
+    } else {
+        ctx.accounts.transfer_royalty_amount(args.amount)?;
+        // transfer min rent in or out of distribution account
+        let min_rent = rent.minimum_balance(realloc_size);
+        if current_rent < min_rent {
+            let new_rent = min_rent - current_rent;
+            ctx.accounts.transfer_sol(new_rent)?;
+        }
+    }
 
     ctx.accounts
         .distribution_account
         .to_account_info()
         .realloc(realloc_size, false)?;
 
-    // transfer min rent in or out of distribution account
-    let min_rent = rent.minimum_balance(realloc_size);
-    if current_rent < min_rent {
-        sol_transfer += min_rent - current_rent;
-        ctx.accounts.transfer_sol(sol_transfer)?;
-    } else if current_rent > min_rent {
-        let rent_amount = current_rent - min_rent;
-        ctx.accounts
-            .distribution_account
-            .sub_lamports(rent_amount)?;
-        ctx.accounts.authority.add_lamports(rent_amount)?;
-    }
+
 
     Ok(())
 }

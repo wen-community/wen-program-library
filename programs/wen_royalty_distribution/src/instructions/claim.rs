@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::program_pack::Pack};
+use anchor_lang::{prelude::*, solana_program::{program::invoke, program_pack::Pack, system_instruction::transfer}};
 use anchor_spl::{
     token::{spl_token::state::Mint as TokenMint, ID as token_keg_program_id},
     token_2022::spl_token_2022::{extension::StateWithExtensions, state::Mint as Token2022Mint},
@@ -39,6 +39,7 @@ pub struct ClaimDistribution<'info> {
     )]
     pub creator_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     pub token_program: Interface<'info, TokenInterface>,
+    pub system_program: Program<'info, System>,
 }
 
 impl ClaimDistribution<'_> {
@@ -73,6 +74,19 @@ impl ClaimDistribution<'_> {
         transfer_checked(cpi_ctx, amount, mint_decimals)?;
         Ok(())
     }
+
+    pub fn transfer_sol(&self, amount: u64) -> Result<()> {
+        invoke(
+            &transfer(self.creator.key, &self.distribution.key(), amount),
+            &[
+                self.creator.to_account_info(),
+                self.distribution.to_account_info(),
+                self.system_program.to_account_info(),
+            ],
+        )?;
+
+        Ok(())
+    }
 }
 
 pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
@@ -94,7 +108,6 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
         &get_bump_in_seed_form(&ctx.bumps.distribution),
     ];
     let rent = Rent::get()?;
-    let current_rent = rent.minimum_balance(ctx.accounts.distribution.to_account_info().data_len());
     // Transfer the claim amount
     if payment_mint == Pubkey::default() {
         ctx.accounts.distribution.sub_lamports(claim_amount)?;
@@ -109,19 +122,20 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
         std::cmp::max(claim_data.len() * Creator::INIT_SPACE, Creator::INIT_SPACE);
     let realloc_size = CLAIM_DATA_OFFSET + new_creator_size;
 
+
+    // Transfer min rent in or out of distribution account
+    let min_rent = rent.minimum_balance(realloc_size);
+    let current_lamports = ctx.accounts.distribution.to_account_info().lamports();
+    if min_rent > current_lamports {
+        let updated_amount = min_rent - current_lamports;
+        ctx.accounts.transfer_sol(updated_amount)?;
+    }
+
+    ctx.accounts.distribution.claim_data = claim_data;
+
     ctx.accounts
         .distribution
         .to_account_info()
         .realloc(realloc_size, false)?;
-
-    // Transfer min rent in or out of distribution account
-    let min_rent = rent.minimum_balance(realloc_size);
-    if current_rent > min_rent {
-        let rent_amount = current_rent - min_rent;
-        ctx.accounts.distribution.sub_lamports(rent_amount)?;
-        ctx.accounts.creator.add_lamports(rent_amount)?;
-    }
-
-    ctx.accounts.distribution.claim_data = claim_data;
     Ok(())
 }
