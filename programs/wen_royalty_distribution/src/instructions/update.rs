@@ -214,9 +214,9 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     let payment_mint_pubkey = payment_mint.key();
 
     ctx.accounts.distribution_account.claim_data = new_data.clone();
-
+    let mut sol_transfer = 0;
     if payment_mint_pubkey == Pubkey::default() {
-        ctx.accounts.transfer_sol(args.amount)?;
+        sol_transfer += args.amount;
     } else {
         ctx.accounts.transfer_royalty_amount(args.amount)?;
     }
@@ -232,8 +232,8 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
     // transfer min rent in or out of distribution account
     let min_rent = rent.minimum_balance(realloc_size);
     if current_rent < min_rent {
-        let rent_amount = min_rent - current_rent;
-        ctx.accounts.transfer_sol(rent_amount)?;
+        sol_transfer += min_rent - current_rent;
+        ctx.accounts.transfer_sol(sol_transfer)?;
     } else if current_rent > min_rent {
         let rent_amount = current_rent - min_rent;
         ctx.accounts
