@@ -1,4 +1,7 @@
-use anchor_lang::{prelude::*, solana_program::{program::invoke, program_pack::Pack, system_instruction::transfer}};
+use anchor_lang::{
+    prelude::*,
+    solana_program::{program::invoke, program_pack::Pack, system_instruction::transfer},
+};
 use anchor_spl::{
     token::{spl_token::state::Mint as TokenMint, ID as token_keg_program_id},
     token_2022::spl_token_2022::{extension::StateWithExtensions, state::Mint as Token2022Mint},
@@ -121,7 +124,6 @@ pub fn handler(ctx: Context<ClaimDistribution>) -> Result<()> {
     let new_creator_size =
         std::cmp::max(claim_data.len() * Creator::INIT_SPACE, Creator::INIT_SPACE);
     let realloc_size = CLAIM_DATA_OFFSET + new_creator_size;
-
 
     // Transfer min rent in or out of distribution account
     let min_rent = rent.minimum_balance(realloc_size);

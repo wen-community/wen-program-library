@@ -235,7 +235,5 @@ pub fn handler(ctx: Context<UpdateDistribution>, args: UpdateDistributionArgs) -
         .to_account_info()
         .realloc(realloc_size, false)?;
 
-
-
     Ok(())
 }
