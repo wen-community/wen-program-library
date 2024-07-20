@@ -1,29 +1,11 @@
-<<<<<<< Updated upstream
-use anchor_lang::{
-    solana_program::{
-        account_info::AccountInfo, instruction::Instruction, program_error::ProgramError,
-        pubkey::Pubkey,
-    },
-    Result,
-=======
 use solana_program::{
     account_info::AccountInfo, instruction::Instruction, program_error::ProgramError,
     pubkey::Pubkey, system_instruction::transfer,
->>>>>>> Stashed changes
 };
-use anchor_spl::{
-    associated_token::get_associated_token_address_with_program_id,
-    token_2022::spl_token_2022::{
-        extension::{BaseStateWithExtensions, StateWithExtensions},
-        state::Mint,
-    },
-    token_interface::spl_token_metadata_interface::state::TokenMetadata,
+use spl_associated_token_account::{
+    get_associated_token_address_with_program_id,
+    instruction::create_associated_token_account_idempotent,
 };
-<<<<<<< Updated upstream
-use solana_program::system_instruction::transfer;
-use spl_associated_token_account::instruction::create_associated_token_account_idempotent;
-use spl_token_2022::instruction::transfer_checked;
-=======
 use spl_token::{solana_program::program_pack::Pack, state::Mint as TokenKegMint};
 use spl_token_2022::{
     extension::{BaseStateWithExtensions, StateWithExtensions},
@@ -31,7 +13,6 @@ use spl_token_2022::{
     state::Mint as Token2022Mint,
 };
 use spl_token_metadata_interface::state::TokenMetadata;
->>>>>>> Stashed changes
 use std::str::FromStr;
 
 pub const ROYALTY_BASIS_POINTS_FIELD: &str = "royalty_basis_points";
