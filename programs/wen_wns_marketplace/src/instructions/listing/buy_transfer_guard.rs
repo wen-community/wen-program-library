@@ -1,6 +1,6 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::program::invoke,
+    solana_program::{program::invoke, sysvar},
     system_program::{transfer, Transfer},
 };
 use anchor_spl::{
@@ -76,9 +76,8 @@ pub struct FulfillListingTransferGuard<'info> {
     pub manager: UncheckedAccount<'info>,
     /// CHECK: Checked inside Token extensions program
     pub extra_metas_account: UncheckedAccount<'info>,
-    /// CHECK: Checked inside WNS program
-    #[account(mut)]
-    pub approve_account: UncheckedAccount<'info>,
+    /// CHECK: Checked inside Transfer Guard program
+    pub guard_account: UncheckedAccount<'info>,
 
     pub wns_program: Program<'info, WenNewStandard>,
     pub wen_transfer_guard_program: Program<'info, WenTransferGuard>,
@@ -86,21 +85,23 @@ pub struct FulfillListingTransferGuard<'info> {
     pub token_program: Program<'info, Token2022>,
     pub payment_token_program: Option<Interface<'info, TokenInterface>>,
     pub system_program: Program<'info, System>,
+    /// CHECK: Sysvar Instructions check
+    pub sysvar_instructions: UncheckedAccount<'info>,
 
     /* Optional accounts */
     #[account(
-      mut,
-      token::authority = seller,
-      token::mint = payment_mint,
-      token::token_program = payment_token_program
-  )]
+        mut,
+        token::authority = seller,
+        token::mint = payment_mint,
+        token::token_program = payment_token_program
+    )]
     pub seller_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
     #[account(
-      mut,
-      token::authority = buyer,
-      token::mint = payment_mint,
-      token::token_program = payment_token_program
-  )]
+        mut,
+        token::authority = buyer,
+        token::mint = payment_mint,
+        token::token_program = payment_token_program
+    )]
     pub buyer_payment_token_account: Option<Box<InterfaceAccount<'info, TokenAccount>>>,
 }
 
@@ -108,6 +109,9 @@ pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, FulfillListingTransferGuard<'info>>,
     args: FulfillListingTransferGuardArgs,
 ) -> Result<()> {
+    let sysvar_instructions = &ctx.accounts.sysvar_instructions;
+    require_eq!(sysvar_instructions.key, &sysvar::instructions::id());
+
     let listing = &mut ctx.accounts.listing;
 
     let is_payment_mint_spl = ctx.accounts.payment_mint.key.ne(&Pubkey::default());
@@ -135,7 +139,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
     ))?;
 
     // Transfer (listing_amount - royalty) to seller
-    let (royalty_funds, _, _) =
+    let (royalty_funds, _) =
         calculate_royalties(&ctx.accounts.mint.to_account_info(), args.buy_amount)?;
 
     let funds_to_send = listing
@@ -202,6 +206,7 @@ pub fn handler<'a, 'b, 'c, 'info>(
     let royalty_ixs = generate_royalty_ixs(
         args.buy_amount,
         &ctx.accounts.mint.to_account_info(),
+        &ctx.accounts.payment_mint.to_account_info(),
         ctx.accounts.buyer.key,
         &payment_token_program,
         is_payment_mint_spl,
@@ -209,13 +214,13 @@ pub fn handler<'a, 'b, 'c, 'info>(
 
     for (ix_index, royalty_ix) in royalty_ixs.iter().enumerate() {
         let remaining_accounts = ctx.remaining_accounts;
-        let creator = remaining_accounts.get(ix_index);
-        if creator.is_none() {
-            return err!(WenWnsMarketplaceError::CreatorMissing);
-        }
-        let creator = creator.unwrap();
-
         if royalty_ix.program_id == ctx.accounts.system_program.key() {
+            let creator = remaining_accounts.get(ix_index);
+            if creator.is_none() {
+                return err!(WenWnsMarketplaceError::CreatorMissing);
+            }
+            let creator = creator.unwrap();
+
             invoke(
                 royalty_ix,
                 &[
@@ -225,51 +230,76 @@ pub fn handler<'a, 'b, 'c, 'info>(
                 ],
             )?;
             continue;
-        }
-
-        let creator_token_account = remaining_accounts.get(ix_index + 1);
-        if creator_token_account.is_none() {
-            return err!(WenWnsMarketplaceError::CreatorTokenAccountMissing);
-        }
-        let creator_token_account = creator_token_account.unwrap();
-
-        if royalty_ix.program_id == ctx.accounts.associated_token_program.key() {
-            invoke(
-                royalty_ix,
-                &[
-                    ctx.accounts.buyer.to_account_info(),
-                    creator_token_account.clone(),
-                    creator.clone(),
-                    ctx.accounts.payment_mint.to_account_info(),
-                    ctx.accounts.system_program.to_account_info(),
-                    ctx.accounts.token_program.to_account_info(),
-                ],
-            )?;
         } else {
-            invoke(
-                royalty_ix,
-                &[
-                    buyer_token_account_info.clone().unwrap(),
-                    ctx.accounts.payment_mint.to_account_info(),
-                    creator_token_account.clone(),
-                    ctx.accounts.buyer.to_account_info(),
-                ],
-            )?;
+            if royalty_ix.program_id == ctx.accounts.associated_token_program.key() {
+                let creator = remaining_accounts.get(ix_index + 1);
+                if creator.is_none() {
+                    return err!(WenWnsMarketplaceError::CreatorMissing);
+                }
+                let creator = creator.unwrap();
+
+                let creator_token_account = remaining_accounts.get(ix_index);
+                if creator_token_account.is_none() {
+                    return err!(WenWnsMarketplaceError::CreatorTokenAccountMissing);
+                }
+                let creator_token_account = creator_token_account.unwrap();
+
+                invoke(
+                    royalty_ix,
+                    &[
+                        ctx.accounts.buyer.to_account_info(),
+                        creator_token_account.clone(),
+                        creator.clone(),
+                        ctx.accounts.payment_mint.to_account_info(),
+                        ctx.accounts.system_program.to_account_info(),
+                        ctx.accounts
+                            .payment_token_program
+                            .clone()
+                            .unwrap()
+                            .to_account_info(),
+                    ],
+                )?;
+            } else {
+                let creator_token_account = remaining_accounts.get(ix_index - 1);
+                if creator_token_account.is_none() {
+                    return err!(WenWnsMarketplaceError::CreatorTokenAccountMissing);
+                }
+                let creator_token_account = creator_token_account.unwrap();
+
+                invoke(
+                    royalty_ix,
+                    &[
+                        buyer_token_account_info.clone().unwrap(),
+                        ctx.accounts.payment_mint.to_account_info(),
+                        creator_token_account.clone(),
+                        ctx.accounts.buyer.to_account_info(),
+                        ctx.accounts
+                            .payment_token_program
+                            .clone()
+                            .unwrap()
+                            .to_account_info(),
+                    ],
+                )?;
+            }
         }
     }
 
     // Transfer NFT to buyer
-    transfer_checked_with_hook(
+    transfer_checked_with_transfer_guard(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
-            TransferCheckedWithHook {
+            TransferCheckedWithTransferGuard {
                 authority: listing.to_account_info(),
                 mint: ctx.accounts.mint.to_account_info(),
                 from: ctx.accounts.seller_token_account.to_account_info(),
                 to: ctx.accounts.buyer_token_account.to_account_info(),
                 extra_metas_account: ctx.accounts.extra_metas_account.to_account_info(),
-                approve_account: ctx.accounts.approve_account.to_account_info(),
-                wns_program: ctx.accounts.wns_program.to_account_info(),
+                guard_account: ctx.accounts.guard_account.to_account_info(),
+                sysvar_instructions: ctx.accounts.sysvar_instructions.to_account_info(),
+                wen_transfer_guard_program: ctx
+                    .accounts
+                    .wen_transfer_guard_program
+                    .to_account_info(),
             },
             signer_seeds,
         ),

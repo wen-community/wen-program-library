@@ -148,7 +148,7 @@ pub fn handler(ctx: Context<FulfillListing>, args: FulfillListingArgs) -> Result
     ))?;
 
     // Transfer (listing_amount - royalty) to seller
-    let (royalty_funds, _, _) =
+    let (royalty_funds, _) =
         calculate_royalties(&ctx.accounts.mint.to_account_info(), args.buy_amount)?;
 
     let funds_to_send = listing

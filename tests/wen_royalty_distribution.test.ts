@@ -3,6 +3,7 @@ import { faker } from "@faker-js/faker";
 import { WenNewStandard } from "../target/types/wen_new_standard";
 import { WenWnsMarketplace } from "./../target/types/wen_wns_marketplace";
 import { WenRoyaltyDistribution } from "./../target/types/wen_royalty_distribution";
+import { WenTransferGuard } from "../target/types/wen_transfer_guard";
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -11,6 +12,7 @@ import {
   AccountInfo,
   ComputeBudgetProgram,
   Commitment,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
 } from "@solana/web3.js";
 
 import {
@@ -20,6 +22,7 @@ import {
   getDistributionAccountPda,
   getExtraMetasAccountPda,
   getGroupAccountPda,
+  getGuardAccountPda,
   getListingAccountPda,
   getManagerAccountPda,
   getMemberAccountPda,
@@ -48,10 +51,13 @@ describe("wen_royalty_distribution", () => {
     .WenRoyaltyDistribution as anchor.Program<WenRoyaltyDistribution>;
   const wenWnsMarketplace = anchor.workspace
     .WenWnsMarketplace as anchor.Program<WenWnsMarketplace>;
+  const wenTransferGuard = anchor.workspace
+    .WenTransferGuard as anchor.Program<WenTransferGuard>;
 
   const wnsProgramId = wnsProgram.programId;
   const wenDistributionProgramId = wenDistributionProgram.programId;
   const wenWnsMarketplaceId = wenWnsMarketplace.programId;
+  const wenTransferGuardId = wenTransferGuard.programId;
 
   const manager = getManagerAccountPda(wnsProgramId);
   const preflightConfig: {
@@ -77,7 +83,946 @@ describe("wen_royalty_distribution", () => {
     }
   });
 
-  describe("a sale", () => {
+  describe("a sale via Transfer Guard", () => {
+    const seller = Keypair.generate();
+    const buyer = Keypair.generate();
+
+    const creator1 = Keypair.generate();
+    const creator2 = Keypair.generate();
+    const guardAuthority = Keypair.generate();
+
+    before(async () => {
+      await airdrop(connection, seller.publicKey, 10 * LAMPORTS_PER_SOL);
+      await airdrop(connection, buyer.publicKey, 10 * LAMPORTS_PER_SOL);
+      await airdrop(connection, creator1.publicKey, 1 * LAMPORTS_PER_SOL);
+      await airdrop(connection, creator2.publicKey, 1 * LAMPORTS_PER_SOL);
+      await airdrop(connection, guardAuthority.publicKey, 1 * LAMPORTS_PER_SOL);
+    });
+
+    describe("using SOL as payment", () => {
+      const name = faker.lorem.words({ max: 3, min: 2 });
+      const symbol = faker.lorem.word();
+      const uri = faker.internet.url();
+
+      const transferGuardMintKeypair = Keypair.generate();
+      const groupMintKeypair = Keypair.generate();
+      const memberMintKeypair = Keypair.generate();
+      const groupMintPublicKey = groupMintKeypair.publicKey;
+      const memberMintPublickey = memberMintKeypair.publicKey;
+      const transferGuardMintPublicKey = transferGuardMintKeypair.publicKey;
+
+      const groupMintAuthPublicKey = wallet.publicKey;
+      const memberMintAuthPublicKey = seller.publicKey;
+      const guardMintAuthPublicKey = guardAuthority.publicKey;
+
+      const guardMintTokenAccount = getAssociatedTokenAddressSync(
+        transferGuardMintPublicKey,
+        guardMintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const groupMintTokenAccount = getAssociatedTokenAddressSync(
+        groupMintPublicKey,
+        groupMintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const sellerMemberMintTokenAccount = getAssociatedTokenAddressSync(
+        memberMintPublickey,
+        memberMintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const buyerMemberMintTokenAccount = getAssociatedTokenAddressSync(
+        memberMintPublickey,
+        buyer.publicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const group = getGroupAccountPda(groupMintPublicKey, wnsProgramId);
+      const guard = getGuardAccountPda(
+        transferGuardMintPublicKey,
+        wenTransferGuardId
+      );
+
+      const member = getMemberAccountPda(memberMintPublickey, wnsProgramId);
+      const extraMetasAccount = getExtraMetasAccountPda(
+        memberMintPublickey,
+        wenTransferGuardId
+      );
+
+      const listingAmount = new anchor.BN(2 * LAMPORTS_PER_SOL);
+      const royaltyBasisPoints = 1000;
+      const creator1SharePct = 60;
+      const creator2SharePct = 40;
+
+      before(async () => {
+        // CREATE GROUP ACCOUNT
+        await wnsProgram.methods
+          .createGroupAccount({
+            maxSize: 1,
+            name,
+            symbol,
+            uri,
+          })
+          .accountsStrict({
+            authority: groupMintAuthPublicKey,
+            group,
+            manager,
+            mint: groupMintPublicKey,
+            mintTokenAccount: groupMintTokenAccount,
+            payer: groupMintAuthPublicKey,
+            receiver: groupMintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([groupMintKeypair])
+          .rpc(preflightConfig);
+
+        // CREATE GUARD ACCOUNT
+        await wenTransferGuard.methods
+          .createGuard({
+            name: "Guard SOL",
+            symbol: "GSOL",
+            uri: "https://guard.sol",
+            cpiRule: { deny: { 0: [] } },
+            additionalFieldsRule: [],
+            transferAmountRule: null,
+          })
+          .accountsStrict({
+            guard,
+            guardAuthority: guardMintAuthPublicKey,
+            mint: transferGuardMintPublicKey,
+            mintTokenAccount: guardMintTokenAccount,
+            payer: guardMintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([guardAuthority, transferGuardMintKeypair])
+          .rpc(preflightConfig);
+      });
+
+      before(async () => {
+        const name = faker.lorem.words({ max: 3, min: 2 });
+        const symbol = faker.lorem.word();
+        const uri = faker.internet.url();
+
+        // CREATE MINT ACCOUNT, ADD MINT TO GROUP, ADD ROYALTIES
+        const ixs = await Promise.all([
+          wnsProgram.methods
+            .addMintToGroup()
+            .accountsStrict({
+              authority: groupMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: groupMintAuthPublicKey,
+              group,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .instruction(),
+          wnsProgram.methods
+            .addRoyalties({
+              creators: [
+                {
+                  address: creator1.publicKey,
+                  share: creator1SharePct,
+                },
+                { address: creator2.publicKey, share: creator2SharePct },
+              ],
+              royaltyBasisPoints,
+            })
+            .accountsStrict({
+              extraMetasAccount,
+              authority: memberMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: memberMintAuthPublicKey,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .remainingAccounts([
+              {
+                isSigner: false,
+                isWritable: false,
+                pubkey: wenTransferGuardId,
+              },
+              { isSigner: false, isWritable: false, pubkey: guard },
+            ])
+            .instruction(),
+        ]);
+
+        await wnsProgram.methods
+          .createMintAccount({ name, symbol, permanentDelegate: null, uri })
+          .accountsStrict({
+            payer: groupMintAuthPublicKey,
+            manager,
+            mintTokenAccount: sellerMemberMintTokenAccount,
+            authority: memberMintAuthPublicKey,
+            mint: memberMintPublickey,
+            receiver: memberMintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .preInstructions([
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+          ])
+          .postInstructions(ixs)
+          .signers([memberMintKeypair, seller])
+          .rpc(preflightConfig);
+      });
+
+      describe("after listing for sale", () => {
+        const listing = getListingAccountPda(
+          seller.publicKey,
+          memberMintPublickey,
+          wenWnsMarketplaceId
+        );
+
+        let listingAccountInfo: AccountInfo<Buffer>;
+        let sellerTokenAccountData: Account;
+        let listingAccountData;
+
+        before(async () => {
+          await wenWnsMarketplace.methods
+            .list({
+              listingAmount,
+              paymentMint: PublicKey.default,
+            })
+            .accountsStrict({
+              listing,
+              manager,
+              payer: wallet.publicKey,
+              seller: seller.publicKey,
+              mint: memberMintPublickey,
+              sellerTokenAccount: sellerMemberMintTokenAccount,
+              systemProgram: SystemProgram.programId,
+              wnsProgram: wnsProgramId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .signers([seller])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+
+          listingAccountInfo = await connection.getAccountInfo(
+            listing,
+            "confirmed"
+          );
+          listingAccountData = wenWnsMarketplace.coder.accounts.decode(
+            "listing",
+            listingAccountInfo.data
+          );
+          sellerTokenAccountData = await getAccount(
+            connection,
+            sellerMemberMintTokenAccount,
+            "confirmed",
+            TOKEN_2022_PROGRAM_ID
+          );
+        });
+
+        it("should have a listing account", () => {
+          expect(listingAccountData).to.not.be.undefined;
+        });
+
+        it("should be owned by sale program", () => {
+          expect(listingAccountInfo.owner.toBase58()).to.eql(
+            wenWnsMarketplaceId.toBase58()
+          );
+        });
+
+        it("should point the listing account as delegate of NFT", () => {
+          expect(sellerTokenAccountData.delegate.toBase58()).to.eql(
+            listing.toBase58()
+          );
+        });
+
+        it("should freeze the NFT", () => {
+          expect(sellerTokenAccountData.isFrozen).to.be.true;
+        });
+      });
+
+      describe("after a sale", () => {
+        const listing = getListingAccountPda(
+          seller.publicKey,
+          memberMintPublickey,
+          wenWnsMarketplaceId
+        );
+
+        const royalty = listingAmount
+          .mul(new anchor.BN(royaltyBasisPoints))
+          .div(new anchor.BN(10_000));
+
+        let creator1PreBalance: number;
+        let creator2PreBalance: number;
+        let sellerPreBalance: number;
+        let buyerPreBalance: number;
+
+        let creator1PostBalance: number;
+        let creator2PostBalance: number;
+        let sellerPostBalance: number;
+        let buyerPostBalance: number;
+
+        let sellerTokenAccountData: Account;
+        let buyerTokenAccountData: Account;
+
+        before(async () => {
+          buyerPreBalance = await connection.getBalance(
+            buyer.publicKey,
+            "confirmed"
+          );
+          sellerPreBalance = await connection.getBalance(
+            seller.publicKey,
+            "confirmed"
+          );
+          creator1PreBalance = await connection.getBalance(
+            creator1.publicKey,
+            "confirmed"
+          );
+          creator2PreBalance = await connection.getBalance(
+            creator2.publicKey,
+            "confirmed"
+          );
+
+          await wenWnsMarketplace.methods
+            .buyTransferGuard({ buyAmount: listingAmount })
+            .accountsStrict({
+              guardAccount: guard,
+              extraMetasAccount,
+              manager,
+              listing,
+              payer: wallet.publicKey,
+              buyer: buyer.publicKey,
+              seller: seller.publicKey,
+              buyerPaymentTokenAccount: null,
+              sellerPaymentTokenAccount: null,
+              mint: memberMintPublickey,
+              paymentMint: PublicKey.default,
+              buyerTokenAccount: buyerMemberMintTokenAccount,
+              sellerTokenAccount: sellerMemberMintTokenAccount,
+              wnsProgram: wnsProgramId,
+              wenTransferGuardProgram: wenTransferGuardId,
+              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+              paymentTokenProgram: null,
+              systemProgram: SystemProgram.programId,
+              sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+            })
+            .remainingAccounts(
+              [creator1.publicKey, creator2.publicKey].map((c) => ({
+                isSigner: false,
+                isWritable: true,
+                pubkey: c,
+              }))
+            )
+            .preInstructions([
+              ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+            ])
+            .signers([buyer])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+
+          buyerPostBalance = await connection.getBalance(
+            buyer.publicKey,
+            "confirmed"
+          );
+          sellerPostBalance =
+            (await connection.getBalance(seller.publicKey, "confirmed")) -
+            sellerPreBalance;
+          creator1PostBalance = await connection.getBalance(
+            creator1.publicKey,
+            "confirmed"
+          );
+          creator2PostBalance = await connection.getBalance(
+            creator2.publicKey,
+            "confirmed"
+          );
+
+          sellerTokenAccountData = await getAccount(
+            connection,
+            sellerMemberMintTokenAccount,
+            "confirmed",
+            TOKEN_2022_PROGRAM_ID
+          );
+          buyerTokenAccountData = await getAccount(
+            connection,
+            buyerMemberMintTokenAccount,
+            "confirmed",
+            TOKEN_2022_PROGRAM_ID
+          );
+        });
+
+        describe("royalties", () => {
+          const expectedCreator1Share = royalty
+            .mul(new anchor.BN(creator1SharePct))
+            .div(new anchor.BN(100));
+
+          const expectedCreator2Share = royalty
+            .mul(new anchor.BN(creator2SharePct))
+            .div(new anchor.BN(100));
+
+          it("should receive correct royalty funds", () => {
+            expect(creator1PostBalance).to.eql(
+              creator1PreBalance + expectedCreator1Share.toNumber()
+            );
+            expect(creator2PostBalance).to.eql(
+              creator2PreBalance + expectedCreator2Share.toNumber()
+            );
+          });
+        });
+
+        describe("the seller", () => {
+          it("receive the payment minus royalties", () => {
+            expect(sellerPostBalance).to.eql(
+              listingAmount.sub(royalty).toNumber()
+            );
+          });
+          it("should not be the owner anymore", () => {
+            expect(sellerTokenAccountData.amount.toString()).to.eql("0");
+          });
+        });
+
+        describe("the buyer", () => {
+          it("sent the payment", () => {
+            expect(buyerPostBalance).to.eql(
+              buyerPreBalance - listingAmount.toNumber()
+            );
+          });
+          it("should be the owner", () => {
+            expect(buyerTokenAccountData.amount.toString()).to.eql("1");
+          });
+        });
+      });
+    });
+
+    describe("using SPL token as payment", () => {
+      const name = faker.lorem.words({ max: 3, min: 2 });
+      const symbol = faker.lorem.word();
+      const uri = faker.internet.url();
+
+      const transferGuardMintKeypair = Keypair.generate();
+      const transferGuardMintPublicKey = transferGuardMintKeypair.publicKey;
+      const guardMintAuthPublicKey = guardAuthority.publicKey;
+
+      const guardMintTokenAccount = getAssociatedTokenAddressSync(
+        transferGuardMintPublicKey,
+        guardMintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+      const guard = getGuardAccountPda(
+        transferGuardMintPublicKey,
+        wenTransferGuardId
+      );
+
+      const groupMintKeypair = Keypair.generate();
+      const memberMintKeypair = Keypair.generate();
+      const paymentMintKeypair = Keypair.generate();
+
+      const groupMintPublicKey = groupMintKeypair.publicKey;
+      const memberMintPublickey = memberMintKeypair.publicKey;
+      const paymentMintPublickey = paymentMintKeypair.publicKey;
+
+      const groupMintAuthPublicKey = wallet.publicKey;
+      const memberMintAuthPublicKey = seller.publicKey;
+      const paymentMintAuthPublicKey = wallet.publicKey;
+
+      const groupMintTokenAccount = getAssociatedTokenAddressSync(
+        groupMintPublicKey,
+        groupMintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const sellerMemberMintTokenAccount = getAssociatedTokenAddressSync(
+        memberMintPublickey,
+        memberMintAuthPublicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const sellerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
+        paymentMintPublickey,
+        seller.publicKey,
+        false,
+        TOKEN_PROGRAM_ID
+      );
+
+      const buyerMemberMintTokenAccount = getAssociatedTokenAddressSync(
+        memberMintPublickey,
+        buyer.publicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID
+      );
+
+      const buyerPaymentMintTokenAccount = getAssociatedTokenAddressSync(
+        paymentMintPublickey,
+        buyer.publicKey,
+        false,
+        TOKEN_PROGRAM_ID
+      );
+
+      const group = getGroupAccountPda(groupMintPublicKey, wnsProgramId);
+      const listing = getListingAccountPda(
+        seller.publicKey,
+        memberMintPublickey,
+        wenWnsMarketplaceId
+      );
+      const member = getMemberAccountPda(memberMintPublickey, wnsProgramId);
+      const extraMetasAccount = getExtraMetasAccountPda(
+        memberMintPublickey,
+        wenTransferGuardId
+      );
+
+      const listingAmount = new anchor.BN(500 * 10 ** 6);
+      const royaltyBasisPoints = 1000;
+      const royalty = listingAmount
+        .mul(new anchor.BN(royaltyBasisPoints))
+        .div(new anchor.BN(10_000));
+      const creator1SharePct = 60;
+      const creator2SharePct = 40;
+
+      before(async () => {
+        const { ixs: createMintIxs } = await createMintTokenKegIx(
+          connection,
+          paymentMintPublickey,
+          paymentMintAuthPublicKey,
+          paymentMintAuthPublicKey
+        );
+
+        await sendAndConfirmWNSTransaction(
+          connection,
+          createMintIxs,
+          provider,
+          true,
+          [paymentMintKeypair]
+        );
+
+        const { ixs: mintToIxs } = mintToBuyerSellerIx(
+          paymentMintPublickey,
+          paymentMintAuthPublicKey,
+          paymentMintAuthPublicKey,
+          buyer.publicKey,
+          buyerPaymentMintTokenAccount,
+          seller.publicKey,
+          sellerPaymentMintTokenAccount
+        );
+
+        await sendAndConfirmWNSTransaction(
+          connection,
+          mintToIxs,
+          provider,
+          true,
+          []
+        );
+      });
+
+      before(async () => {
+        // CREATE GROUP ACCOUNT
+        await wnsProgram.methods
+          .createGroupAccount({
+            maxSize: 1,
+            name,
+            symbol,
+            uri,
+          })
+          .accountsStrict({
+            authority: groupMintAuthPublicKey,
+            group,
+            manager,
+            mint: groupMintPublicKey,
+            mintTokenAccount: groupMintTokenAccount,
+            payer: groupMintAuthPublicKey,
+            receiver: groupMintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([groupMintKeypair])
+          .rpc(preflightConfig);
+
+        // CREATE GUARD ACCOUNT
+        await wenTransferGuard.methods
+          .createGuard({
+            name: "Guard SPL",
+            symbol: "GSPL",
+            uri: "https://guard.spl",
+            cpiRule: { deny: { 0: [] } },
+            additionalFieldsRule: [],
+            transferAmountRule: null,
+          })
+          .accountsStrict({
+            guard,
+            guardAuthority: guardMintAuthPublicKey,
+            mint: transferGuardMintPublicKey,
+            mintTokenAccount: guardMintTokenAccount,
+            payer: guardMintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([guardAuthority, transferGuardMintKeypair])
+          .rpc(preflightConfig);
+      });
+
+      before(async () => {
+        const name = faker.lorem.words({ max: 3, min: 2 });
+        const symbol = faker.lorem.word();
+        const uri = faker.internet.url();
+
+        // CREATE MINT ACCOUNT, ADD MINT TO GROUP, ADD ROYALTIES
+        const ixs = await Promise.all([
+          wnsProgram.methods
+            .addMintToGroup()
+            .accountsStrict({
+              authority: groupMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: groupMintAuthPublicKey,
+              group,
+              manager,
+              member,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .instruction(),
+          wnsProgram.methods
+            .addRoyalties({
+              creators: [
+                {
+                  address: creator1.publicKey,
+                  share: creator1SharePct,
+                },
+                { address: creator2.publicKey, share: creator2SharePct },
+              ],
+              royaltyBasisPoints,
+            })
+            .accountsStrict({
+              extraMetasAccount,
+              authority: memberMintAuthPublicKey,
+              mint: memberMintPublickey,
+              payer: memberMintAuthPublicKey,
+              systemProgram: SystemProgram.programId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .remainingAccounts([
+              {
+                isSigner: false,
+                isWritable: false,
+                pubkey: wenTransferGuardId,
+              },
+              { isSigner: false, isWritable: false, pubkey: guard },
+            ])
+            .instruction(),
+        ]);
+
+        await wnsProgram.methods
+          .createMintAccount({ name, symbol, permanentDelegate: null, uri })
+          .accountsStrict({
+            payer: groupMintAuthPublicKey,
+            manager,
+            mintTokenAccount: sellerMemberMintTokenAccount,
+            authority: memberMintAuthPublicKey,
+            mint: memberMintPublickey,
+            receiver: memberMintAuthPublicKey,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_2022_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .preInstructions([
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+          ])
+          .postInstructions(ixs)
+          .signers([memberMintKeypair, seller])
+          .rpc(preflightConfig);
+      });
+
+      describe("after listing for sale", () => {
+        let listingAccountInfo: AccountInfo<Buffer>;
+        let sellerTokenAccountData: Account;
+        let listingAccountData;
+
+        before(async () => {
+          await wenWnsMarketplace.methods
+            .list({
+              listingAmount,
+              paymentMint: paymentMintPublickey,
+            })
+            .accountsStrict({
+              listing,
+              manager,
+              payer: wallet.publicKey,
+              seller: seller.publicKey,
+              mint: memberMintPublickey,
+              sellerTokenAccount: sellerMemberMintTokenAccount,
+              systemProgram: SystemProgram.programId,
+              wnsProgram: wnsProgramId,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+            })
+            .signers([seller])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+
+          listingAccountInfo = await connection.getAccountInfo(
+            listing,
+            "confirmed"
+          );
+          listingAccountData = wenWnsMarketplace.coder.accounts.decode(
+            "listing",
+            listingAccountInfo.data
+          );
+          sellerTokenAccountData = await getAccount(
+            connection,
+            sellerMemberMintTokenAccount,
+            "confirmed",
+            TOKEN_2022_PROGRAM_ID
+          );
+        });
+
+        it("should have a listing account", () => {
+          expect(listingAccountData).to.not.be.undefined;
+        });
+
+        it("should be owned by sale program", () => {
+          expect(listingAccountInfo.owner).to.eql(wenWnsMarketplaceId);
+        });
+
+        it("should point the listing account as delegate of NFT", () => {
+          expect(sellerTokenAccountData.delegate.toBase58()).to.eql(
+            listing.toBase58()
+          );
+        });
+
+        it("should freeze the NFT", () => {
+          expect(sellerTokenAccountData.isFrozen).to.be.true;
+        });
+      });
+
+      describe("after a sale", () => {
+        const creator1PaymentMintTokenAccount = getAssociatedTokenAddressSync(
+          paymentMintPublickey,
+          creator1.publicKey,
+          false,
+          TOKEN_PROGRAM_ID
+        );
+
+        const creator2PaymentMintTokenAccount = getAssociatedTokenAddressSync(
+          paymentMintPublickey,
+          creator2.publicKey,
+          false,
+          TOKEN_PROGRAM_ID
+        );
+
+        const royalty = listingAmount
+          .mul(new anchor.BN(royaltyBasisPoints))
+          .div(new anchor.BN(10_000));
+
+        let sellerPreBalance: number;
+        let buyerPreBalance: number;
+
+        let creator1PostBalance: number;
+        let creator2PostBalance: number;
+        let sellerPostBalance: number;
+        let buyerPostBalance: number;
+
+        let sellerTokenAccountData: Account;
+        let buyerTokenAccountData: Account;
+
+        before(async () => {
+          buyerPreBalance = parseInt(
+            (
+              await getAccount(
+                connection,
+                buyerPaymentMintTokenAccount,
+                "confirmed",
+                TOKEN_PROGRAM_ID
+              )
+            ).amount.toString()
+          );
+          sellerPreBalance = parseInt(
+            (
+              await getAccount(
+                connection,
+                sellerPaymentMintTokenAccount,
+                "confirmed",
+                TOKEN_PROGRAM_ID
+              )
+            ).amount.toString()
+          );
+
+          const ix = await wenWnsMarketplace.methods
+            .buyTransferGuard({
+              buyAmount: listingAmount,
+            })
+            .accountsStrict({
+              guardAccount: guard,
+              extraMetasAccount,
+              manager,
+              listing,
+              payer: wallet.publicKey,
+              buyer: buyer.publicKey,
+              seller: seller.publicKey,
+              buyerPaymentTokenAccount: buyerPaymentMintTokenAccount,
+              sellerPaymentTokenAccount: sellerPaymentMintTokenAccount,
+              mint: memberMintPublickey,
+              paymentMint: paymentMintPublickey,
+              buyerTokenAccount: buyerMemberMintTokenAccount,
+              sellerTokenAccount: sellerMemberMintTokenAccount,
+              wnsProgram: wnsProgramId,
+              wenTransferGuardProgram: wenTransferGuardId,
+              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              tokenProgram: TOKEN_2022_PROGRAM_ID,
+              paymentTokenProgram: TOKEN_PROGRAM_ID,
+              systemProgram: SystemProgram.programId,
+              sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+            })
+            .remainingAccounts([
+              {
+                isSigner: false,
+                isWritable: true,
+                pubkey: creator1PaymentMintTokenAccount,
+              },
+              {
+                isSigner: false,
+                isWritable: false,
+                pubkey: creator1.publicKey,
+              },
+              {
+                isSigner: false,
+                isWritable: true,
+                pubkey: creator2PaymentMintTokenAccount,
+              },
+              {
+                isSigner: false,
+                isWritable: false,
+                pubkey: creator2.publicKey,
+              },
+            ])
+            .preInstructions([
+              ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }),
+            ])
+            .signers([buyer])
+            .rpc({
+              skipPreflight: true,
+              preflightCommitment: "confirmed",
+              commitment: "confirmed",
+            });
+
+          buyerPostBalance = parseInt(
+            (
+              await getAccount(
+                connection,
+                buyerPaymentMintTokenAccount,
+                "confirmed",
+                TOKEN_PROGRAM_ID
+              )
+            ).amount.toString()
+          );
+          sellerPostBalance =
+            parseInt(
+              (
+                await getAccount(
+                  connection,
+                  sellerPaymentMintTokenAccount,
+                  "confirmed",
+                  TOKEN_PROGRAM_ID
+                )
+              ).amount.toString()
+            ) - sellerPreBalance;
+          creator1PostBalance = parseInt(
+            (
+              await getAccount(
+                connection,
+                creator1PaymentMintTokenAccount,
+                "confirmed",
+                TOKEN_PROGRAM_ID
+              )
+            ).amount.toString()
+          );
+          creator2PostBalance = parseInt(
+            (
+              await getAccount(
+                connection,
+                creator2PaymentMintTokenAccount,
+                "confirmed",
+                TOKEN_PROGRAM_ID
+              )
+            ).amount.toString()
+          );
+
+          sellerTokenAccountData = await getAccount(
+            connection,
+            sellerMemberMintTokenAccount,
+            "confirmed",
+            TOKEN_2022_PROGRAM_ID
+          );
+          buyerTokenAccountData = await getAccount(
+            connection,
+            buyerMemberMintTokenAccount,
+            "confirmed",
+            TOKEN_2022_PROGRAM_ID
+          );
+        });
+
+        describe("royalties", () => {
+          const expectedCreator1Share = royalty
+            .mul(new anchor.BN(creator1SharePct))
+            .div(new anchor.BN(100));
+
+          const expectedCreator2Share = royalty
+            .mul(new anchor.BN(creator2SharePct))
+            .div(new anchor.BN(100));
+
+          it("should receive correct royalty funds", () => {
+            expect(creator1PostBalance).to.eql(
+              expectedCreator1Share.toNumber()
+            );
+            expect(creator2PostBalance).to.eql(
+              expectedCreator2Share.toNumber()
+            );
+          });
+        });
+
+        describe("the seller", () => {
+          it("receive the payment minus royalties", () => {
+            expect(sellerPostBalance).to.eql(
+              listingAmount.sub(royalty).toNumber()
+            );
+          });
+          it("should not be the owner anymore", () => {
+            expect(sellerTokenAccountData.amount.toString()).to.eql("0");
+          });
+        });
+
+        describe("the buyer", () => {
+          it("sent the payment", () => {
+            expect(buyerPostBalance).to.eql(
+              buyerPreBalance - listingAmount.toNumber()
+            );
+          });
+          it("should be the owner", () => {
+            expect(buyerTokenAccountData.amount.toString()).to.eql("1");
+          });
+        });
+      });
+    });
+  });
+
+  describe("a sale via WNS", () => {
     const seller = Keypair.generate();
     const buyer = Keypair.generate();
 

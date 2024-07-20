@@ -2680,9 +2680,7 @@ dependencies = [
 name = "wen-royalties-interface"
 version = "0.1.0"
 dependencies = [
- "anchor-lang",
- "anchor-spl",
- "solana-program",
+ "solana-program 1.18.18",
  "spl-associated-token-account",
  "spl-token-2022",
 ]

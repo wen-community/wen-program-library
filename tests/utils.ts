@@ -36,13 +36,25 @@ export const MEMBER_ACCOUNT_SEED = Buffer.from("member");
 export const MARKETPLACE = Buffer.from("marketplace");
 export const SALE = Buffer.from("sale");
 export const LISTING = Buffer.from("listing");
+export const APPROVE_ACCOUNT_SEED = Buffer.from("approve-account");
+export const EXTRA_METAS_ACCOUNT = Buffer.from("extra-account-metas");
+export const WEN_TOKEN_GUARD = Buffer.from("wen_token_transfer_guard");
+export const GUARD_V1 = Buffer.from("guard_v1");
+
+export const getGuardAccountPda = (mint: PublicKey, programId: PublicKey) => {
+  const [guardAccount] = PublicKey.findProgramAddressSync(
+    [WEN_TOKEN_GUARD, GUARD_V1, mint.toBuffer()],
+    programId
+  );
+  return guardAccount;
+};
 
 export const getExtraMetasAccountPda = (
   mint: PublicKey,
   programId: PublicKey
 ) => {
   const [extraMetasAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("extra-account-metas"), mint.toBuffer()],
+    [EXTRA_METAS_ACCOUNT, mint.toBuffer()],
     programId
   );
   return extraMetasAccount;
@@ -50,7 +62,7 @@ export const getExtraMetasAccountPda = (
 
 export const getApproveAccountPda = (mint: PublicKey, programId: PublicKey) => {
   const [approveAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("approve-account"), mint.toBuffer()],
+    [APPROVE_ACCOUNT_SEED, mint.toBuffer()],
     programId
   );
 
@@ -59,7 +71,7 @@ export const getApproveAccountPda = (mint: PublicKey, programId: PublicKey) => {
 
 export const getManagerAccountPda = (programId: PublicKey) => {
   const [managerAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("manager")],
+    [MANAGER_SEED],
     programId
   );
   return managerAccount;
@@ -67,7 +79,7 @@ export const getManagerAccountPda = (programId: PublicKey) => {
 
 export const getGroupAccountPda = (mint: PublicKey, programId: PublicKey) => {
   const [groupAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("group"), mint.toBuffer()],
+    [GROUP_ACCOUNT_SEED, mint.toBuffer()],
     programId
   );
   return groupAccount;
@@ -75,7 +87,7 @@ export const getGroupAccountPda = (mint: PublicKey, programId: PublicKey) => {
 
 export const getMemberAccountPda = (mint: PublicKey, programId: PublicKey) => {
   const [memberAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from("member"), mint.toBuffer()],
+    [MEMBER_ACCOUNT_SEED, mint.toBuffer()],
     programId
   );
   return memberAccount;

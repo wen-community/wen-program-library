@@ -18,7 +18,7 @@ use crate::{
 pub struct Execute<'info> {
     #[account(
         token::mint = mint,
-        token::authority = owner_delegate,
+        // token::authority = owner_delegate,
         token::token_program = TOKEN_2022_PROGRAM_ID,
     )]
     pub source_account: Box<InterfaceAccount<'info, TokenAccount>>,
@@ -31,8 +31,8 @@ pub struct Execute<'info> {
         token::token_program = TOKEN_2022_PROGRAM_ID,
     )]
     pub destination_account: Box<InterfaceAccount<'info, TokenAccount>>,
-
-    pub owner_delegate: SystemAccount<'info>,
+    /// CHECK: can be any type of account, checked with a constraint above
+    pub owner_delegate: UncheckedAccount<'info>,
 
     /// CHECK: This account's data is a buffer of TLV data
     #[account(

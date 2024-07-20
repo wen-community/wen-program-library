@@ -130,7 +130,7 @@ pub struct TransferCheckedWithTransferGuard<'info> {
     /// CHECK: CPI Accounts
     pub extra_metas_account: AccountInfo<'info>,
     /// CHECK: CPI Accounts
-    pub guard: AccountInfo<'info>,
+    pub guard_account: AccountInfo<'info>,
     /// CHECK: CPI Accounts
     pub sysvar_instructions: AccountInfo<'info>,
 }
@@ -159,8 +159,9 @@ pub fn transfer_checked_with_transfer_guard<'info>(
     ];
 
     let additional_account_infos = vec![
-        ctx.accounts.guard.to_account_info(),
+        ctx.accounts.guard_account.to_account_info(),
         ctx.accounts.sysvar_instructions.to_account_info(),
+        ctx.accounts.wen_transfer_guard_program.to_account_info(),
         ctx.accounts.extra_metas_account.to_account_info(),
     ];
 
