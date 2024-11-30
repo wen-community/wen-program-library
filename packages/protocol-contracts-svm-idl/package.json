@@ -1,0 +1,35 @@
+{
+  "name": "@rarible_int/protocol-contracts-svm-idl",
+  "version": "0.1.0",
+  "keywords": [
+    "rarible",
+    "editions",
+    "eclipse",
+    "idl"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rarible/protocol-contracts-svm.git"
+  },
+  "license": "MIT",
+  "main": "build/index.js",
+  "files": [
+    "lib"
+  ],
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    "./lib/esm/*": "./lib/esm/*",
+    "./lib/cjs/*": "./lib/cjs/*.js",
+    "./lib/types/*": "./lib/types/*"
+  },
+  "scripts": {
+    "clean": "mkdir -p lib && rm -rf lib",
+    "package": "npx shx mkdir  -p lib/cjs lib/esm lib/types",
+    "build": "rm -rf ./lib && tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json ./tsconfig.types.json"
+  },
+  "peerDependencies": {
+  },
+  "publishConfig": {
+    "registry": "http://nexus.rarible.int/repository/npm/"
+  }
+}

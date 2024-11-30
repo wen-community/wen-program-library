@@ -1,0 +1,10 @@
+# General .gitignore
+node_modules/
+dist/
+.env
+.DS_Store
+*.log
+*.tmp
+
+# Add the data folder
+data/

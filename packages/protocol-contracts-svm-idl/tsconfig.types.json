@@ -1,0 +1,13 @@
+
+
+  {
+    "include": ["../../target/types/**/*", "../../target/idl/**/*.json"],
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "sourceMap": true,
+      "outDir": "./lib/types",
+      "rootDir": "../../target",
+      "composite": true,
+      "resolveJsonModule": true,
+    }
+  }

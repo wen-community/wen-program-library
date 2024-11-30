@@ -1,0 +1,1287 @@
+{
+  "address": "RariUNM3vz1rwxPg8UJyRAN7rSKXxgd2ncS2ddCa4ZE",
+  "metadata": {
+    "name": "rarible_editions_controls",
+    "version": "0.2.1",
+    "spec": "0.1.0",
+    "description": "Created with Anchor",
+    "repository": "https://github.com/rarible/eclipse-program-library"
+  },
+  "instructions": [
+    {
+      "name": "add_phase",
+      "discriminator": [
+        245,
+        220,
+        147,
+        40,
+        30,
+        207,
+        36,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "editions_controls",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "rarible_editions_program",
+          "address": "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "InitialisePhaseInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "initialise_editions_controls",
+      "discriminator": [
+        69,
+        176,
+        133,
+        29,
+        20,
+        49,
+        120,
+        202
+      ],
+      "accounts": [
+        {
+          "name": "editions_controls",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "editions_deployment",
+          "writable": true
+        },
+        {
+          "name": "hashlist",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "creator"
+        },
+        {
+          "name": "group_mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "group",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "group_extension_program",
+          "address": "RariGDYwEF1jQA4kisHxBxiv1TDuBPVHNNoXFNYriFb"
+        },
+        {
+          "name": "rarible_editions_program",
+          "address": "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "InitialiseControlInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "mint_with_controls",
+      "discriminator": [
+        167,
+        57,
+        252,
+        220,
+        69,
+        92,
+        231,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true
+        },
+        {
+          "name": "editions_controls",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "hashlist",
+          "writable": true
+        },
+        {
+          "name": "hashlist_marker",
+          "writable": true
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer",
+          "docs": [
+            "When deployment.require_creator_cosign is true, this must be equal to the creator",
+            "of the deployment; otherwise, can be any signer account"
+          ],
+          "signer": true
+        },
+        {
+          "name": "minter",
+          "writable": true
+        },
+        {
+          "name": "minter_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  116,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              },
+              {
+                "kind": "account",
+                "path": "minter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "minter_stats_phase",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  105,
+                  110,
+                  116,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115,
+                  95,
+                  112,
+                  104,
+                  97,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              },
+              {
+                "kind": "account",
+                "path": "minter"
+              },
+              {
+                "kind": "arg",
+                "path": "mint_input.phase_index"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "group",
+          "writable": true
+        },
+        {
+          "name": "group_mint",
+          "writable": true
+        },
+        {
+          "name": "platform_fee_recipient_1",
+          "writable": true
+        },
+        {
+          "name": "token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "group_extension_program",
+          "address": "RariGDYwEF1jQA4kisHxBxiv1TDuBPVHNNoXFNYriFb"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rarible_editions_program",
+          "address": "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+        }
+      ],
+      "args": [
+        {
+          "name": "mint_input",
+          "type": {
+            "defined": {
+              "name": "MintInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "modify_platform_fee",
+      "discriminator": [
+        186,
+        73,
+        229,
+        152,
+        183,
+        174,
+        250,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true
+        },
+        {
+          "name": "editions_controls",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "UpdatePlatformFeeArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "modify_platform_secondary_admin",
+      "discriminator": [
+        128,
+        153,
+        231,
+        143,
+        156,
+        220,
+        161,
+        147
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true
+        },
+        {
+          "name": "editions_controls",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "UpdatePlatformFeeSecondaryAdminInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "modify_royalties",
+      "discriminator": [
+        199,
+        95,
+        20,
+        107,
+        136,
+        161,
+        93,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true
+        },
+        {
+          "name": "editions_controls",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  111,
+                  108,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "rarible_editions_program",
+          "address": "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "UpdateRoyaltiesArgs"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "EditionsControls",
+      "discriminator": [
+        124,
+        32,
+        239,
+        85,
+        118,
+        231,
+        152,
+        156
+      ]
+    },
+    {
+      "name": "EditionsDeployment",
+      "discriminator": [
+        101,
+        54,
+        68,
+        216,
+        168,
+        131,
+        242,
+        157
+      ]
+    },
+    {
+      "name": "MinterStats",
+      "discriminator": [
+        138,
+        239,
+        240,
+        226,
+        199,
+        53,
+        170,
+        179
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "TickerTooLong",
+      "msg": "Ticker too long"
+    },
+    {
+      "code": 6001,
+      "name": "MintTemplateTooLong",
+      "msg": "Mint template too long"
+    },
+    {
+      "code": 6002,
+      "name": "DeploymentTemplateTooLong",
+      "msg": "Deployment template too long"
+    },
+    {
+      "code": 6003,
+      "name": "RootTypeTooLong",
+      "msg": "Root type too long"
+    },
+    {
+      "code": 6004,
+      "name": "MintedOut",
+      "msg": "Minted out"
+    },
+    {
+      "code": 6005,
+      "name": "LegacyMigrationsAreMintedOut",
+      "msg": "Legacy migrations are minted out"
+    },
+    {
+      "code": 6006,
+      "name": "MissingGlobalTreeDelegate",
+      "msg": "Global tree delegate is missing"
+    },
+    {
+      "code": 6007,
+      "name": "IncorrectMintType",
+      "msg": "Incorrect mint type"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidMetadata",
+      "msg": "Invalid Metadata"
+    },
+    {
+      "code": 6009,
+      "name": "CreatorFeeTooHigh",
+      "msg": "Creator fee too high"
+    },
+    {
+      "code": 6010,
+      "name": "FeeCalculationError",
+      "msg": "Platform fee calculation failed."
+    },
+    {
+      "code": 6011,
+      "name": "FeeExceedsPrice",
+      "msg": "Total fee exceeds the price amount."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidFeeShares",
+      "msg": "Total fee shares must equal 100."
+    },
+    {
+      "code": 6013,
+      "name": "TooManyRecipients",
+      "msg": "Too many platform fee recipients. Maximum allowed is 5."
+    },
+    {
+      "code": 6014,
+      "name": "RecipientMismatch",
+      "msg": "Recipient account does not match the expected address."
+    },
+    {
+      "code": 6015,
+      "name": "NoPhasesAdded",
+      "msg": "No phases have been added. Cannot mint."
+    },
+    {
+      "code": 6016,
+      "name": "InvalidPhaseIndex",
+      "msg": "Invalid phase index."
+    },
+    {
+      "code": 6017,
+      "name": "PrivatePhaseNoProof",
+      "msg": "Private phase but no merkle proof provided"
+    },
+    {
+      "code": 6018,
+      "name": "MerkleRootNotSet",
+      "msg": "Merkle root not set for allow list mint"
+    },
+    {
+      "code": 6019,
+      "name": "MerkleProofRequired",
+      "msg": "Merkle proof required for allow list mint"
+    },
+    {
+      "code": 6020,
+      "name": "AllowListPriceAndMaxClaimsRequired",
+      "msg": "Allow list price and max claims are required for allow list mint"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidMerkleProof",
+      "msg": "Invalid merkle proof"
+    },
+    {
+      "code": 6022,
+      "name": "ExceededAllowListMaxClaims",
+      "msg": "This wallet has exceeded allow list max_claims in the current phase"
+    },
+    {
+      "code": 6023,
+      "name": "PhaseNotActive",
+      "msg": "Phase not active"
+    },
+    {
+      "code": 6024,
+      "name": "PhaseNotStarted",
+      "msg": "Phase not yet started"
+    },
+    {
+      "code": 6025,
+      "name": "PhaseAlreadyFinished",
+      "msg": "Phase already finished"
+    },
+    {
+      "code": 6026,
+      "name": "ExceededMaxMintsForPhase",
+      "msg": "Exceeded max mints for this phase"
+    },
+    {
+      "code": 6027,
+      "name": "ExceededWalletMaxMintsForPhase",
+      "msg": "Exceeded wallet max mints for this phase"
+    },
+    {
+      "code": 6028,
+      "name": "ExceededWalletMaxMintsForCollection",
+      "msg": "Exceeded wallet max mints for the collection"
+    }
+  ],
+  "types": [
+    {
+      "name": "AddMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreatorWithShare",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "share",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditionsControls",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "editions_deployment",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_mints_per_wallet",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner_program_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_fee_primary_admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_fee_secondary_admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_fee_value",
+            "type": "u64"
+          },
+          {
+            "name": "is_fee_flat",
+            "type": "bool"
+          },
+          {
+            "name": "platform_fee_recipients",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "PlatformFeeRecipient"
+                  }
+                },
+                5
+              ]
+            }
+          },
+          {
+            "name": "phases",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Phase"
+                }
+              }
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                200
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditionsDeployment",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_number_of_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "number_of_tokens_issued",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner_program_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "group_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "item_base_name",
+            "type": "string"
+          },
+          {
+            "name": "item_base_uri",
+            "type": "string"
+          },
+          {
+            "name": "item_name_is_template",
+            "type": "bool"
+          },
+          {
+            "name": "item_uri_is_template",
+            "type": "bool"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                98
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitialiseControlInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_mints_per_wallet",
+            "type": "u64"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_number_of_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "collection_name",
+            "type": "string"
+          },
+          {
+            "name": "collection_uri",
+            "type": "string"
+          },
+          {
+            "name": "cosigner_program_id",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "royalties",
+            "type": {
+              "defined": {
+                "name": "UpdateRoyaltiesArgs"
+              }
+            }
+          },
+          {
+            "name": "extra_meta",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "AddMetadataArgs"
+                }
+              }
+            }
+          },
+          {
+            "name": "item_base_uri",
+            "type": "string"
+          },
+          {
+            "name": "item_base_name",
+            "type": "string"
+          },
+          {
+            "name": "platform_fee",
+            "type": {
+              "defined": {
+                "name": "UpdatePlatformFeeArgs"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitialisePhaseInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "price_amount",
+            "type": "u64"
+          },
+          {
+            "name": "price_token",
+            "type": "pubkey"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          },
+          {
+            "name": "max_mints_per_wallet",
+            "type": "u64"
+          },
+          {
+            "name": "max_mints_total",
+            "type": "u64"
+          },
+          {
+            "name": "end_time",
+            "type": "i64"
+          },
+          {
+            "name": "is_private",
+            "type": "bool"
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "option": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "phase_index",
+            "type": "u32"
+          },
+          {
+            "name": "merkle_proof",
+            "type": {
+              "option": {
+                "vec": {
+                  "array": [
+                    "u8",
+                    32
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "name": "allow_list_price",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "allow_list_max_claims",
+            "type": {
+              "option": "u64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MinterStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint_count",
+            "type": "u64"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                50
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Phase",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "price_amount",
+            "type": "u64"
+          },
+          {
+            "name": "price_token",
+            "type": "pubkey"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "max_mints_per_wallet",
+            "type": "u64"
+          },
+          {
+            "name": "max_mints_total",
+            "type": "u64"
+          },
+          {
+            "name": "end_time",
+            "type": "i64"
+          },
+          {
+            "name": "current_mints",
+            "type": "u64"
+          },
+          {
+            "name": "is_private",
+            "type": "bool"
+          },
+          {
+            "name": "merkle_root",
+            "type": {
+              "option": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                200
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformFeeRecipient",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "share",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdatePlatformFeeArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "platform_fee_value",
+            "type": "u64"
+          },
+          {
+            "name": "recipients",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "PlatformFeeRecipient"
+                }
+              }
+            }
+          },
+          {
+            "name": "is_fee_flat",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdatePlatformFeeSecondaryAdminInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "new_admin",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateRoyaltiesArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "royalty_basis_points",
+            "type": "u16"
+          },
+          {
+            "name": "creators",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "CreatorWithShare"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[package]
+name = "merkle-tree-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "merkle-tree-cli"
+path = "src/bin/cli.rs"
+
+[dependencies]
+clap = { version = "3.2.25", features = ["derive", "env"] }
+merkle-tree = { version="*", path = "../merkle-tree" }

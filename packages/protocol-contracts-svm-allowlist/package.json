@@ -1,0 +1,54 @@
+{
+  "name": "@rarible_int/protocol-contracts-svm-allowlist",
+  "version": "0.1.0",
+  "keywords": [
+    "rarible",
+    "editions",
+    "allowlist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rariblecom/minting-sdk.git"
+  },
+  "license": "MIT",
+  "main": "build/index.js",
+  "files": [
+    "/build"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig-build.json",
+    "clean": "mkdir -p build && mkdir -p node_modules && rm -rf build && rm -rf node_modules",
+    "package": "npx shx mkdir -p lib/cjs lib/esm lib/types",
+    "get-airtable-entries": "tsx scripts/get-airtable-entries.ts",
+    "generate-burn-allowlist": "tsx scripts/generate-burn-allowlist.ts",
+    "generate-merkle-tree": "cd ../../crates/merkle-tree-cli && cargo run create-merkle-tree --csv-path ./data/allow_list.csv --merkle-tree-path ./data/merkle_tree.json && cd ../../packages/protocol-contracts-svm-allowlist",
+    "upload-proofs-web3storage": "tsx scripts/upload-merkle-proofs-web3storage.ts",
+    "get-proof-web3storage": "tsx scripts/get-merkle-proof-web3storage.ts",
+    "upload-proofs-filebase": "tsx scripts/upload-merkle-proofs-filebase.ts",
+    "get-proof-filebase": "tsx scripts/get-merkle-proof-filebase.ts"
+  },
+  "dependencies": {
+    "@types/node": "^22.9.0",
+    "@web3-storage/w3up-client": "^16.4.1",
+    "@ledgerhq/hw-app-solana": "^7.2.4",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.5",
+    "airtable": "^0.12.2",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@web3-storage/w3up-client": "^16.4.1",
+    "ethers": "^6.13.4",
+    "files-from-path": "^1.0.4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
+    "typescript": "5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "registry": "http://nexus.rarible.int/repository/npm/"
+  }
+}

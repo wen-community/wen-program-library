@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "version": "0.1.0",
+  "changelog": false,
+  "command": {
+    "publish": {
+      "allowBranch": [
+        "release/*",
+        "feature/*"
+      ],
+      "conventionalCommits": true,
+      "message": "chore: bump versions after release",
+      "yes": true,
+      "registry": "http://nexus.rarible.int/repository/npm/"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["../../target/types", "../../target/idl"],
+    "compilerOptions": {
+      "rootDir": "../../target",
+      "outDir": "lib/esm",
+      "declarationDir": "lib/types",
+      "target": "ESNext",
+      "module": "ESNext",
+      "sourceMap": false,
+      "declaration": true,
+      "composite": true,
+      "resolveJsonModule": true,
+    }
+  }

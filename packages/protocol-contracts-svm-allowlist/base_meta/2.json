@@ -1,0 +1,18 @@
+{
+    "name": "AOFE 2",
+    "description": "Anticipation (of a future event), eclipse start. First minted on Ethereum on 08/04/2024 during the solar eclipse and revealed on Eclipse on 6/10/2024. Digitally altered solar eclipse photograph. By Loucas Braconnier/Figure31.",
+    "tokenId": "2",
+    "image": "https://uploader.irys.xyz/8rNjMGR7trq2PC3Xo2i53dvPkELQKwHEaUoQ4dY7W1PA/full_rez/oe_2.jpg",
+    "preview_image": "https://uploader.irys.xyz/8rNjMGR7trq2PC3Xo2i53dvPkELQKwHEaUoQ4dY7W1PA/preview_images/oe_2.jpg",
+    "external_url": "https://x.com/figure31_",
+    "attributes": [
+      {
+        "trait_type": "Phase",
+        "value": "Eclipse Start"
+      },
+      {
+        "trait_type": "Time",
+        "value": "14:14 to 15:25"
+      }
+    ]
+    }

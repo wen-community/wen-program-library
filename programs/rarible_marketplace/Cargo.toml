@@ -1,0 +1,38 @@
+[package]
+name = "rarible_marketplace"
+version = "0.1.0"
+description = "Base marketplace contracts on SVM for rarible"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "rarible_marketplace"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = [
+  "anchor-lang/idl-build", 
+  "anchor-spl/idl-build",
+]
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = [
+  "init-if-needed",
+  "interface-instructions",
+  "allow-missing-optionals",
+  "event-cpi"
+] }
+anchor-spl = { version = "0.30.1", features = ["token_2022_extensions", "token_2022"] }
+wen_new_standard = { git = "https://github.com/ifelsedeveloper/wen-program-library", branch="main", features = ["cpi"] }
+wen_royalty_distribution =  { git = "https://github.com/ifelsedeveloper/wen-program-library", features = ["cpi"] }
+mpl-token-metadata =  { version = "4.1.2", features = ["serde"] }
+mpl-bubblegum = { version = "1.4.0" }
+num_enum = "0.5.11"
+spl-transfer-hook-interface = "0.6.5"
+spl-tlv-account-resolution = "0.6.5"
+spl-pod = "0.2.2"
+spl-token-group-interface = "0.2.3"

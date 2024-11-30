@@ -1,0 +1,975 @@
+{
+  "address": "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn",
+  "metadata": {
+    "name": "rarible_editions",
+    "version": "0.2.1",
+    "spec": "0.1.0",
+    "description": "Created with Anchor",
+    "repository": "https://github.com/rarible/eclipse-program-library"
+  },
+  "instructions": [
+    {
+      "name": "add_metadata",
+      "docs": [
+        "add additional metadata to mint"
+      ],
+      "discriminator": [
+        231,
+        195,
+        40,
+        240,
+        67,
+        231,
+        53,
+        136
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  100,
+                  101,
+                  112,
+                  108,
+                  111,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment.symbol",
+                "account": "EditionsDeployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "AddMetadataArgs"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "add_royalties",
+      "docs": [
+        "add royalties to mint"
+      ],
+      "discriminator": [
+        195,
+        251,
+        126,
+        230,
+        187,
+        134,
+        168,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  100,
+                  101,
+                  112,
+                  108,
+                  111,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment.symbol",
+                "account": "EditionsDeployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "UpdateRoyaltiesArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "initialise",
+      "discriminator": [
+        162,
+        198,
+        118,
+        235,
+        215,
+        247,
+        25,
+        118
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  100,
+                  101,
+                  112,
+                  108,
+                  111,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "input.symbol"
+              }
+            ]
+          }
+        },
+        {
+          "name": "hashlist",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  104,
+                  97,
+                  115,
+                  104,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "group_mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "group",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "group_extension_program",
+          "address": "RariGDYwEF1jQA4kisHxBxiv1TDuBPVHNNoXFNYriFb"
+        }
+      ],
+      "args": [
+        {
+          "name": "input",
+          "type": {
+            "defined": {
+              "name": "InitialiseInput"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "mint",
+      "discriminator": [
+        51,
+        57,
+        225,
+        47,
+        182,
+        146,
+        137,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  100,
+                  101,
+                  112,
+                  108,
+                  111,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment.symbol",
+                "account": "EditionsDeployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "hashlist",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  104,
+                  97,
+                  115,
+                  104,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "hashlist_marker",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  104,
+                  97,
+                  115,
+                  104,
+                  108,
+                  105,
+                  115,
+                  116,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "minter",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "member",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "group",
+          "writable": true
+        },
+        {
+          "name": "group_mint",
+          "writable": true
+        },
+        {
+          "name": "token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "group_extension_program",
+          "address": "RariGDYwEF1jQA4kisHxBxiv1TDuBPVHNNoXFNYriFb"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "modify_royalties",
+      "docs": [
+        "modify royalties of mint"
+      ],
+      "discriminator": [
+        199,
+        95,
+        20,
+        107,
+        136,
+        161,
+        93,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "editions_deployment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  100,
+                  101,
+                  112,
+                  108,
+                  111,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment.symbol",
+                "account": "EditionsDeployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "UpdateRoyaltiesArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "remove_metadata",
+      "docs": [
+        "remove additional metadata to mint"
+      ],
+      "discriminator": [
+        81,
+        68,
+        231,
+        49,
+        91,
+        8,
+        111,
+        160
+      ],
+      "accounts": [
+        {
+          "name": "editions_deployment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  100,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  100,
+                  101,
+                  112,
+                  108,
+                  111,
+                  121,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "editions_deployment.symbol",
+                "account": "EditionsDeployment"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "RemoveMetadataArgs"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "EditionsDeployment",
+      "discriminator": [
+        101,
+        54,
+        68,
+        216,
+        168,
+        131,
+        242,
+        157
+      ]
+    },
+    {
+      "name": "Hashlist",
+      "discriminator": [
+        187,
+        203,
+        134,
+        6,
+        43,
+        198,
+        120,
+        186
+      ]
+    },
+    {
+      "name": "HashlistMarker",
+      "discriminator": [
+        55,
+        46,
+        160,
+        53,
+        239,
+        41,
+        223,
+        50
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "SizeExceedsMaxSize",
+      "msg": "Collection size exceeds max size."
+    },
+    {
+      "code": 6001,
+      "name": "MaxSizeBelowCurrentSize",
+      "msg": "Max size cannot be reduced below current size."
+    },
+    {
+      "code": 6002,
+      "name": "CreatorShareInvalid",
+      "msg": "Creators shares must add up to 100."
+    },
+    {
+      "code": 6003,
+      "name": "MissingApproveAccount",
+      "msg": "Missing approve account."
+    },
+    {
+      "code": 6004,
+      "name": "ExpiredApproveAccount",
+      "msg": "Approve account has expired."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidField",
+      "msg": "Invalid field. You cannot use a public key as a field."
+    },
+    {
+      "code": 6006,
+      "name": "CreatorAddressInvalid",
+      "msg": "The Address you provided is invalid. Please provide a valid address."
+    },
+    {
+      "code": 6007,
+      "name": "RoyaltyBasisPointsInvalid",
+      "msg": "Royalty basis points must be less than or equal to 10000."
+    },
+    {
+      "code": 6008,
+      "name": "PlatformFeeBasisPointsInvalid",
+      "msg": "Platform fee basis points must be less than or equal to 10000."
+    },
+    {
+      "code": 6009,
+      "name": "RecipientShareInvalid",
+      "msg": "Recipient shares must add up to 100."
+    },
+    {
+      "code": 6010,
+      "name": "ReservedField",
+      "msg": "The provided field is invalid or reserved."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidNumberOfRecipients",
+      "msg": "Invalid number of platform fee recipients. Exactly 5 recipients are required."
+    }
+  ],
+  "types": [
+    {
+      "name": "AddMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreatorWithShare",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "share",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditionsDeployment",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_number_of_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "number_of_tokens_issued",
+            "type": "u64"
+          },
+          {
+            "name": "cosigner_program_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "group_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "item_base_name",
+            "type": "string"
+          },
+          {
+            "name": "item_base_uri",
+            "type": "string"
+          },
+          {
+            "name": "item_name_is_template",
+            "type": "bool"
+          },
+          {
+            "name": "item_uri_is_template",
+            "type": "bool"
+          },
+          {
+            "name": "padding",
+            "type": {
+              "array": [
+                "u8",
+                98
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Hashlist",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "deployment",
+            "type": "pubkey"
+          },
+          {
+            "name": "issues",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "MintAndOrder"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "HashlistMarker",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "editions_deployment",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitialiseInput",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "collection_name",
+            "type": "string"
+          },
+          {
+            "name": "collection_uri",
+            "type": "string"
+          },
+          {
+            "name": "max_number_of_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "creator_cosign_program_id",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "item_base_uri",
+            "type": "string"
+          },
+          {
+            "name": "item_base_name",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MintAndOrder",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "order",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RemoveMetadataArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateRoyaltiesArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "royalty_basis_points",
+            "type": "u16"
+          },
+          {
+            "name": "creators",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "CreatorWithShare"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

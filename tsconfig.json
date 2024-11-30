@@ -2,9 +2,24 @@
   "compilerOptions": {
     "types": ["mocha", "chai"],
     "typeRoots": ["./node_modules/@types"],
-    "lib": ["es2015"],
     "module": "commonjs",
     "target": "es6",
-    "esModuleInterop": true
+    "lib": ["es6", "dom"],
+    "incremental": true,
+    "skipLibCheck": true,
+    "importHelpers": true,
+    "strict": false,
+    "declaration": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020
   }
 }

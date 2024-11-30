@@ -4,17 +4,20 @@
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
-wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
-wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
-wen_transfer_guard = "LockdqYQ9X2kwtWB99ioSbxubAmEi8o9jqYwbXgrrRw"
-
 [programs.devnet]
-wen_wns_marketplace = "sALEeD9VGNquoGSXvUAKLeVbXdjiPCb3FTuTm1xSLod"
-wen_new_standard = "wns1gDLt8fgLcGhWi5MqAqgXpwEP1JftKE9eZnXS1HM"
-wen_royalty_distribution = "diste3nXmK7ddDTs1zb6uday6j4etCa9RChD8fJ1xay"
-wen_transfer_guard = "LockdqYQ9X2kwtWB99ioSbxubAmEi8o9jqYwbXgrrRw"
+rarible_editions = "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+rarible_editions_controls = "RariUNM3vz1rwxPg8UJyRAN7rSKXxgd2ncS2ddCa4ZE"
+rarible_marketplace = "Rarim7DMoD45z1o25QWPsWvTdFSSEdxaxriwWZLLTic"
+
+[programs.localnet]
+rarible_editions = "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+rarible_editions_controls = "RariUNM3vz1rwxPg8UJyRAN7rSKXxgd2ncS2ddCa4ZE"
+rarible_marketplace = "Rarim7DMoD45z1o25QWPsWvTdFSSEdxaxriwWZLLTic"
+
+[programs.mainnet]
+rarible_editions = "Rari9ftBd6vFdtpn8TDLwN2ze24KKkM5MLEETNiBMNn"
+rarible_editions_controls = "RariUNM3vz1rwxPg8UJyRAN7rSKXxgd2ncS2ddCa4ZE"
+rarible_marketplace = "Rarim7DMoD45z1o25QWPsWvTdFSSEdxaxriwWZLLTic"
 
 [registry]
 url = "https://api.apr.dev"
@@ -29,4 +32,25 @@ test = "RUST_LOG= yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.tes
 [test]
 startup_wait = 50000
 shutdown_wait = 2000
-upgradeable = false
+upgradeable = true
+
+[test.validator]
+bind_address = "0.0.0.0"
+url = "https://api.devnet.solana.com"
+ledger = ".anchor/test-ledger"
+rpc_port = 8899
+
+[[test.validator.clone]]
+address = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+
+[[test.validator.clone]]
+address = "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY"
+
+[[test.validator.clone]]
+address = "cmtDvXumGCrqC1Age74AVPhSRVXJMd8PJS91L8KbNCK"
+
+[[test.validator.clone]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+
+[[test.validator.clone]]
+address = "RariGDYwEF1jQA4kisHxBxiv1TDuBPVHNNoXFNYriFb"

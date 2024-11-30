@@ -1,0 +1,12 @@
+[package]
+name = "merkle-tree-verify"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anchor-lang = {version = "~0.30"}
+anchor-spl = {version = "~0.30"}
+solana-program = {version = "1.17.13"}
+
+[features]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]

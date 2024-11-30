@@ -1,0 +1,2 @@
+WL_URI=ipfs://bafybeifoavftgdmwhlod26rzwoxpetnbcjnpfrvsniqdtuzh6t67jdlhgq
+WL_URI_v2=ipfs://QmPtPtSnJPGhM3CfATSC75gBfN9qSXQcEy7Mha6VbDmsK7

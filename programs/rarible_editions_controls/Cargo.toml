@@ -1,0 +1,40 @@
+[package]
+name = "rarible_editions_controls"
+version = "0.2.1"
+description = "Created with Anchor"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/rarible/eclipse-program-library"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "rarible_editions_controls"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = {version = "~0.30", features = ["init-if-needed"]}
+anchor-spl = {version = "~0.30"}
+
+rarible_editions = {version="*", path = "../rarible_editions", features =["cpi", "no-entrypoint"]}
+merkle-tree-verify = { version="*", path = "../../crates/merkle-tree-verify" }
+
+solana-program = {version = "1.17.13"}
+arrayref = "0.3.7"
+libreplex_shared = {version= "0.3.0", features=["no-entrypoint"] }
+spl-token-2022 = {version = "~3.0", features = ["no-entrypoint"]}
+spl-token-metadata-interface = {version= "~0.3"}
+spl-token-group-interface = {version= "0.2.3"}
+spl-type-length-value = {version= "0.3.0"}
+spl-pod = {version= "~0.2"}
+
+
+[dev-dependencies]
+solana-program-test = {version= "1.17.13"}
+solana-sdk= "1.17.13"
